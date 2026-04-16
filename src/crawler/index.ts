@@ -7,7 +7,7 @@ import {
   crawlDoubanTVSeries,
 } from "./crawlers.js";
 
-// 🔥 新增：声明 Cloudflare 环境变量类型
+// 🔥 声明 Cloudflare 环境变量类型，防报错
 type Bindings = {
   TRAKT_CLIENT_ID: string;
 };
@@ -18,11 +18,10 @@ const R2_CUSTOM_DOMAIN = process.env.R2_CUSTOM_DOMAIN || "assets.eplayerx.com";
 const app = new Hono<{ Bindings: Bindings }>();
 
 // =====================================
-// 🔥 新增：Trakt 实时获取工具函数
+// 🔥 Trakt 实时获取工具函数
 // =====================================
 async function fetchTraktTrending(clientId: string) {
   try {
-    // 获取前 20 个热门数据
     const response = await fetch("https://api.trakt.tv/movies/trending?limit=20", {
       headers: {
         "Content-Type": "application/json",
@@ -39,8 +38,6 @@ async function fetchTraktTrending(clientId: string) {
     }
 
     const data = await response.json();
-    
-    // 整理成原项目可以识别的格式 (提取 title 供原系统去匹配 TMDB 海报)
     return data.map((item: any) => ({
       title: item.movie.title,
       year: item.movie.year,
@@ -54,7 +51,7 @@ async function fetchTraktTrending(clientId: string) {
 }
 
 // =====================================
-// 原有路由保持不变
+// 爬虫与定时任务路由 (保持原样不动)
 // =====================================
 
 app.post("/crawl/movies", async (c) => {
@@ -84,27 +81,16 @@ app.post("/crawl/bangumi/animation", async (c) => {
 
 app.get("/cron/crawl-all", async (c) => {
   const startTime = Date.now();
-
   try {
     console.log("🕐 Scheduled crawl started at", new Date().toISOString());
-
-    // Run all crawlers in parallel for better performance
-    const [
-      movies,
-      tvSeries,
-      doubanAnimation,
-      hotVarietyShows,
-      bangumiAnimation,
-    ] = await Promise.all([
+    const [movies, tvSeries, doubanAnimation, hotVarietyShows, bangumiAnimation] = await Promise.all([
       crawlDoubanMovies(),
       crawlDoubanTVSeries(),
       crawlDoubanAnimation(),
       crawlDoubanHotVarietyShows(),
       crawlBangumiAnimation(),
     ]);
-
     const duration = Date.now() - startTime;
-
     return c.json({
       success: true,
       movies: { count: movies.length },
@@ -117,116 +103,78 @@ app.get("/cron/crawl-all", async (c) => {
     });
   } catch (error) {
     console.error("❌ Scheduled crawl failed:", error);
-    return c.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      500
-    );
+    return c.json({ success: false, error: error instanceof Error ? error.message : "Unknown error" }, 500);
   }
 });
 
+// =====================================
+// 🔥 改造核心：将 Trakt 缝合进豆瓣电影接口！
+// =====================================
 app.get("/popular/douban/movies", async (c) => {
-  const url = `https://${R2_CUSTOM_DOMAIN}/douban-movies.json`;
-  const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
+  try {
+    // 1. 获取原有的豆瓣数据
+    const doubanUrl = `https://${R2_CUSTOM_DOMAIN}/douban-movies.json`;
+    const doubanResponse = await fetch(doubanUrl);
+    let doubanMovies = [];
+    if (doubanResponse.ok) {
+      doubanMovies = await doubanResponse.json();
+    }
+
+    // 2. 获取新的 Trakt 热门数据
+    let traktMovies: any[] = [];
+    const clientId = c.env.TRAKT_CLIENT_ID?.trim();
+    if (clientId) {
+      traktMovies = await fetchTraktTrending(clientId);
+    }
+
+    // 3. 把 Trakt 的排在前面，豆瓣的排在后面，缝合成一个大数组！
+    const combinedMovies = [...traktMovies, ...doubanMovies];
+
+    return c.json(combinedMovies);
+  } catch (error) {
+    console.error("Error in combined route:", error);
+    return c.json([]);
+  }
 });
+
+// =====================================
+// 其他分类接口 (保持原样不动)
+// =====================================
 
 app.get("/popular/douban/tv", async (c) => {
   const url = `https://${R2_CUSTOM_DOMAIN}/douban-tv.json`;
   const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" } });
 });
 
 app.get("/popular/douban/animation", async (c) => {
   const url = `https://${R2_CUSTOM_DOMAIN}/douban-animation.json`;
   const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" } });
 });
 
 app.get("/popular/douban/hot-variety-shows", async (c) => {
   const url = `https://${R2_CUSTOM_DOMAIN}/douban-hot-variety-shows.json`;
   const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" } });
 });
 
 app.get("/popular/bangumi/animation", async (c) => {
   const url = `https://${R2_CUSTOM_DOMAIN}/bangumi-animation.json`;
   const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" } });
 });
 
 app.get("/discover/tv-by-language", async (c) => {
   const url = `https://${R2_CUSTOM_DOMAIN}/discover-tv-by-language.json`;
   const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" } });
 });
 
 app.get("/discover/tv-by-network", async (c) => {
   const url = `https://${R2_CUSTOM_DOMAIN}/discover-tv-by-network.json`;
   const response = await fetch(url);
-  return new Response(response.body, {
-    status: response.status,
-    headers: {
-      "Content-Type":
-        response.headers.get("Content-Type") || "application/json",
-    },
-  });
-});
-
-// =====================================
-// 🔥 新增：供前端调用的 Trakt 接口
-// =====================================
-app.get("/popular/trakt/trending", async (c) => {
-  // 从 Cloudflare 面板拿环境变量
-  const clientId = c.env.TRAKT_CLIENT_ID?.trim();
-  
-  if (!clientId) {
-    return c.json({ error: "Missing TRAKT_CLIENT_ID in Cloudflare environment variables" }, 500);
-  }
-
-  // 实时抓取前 20 条热门
-  const items = await fetchTraktTrending(clientId);
-  
-  // 原作者的 /popular 接口都是直接返回数组的，所以这里也直接返回 items 数组
-  return c.json(items);
+  return new Response(response.body, { status: response.status, headers: { "Content-Type": response.headers.get("Content-Type") || "application/json" } });
 });
 
 export default app;
