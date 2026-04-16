@@ -49,7 +49,10 @@ app.get("/trakt/trending", async (c) => {
 			},
 		});
 
-		if (!traktRes.ok) throw new Error("获取 Trakt 数据失败");
+		if (!traktRes.ok) {
+			const errDetail = await traktRes.text();
+			throw new Error(`Trakt 拒绝了请求! 状态码: ${traktRes.status}, 原因: ${errDetail}, 你填的Key的前5位是: ${TRAKT_CLIENT_ID.substring(0,5)}`);
+		}
 		const traktData = await traktRes.json();
 
 		// 2. 并发请求 TMDB，给这 10 部电影配上海报
