@@ -39,6 +39,9 @@ app.get("/trakt/trending", async (c) => {
 		return c.json({ error: "缺少环境变量：TRAKT_CLIENT_ID 或 TMDB_API_TOKEN" }, 500);
 	}
 
+	// 伪装成正常的谷歌 Chrome 浏览器，防止被 Trakt 的 Cloudflare 盾拦截
+	const fakeUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
 	try {
 		// 1. 去 Trakt 获取前 10 部热门电影
 		const traktRes = await fetch("https://api.trakt.tv/movies/trending?limit=10", {
@@ -46,13 +49,15 @@ app.get("/trakt/trending", async (c) => {
 				"Content-Type": "application/json",
 				"trakt-api-version": "2",
 				"trakt-api-key": TRAKT_CLIENT_ID,
+				"User-Agent": fakeUserAgent // 🔥 核心修复：添加浏览器伪装
 			},
 		});
 
 		if (!traktRes.ok) {
-			const errDetail = await traktRes.text();
-			throw new Error(`Trakt 拒绝了请求! 状态码: ${traktRes.status}, 原因: ${errDetail}, 你填的Key的前5位是: ${TRAKT_CLIENT_ID.substring(0,5)}`);
+			const errText = await traktRes.text();
+			throw new Error(`Trakt 请求失败! 状态码: ${traktRes.status}。如果仍是403，说明 Trakt 官方彻底封锁了 CF 节点的 IP。`);
 		}
+		
 		const traktData = await traktRes.json();
 
 		// 2. 并发请求 TMDB，给这 10 部电影配上海报
@@ -67,6 +72,7 @@ app.get("/trakt/trending", async (c) => {
 						headers: {
 							Authorization: `Bearer ${TMDB_API_TOKEN}`,
 							Accept: "application/json",
+							"User-Agent": fakeUserAgent // TMDB 也加上伪装，更加安全
 						},
 					});
 
