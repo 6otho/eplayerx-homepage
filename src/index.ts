@@ -31,31 +31,32 @@ app.route("/crawler", crawlerApp);
 // 🔥 新增：Trakt 热门数据 + TMDB 海报接口
 // ==========================================
 app.get("/trakt/trending", async (c) => {
-	// 获取你在 Cloudflare 后台填写的密钥
-	const TMDB_API_TOKEN = c.env.TMDB_API_TOKEN;
-	const TRAKT_CLIENT_ID = c.env.TRAKT_CLIENT_ID;
+	// 获取环境变量，并使用 trim() 自动去掉可能不小心复制到的空格和换行
+	const TMDB_API_TOKEN = c.env.TMDB_API_TOKEN?.trim();
+	const TRAKT_CLIENT_ID = c.env.TRAKT_CLIENT_ID?.trim();
 
 	if (!TRAKT_CLIENT_ID || !TMDB_API_TOKEN) {
 		return c.json({ error: "缺少环境变量：TRAKT_CLIENT_ID 或 TMDB_API_TOKEN" }, 500);
 	}
 
-	// 伪装成正常的谷歌 Chrome 浏览器，防止被 Trakt 的 Cloudflare 盾拦截
-	const fakeUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+	// 诚实的 API 客户端身份，不要伪装成浏览器！
+	const apiUserAgent = "EPlayerX-API-Client/1.0";
 
 	try {
 		// 1. 去 Trakt 获取前 10 部热门电影
 		const traktRes = await fetch("https://api.trakt.tv/movies/trending?limit=10", {
 			headers: {
 				"Content-Type": "application/json",
+				"Accept": "application/json",
 				"trakt-api-version": "2",
 				"trakt-api-key": TRAKT_CLIENT_ID,
-				"User-Agent": fakeUserAgent // 🔥 核心修复：添加浏览器伪装
+				"User-Agent": apiUserAgent // 使用自定义客户端名称穿透拦截
 			},
 		});
 
 		if (!traktRes.ok) {
 			const errText = await traktRes.text();
-			throw new Error(`Trakt 请求失败! 状态码: ${traktRes.status}。如果仍是403，说明 Trakt 官方彻底封锁了 CF 节点的 IP。`);
+			throw new Error(`Trakt 请求失败! 状态码: ${traktRes.status}。报错详情: ${errText.substring(0, 200)}`);
 		}
 		
 		const traktData = await traktRes.json();
@@ -72,7 +73,7 @@ app.get("/trakt/trending", async (c) => {
 						headers: {
 							Authorization: `Bearer ${TMDB_API_TOKEN}`,
 							Accept: "application/json",
-							"User-Agent": fakeUserAgent // TMDB 也加上伪装，更加安全
+							"User-Agent": apiUserAgent
 						},
 					});
 
