@@ -1,109 +1,131 @@
-import { Hono } from "hono";
-import crawlerApp from "./crawler/index.js";
-import tmdbApp from "./tmdb/index.js";
-
-// 定义环境变量类型，避免 TS 报错
-type Bindings = {
-	TMDB_API_TOKEN: string;
-	TRAKT_CLIENT_ID: string;
-};
-
-// 注入环境变量类型
-const app = new Hono<{ Bindings: Bindings }>();
-
-const welcomeStrings = [
-	"Hello Hono!",
-	"To learn more about Hono on Vercel, visit https://vercel.com/docs/frameworks/backend/hono",
-];
-
-// Root route
+// ==========================================
+// 🔥 改造后的首页：包含可视化的 Trakt 热门海报墙
+// ==========================================
 app.get("/", (c) => {
-	return c.text(welcomeStrings.join("\n\n"));
-});
+	const html = `
+	<!DOCTYPE html>
+	<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>EPlayerX 主页</title>
+		<style>
+			body {
+				margin: 0;
+				padding: 20px;
+				font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+				background-color: #121212; /* 深色高级背景 */
+				color: #ffffff;
+			}
+			h1 {
+				text-align: center;
+				color: #e50914; /* 类似 Netflix 的红色 */
+			}
+			.module-title {
+				margin-top: 40px;
+				font-size: 24px;
+				border-left: 5px solid #ed1c24; /* Trakt 红色 */
+				padding-left: 10px;
+			}
+			/* 海报横向滑动容器 */
+			.poster-container {
+				display: flex;
+				overflow-x: auto;
+				gap: 20px;
+				padding: 20px 0;
+				scrollbar-width: thin;
+				scrollbar-color: #555 #121212;
+			}
+			.poster-container::-webkit-scrollbar {
+				height: 8px;
+			}
+			.poster-container::-webkit-scrollbar-thumb {
+				background: #555;
+				border-radius: 4px;
+			}
+			/* 单个海报卡片 */
+			.movie-card {
+				flex: 0 0 160px;
+				display: flex;
+				flex-direction: column;
+				transition: transform 0.3s ease;
+			}
+			.movie-card:hover {
+				transform: scale(1.05); /* 鼠标放上去放大效果 */
+			}
+			.movie-poster {
+				width: 160px;
+				height: 240px;
+				border-radius: 10px;
+				object-fit: cover;
+				box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+			}
+			.movie-title {
+				margin-top: 10px;
+				font-size: 15px;
+				font-weight: bold;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.movie-watchers {
+				font-size: 12px;
+				color: #ffaa00;
+				margin-top: 5px;
+			}
+			.loading {
+				text-align: center;
+				color: #888;
+				margin-top: 50px;
+			}
+		</style>
+	</head>
+	<body>
 
-// Mount TMDB routes
-app.route("/tmdb", tmdbApp);
-
-// Mount Crawler routes
-app.route("/crawler", crawlerApp);
-
-// ==========================================
-// 🔥 新增：Trakt 热门数据 + TMDB 海报接口
-// ==========================================
-app.get("/trakt/trending", async (c) => {
-	// 获取环境变量，并使用 trim() 自动去掉可能不小心复制到的空格和换行
-	const TMDB_API_TOKEN = c.env.TMDB_API_TOKEN?.trim();
-	const TRAKT_CLIENT_ID = c.env.TRAKT_CLIENT_ID?.trim();
-
-	if (!TRAKT_CLIENT_ID || !TMDB_API_TOKEN) {
-		return c.json({ error: "缺少环境变量：TRAKT_CLIENT_ID 或 TMDB_API_TOKEN" }, 500);
-	}
-
-	// 诚实的 API 客户端身份，不要伪装成浏览器！
-	const apiUserAgent = "EPlayerX-API-Client/1.0";
-
-	try {
-		// 1. 去 Trakt 获取前 10 部热门电影
-		const traktRes = await fetch("https://api.trakt.tv/movies/trending?limit=10", {
-			headers: {
-				"Content-Type": "application/json",
-				"Accept": "application/json",
-				"trakt-api-version": "2",
-				"trakt-api-key": TRAKT_CLIENT_ID,
-				"User-Agent": apiUserAgent // 使用自定义客户端名称穿透拦截
-			},
-		});
-
-		if (!traktRes.ok) {
-			const errText = await traktRes.text();
-			throw new Error(`Trakt 请求失败! 状态码: ${traktRes.status}。报错详情: ${errText.substring(0, 200)}`);
-		}
+		<h1>🎬 EPlayerX 影音主页</h1>
 		
-		const traktData = await traktRes.json();
+		<div class="module-title">🔥 Trakt 全球热门影视</div>
+		
+		<!-- 存放海报的容器 -->
+		<div id="trakt-list" class="poster-container">
+			<div class="loading">正在拼命加载 Trakt 热门数据和海报...</div>
+		</div>
 
-		// 2. 并发请求 TMDB，给这 10 部电影配上海报
-		const results = await Promise.all(
-			traktData.map(async (item: any) => {
-				const tmdbId = item.movie.ids.tmdb;
-				let posterUrl = null;
+		<script>
+			// 网页加载后，立刻去请求咱们刚才写好的后端接口！
+			fetch('/trakt/trending')
+				.then(response => response.json())
+				.then(result => {
+					const container = document.getElementById('trakt-list');
+					container.innerHTML = ''; // 清空加载提示
 
-				if (tmdbId) {
-					// 带着你的 TMDB Token 请求中文数据
-					const tmdbRes = await fetch(`https://api.themoviedb.org/3/movie/${tmdbId}?language=zh-CN`, {
-						headers: {
-							Authorization: `Bearer ${TMDB_API_TOKEN}`,
-							Accept: "application/json",
-							"User-Agent": apiUserAgent
-						},
-					});
-
-					if (tmdbRes.ok) {
-						const tmdbData: any = await tmdbRes.json();
-						if (tmdbData.poster_path) {
-							// 拼接高清海报网址
-							posterUrl = `https://image.tmdb.org/t/p/w500${tmdbData.poster_path}`;
-						}
+					if(result.success && result.data.length > 0) {
+						// 循环生成海报卡片
+						result.data.forEach(movie => {
+							const defaultPoster = 'https://via.placeholder.com/160x240/333333/FFFFFF?text=No+Poster';
+							const posterSrc = movie.poster ? movie.poster : defaultPoster;
+							
+							const card = document.createElement('div');
+							card.className = 'movie-card';
+							card.innerHTML = \`
+								<img class="movie-poster" src="\${posterSrc}" alt="\${movie.title}">
+								<div class="movie-title" title="\${movie.title}">\${movie.title} (\${movie.year})</div>
+								<div class="movie-watchers">👀 \${movie.watchers} 人正在看</div>
+							\`;
+							container.appendChild(card);
+						});
+					} else {
+						container.innerHTML = '<div class="loading">加载数据失败，请刷新重试。</div>';
 					}
-				}
-
-				// 整理好每一部电影的数据结构
-				return {
-					title: item.movie.title,
-					year: item.movie.year,
-					watchers: item.watchers,
-					tmdb_id: tmdbId,
-					poster: posterUrl,
-				};
-			})
-		);
-
-		// 3. 将整理好的数据成功返回
-		return c.json({ success: true, data: results });
-		
-	} catch (error: any) {
-		return c.json({ success: false, error: error.message }, 500);
-	}
+				})
+				.catch(err => {
+					document.getElementById('trakt-list').innerHTML = '<div class="loading">网络请求错误！</div>';
+				});
+		</script>
+	</body>
+	</html>
+	`;
+	
+	return c.html(html);
 });
 // ==========================================
-
-export default app;
