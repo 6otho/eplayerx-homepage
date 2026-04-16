@@ -1,1 +1,23 @@
-eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwZDU3OTY5ZTA1YTExODM5MDhmZTMwZTcwNzE4NGM3OSIsIm5iZiI6MTY3ODA0MjczNS44MDgsInN1YiI6IjY0MDRlNjZmNjdkY2M5MDA4NWY2N2MzYSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.iW1IqohnvsjstvJtAU52tBV-SsezSDt_LWBPV6JLjiM
+import { Hono } from "hono";
+import crawlerApp from "./crawler/index.js";
+import tmdbApp from "./tmdb/index.js";
+
+const app = new Hono();
+
+const welcomeStrings = [
+	"Hello Hono!",
+	"To learn more about Hono on Vercel, visit https://vercel.com/docs/frameworks/backend/hono",
+];
+
+// Root route
+app.get("/", (c) => {
+	return c.text(welcomeStrings.join("\n\n"));
+});
+
+// Mount TMDB routes
+app.route("/tmdb", tmdbApp);
+
+// Mount Crawler routes
+app.route("/crawler", crawlerApp);
+
+export default app;
