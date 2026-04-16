@@ -108,32 +108,71 @@ app.get("/cron/crawl-all", async (c) => {
 });
 
 // =====================================
-// 🔥 改造核心：将 Trakt 缝合进豆瓣电影接口！
+// 🔥 终极防崩溃版：Trakt + 豆瓣 缝合接口
 // =====================================
 app.get("/popular/douban/movies", async (c) => {
   try {
-    // 1. 获取原有的豆瓣数据
-    const doubanUrl = `https://${R2_CUSTOM_DOMAIN}/douban-movies.json`;
-    const doubanResponse = await fetch(doubanUrl);
-    let doubanMovies = [];
-    if (doubanResponse.ok) {
-      doubanMovies = await doubanResponse.json();
-    }
-
-    // 2. 获取新的 Trakt 热门数据
+    // 1. 获取 Trakt 数据 (⚠️ 严格精简：只留 title，防止前端强类型解析崩溃)
     let traktMovies: any[] = [];
     const clientId = c.env.TRAKT_CLIENT_ID?.trim();
     if (clientId) {
-      traktMovies = await fetchTraktTrending(clientId);
+      const traktRes = await fetch("https://api.trakt.tv/movies/trending?limit=20", {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": clientId,
+          "User-Agent": "EPlayerX-API-Client/1.0",
+        },
+      });
+      if (traktRes.ok) {
+        const traktData = await traktRes.json();
+        // 强行瘦身：为了迎合 EPlayerX 原生系统，绝不传多余字段
+        traktMovies = traktData.map((item: any) => ({
+          title: item.movie.title
+        }));
+      }
     }
 
-    // 3. 把 Trakt 的排在前面，豆瓣的排在后面，缝合成一个大数组！
-    const combinedMovies = [...traktMovies, ...doubanMovies];
+    // 2. 获取原版豆瓣数据
+    const doubanUrl = `https://${R2_CUSTOM_DOMAIN}/douban-movies.json`;
+    const doubanResponse = await fetch(doubanUrl);
+    
+    // 如果豆瓣挂了，直接把 Trakt 当成纯数组顶上
+    if (!doubanResponse.ok) {
+       return c.json(traktMovies);
+    }
 
-    return c.json(combinedMovies);
+    const doubanData = await doubanResponse.json();
+
+    // 3. 智能合并：探测豆瓣的真实结构
+    if (Array.isArray(doubanData)) {
+      // 结构 A：纯数组 [...]
+      return c.json([...traktMovies, ...doubanData]);
+    } else if (doubanData && typeof doubanData === 'object') {
+      // 结构 B：带外壳的对象，比如 { data: [...] } 或 { list: [...] }
+      if (Array.isArray(doubanData.data)) {
+        doubanData.data = [...traktMovies, ...doubanData.data];
+      } else if (Array.isArray(doubanData.items)) {
+        doubanData.items = [...traktMovies, ...doubanData.items];
+      } else if (Array.isArray(doubanData.list)) {
+        doubanData.list = [...traktMovies, ...doubanData.list];
+      }
+      return c.json(doubanData);
+    }
+
+    // 如果结构完全看不懂，不合并了，原样返回豆瓣，保证界面不消失
+    return c.json(doubanData);
+
   } catch (error) {
-    console.error("Error in combined route:", error);
-    return c.json([]);
+    console.error("合并接口致命错误:", error);
+    // 终极兜底：如果代码抛错，直接代理原版豆瓣文件，假装无事发生
+    const fallbackUrl = `https://${R2_CUSTOM_DOMAIN}/douban-movies.json`;
+    const fallbackRes = await fetch(fallbackUrl);
+    return new Response(fallbackRes.body, { 
+      status: fallbackRes.status, 
+      headers: { "Content-Type": "application/json" } 
+    });
   }
 });
 
