@@ -55,6 +55,25 @@ tmdbApp.get("/search/keyword", async (c) => {
   return c.json(result.data?.results);
 });
 
+tmdbApp.get("/search/person", async (c) => {
+  const query = c.req.query("query") || "";
+  const page = Number.parseInt(c.req.query("page") || "1", 10);
+  const language = c.req.query("language") || "en-US";
+  const result = await tmdb.GET("/3/search/person", {
+    params: {
+      query: {
+        query,
+        page,
+        language,
+      },
+    },
+  });
+  if (result.response.status !== 200) {
+    return c.json({ error: result.error }, 500);
+  }
+  return c.json(result.data?.results);
+});
+
 tmdbApp.get("/genre/tv/list", async (c) => {
   const language = c.req.query("language") || "en";
   const result = await tmdb.GET("/3/genre/tv/list", {
