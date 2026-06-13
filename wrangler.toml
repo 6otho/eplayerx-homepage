@@ -8,15 +8,13 @@ workers_dev = true
 
 # 👇 【你的专属域名配置，已完美替换为 epx 前缀】
 routes = [
-	# ---------------- 第一组：ikuu.eu.org ----------------
-	{ pattern = "epx.ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
-	{ pattern = "tmdb.ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
-	{ pattern = "ikuu.eu.org/blocks*", zone_name = "ikuu.eu.org" },
+	# 拦截所有子域名 (完美覆盖 epx, tmdb, 以及未来你随便乱造的任何前缀)
+	{ pattern = "*.ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
+	{ pattern = "*.ikuux.cyou/*", zone_name = "ikuux.cyou" },
 
-	# ---------------- 第二组：ikuux.cyou ----------------
-	{ pattern = "epx.ikuux.cyou/*", zone_name = "ikuux.cyou" },
-	{ pattern = "tmdb.ikuux.cyou/*", zone_name = "ikuux.cyou" },
-	{ pattern = "ikuux.cyou/blocks*", zone_name = "ikuux.cyou" },
+	# 拦截根域名 (为了兼容原代码里的 ikuu.eu.org/blocks* 路径)
+	{ pattern = "ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
+	{ pattern = "ikuux.cyou/*", zone_name = "ikuux.cyou" },
 ]
 
 [observability]
