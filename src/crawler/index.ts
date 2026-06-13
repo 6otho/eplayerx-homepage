@@ -277,7 +277,7 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
 };
 
 const GENRE_ITEMS: { id: string; key: GenreKey; imageName: string }[] = [
-  { id: "18", key: "drama", imageName: "Drama-1.png" },
+  { id: "18", key: "drama", imageName: "Drama-2.png" },
   { id: "35", key: "comedy", imageName: "Comedy-1.png" },
   { id: "9648,53", key: "thriller", imageName: "Thriller-1.png" },
   { id: "28", key: "action", imageName: "Action-1.png" },
