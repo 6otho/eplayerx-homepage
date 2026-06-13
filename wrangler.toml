@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 # Keep the default *.workers.dev address alive.
 workers_dev = true
 
-# 👇 【这里已经为你全部改好！完美绑定你的两个域名，自动配置DNS】
+# 👇 【你的专属域名配置，已完美替换为 epx 前缀】
 routes = [
 	# ---------------- 第一组：ikuu.eu.org ----------------
 	{ pattern = "epx.ikuu.eu.org", custom_domain = true },
@@ -26,9 +26,8 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "blocks"
-# 🔴🔴🔴 【全场唯一需要你动手的地方】 🔴🔴🔴
-# 请把下面这行里的中文字，替换成你在第一步获取的 D1 数据库 ID (类似 e8ba...那一长串)！
-database_id = "c3a09032-48ce-471c-a0cb-0b91a170103c"
+# 🔴 请务必把下面的中文替换成你的 D1 数据库 ID！
+database_id = "在这里填入你真实的数据库ID"
 migrations_dir = "migrations"
 
 # R2 bucket configuration
