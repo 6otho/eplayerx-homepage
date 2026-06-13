@@ -93,6 +93,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_tv", itemEnvelope: "data" },
     },
     {
@@ -184,6 +185,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "hero-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_cn", itemEnvelope: "data" },
     },
     {
