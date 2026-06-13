@@ -9,12 +9,12 @@ workers_dev = true
 # 👇 【这里已经为你全部改好！完美绑定你的两个域名，自动配置DNS】
 routes = [
 	# ---------------- 第一组：ikuu.eu.org ----------------
-	{ pattern = "api.ikuu.eu.org", custom_domain = true },
+	{ pattern = "epx.ikuu.eu.org", custom_domain = true },
 	{ pattern = "tmdb.ikuu.eu.org", custom_domain = true },
 	{ pattern = "ikuu.eu.org/blocks*", zone_name = "ikuu.eu.org" },
 
 	# ---------------- 第二组：ikuux.cyou ----------------
-	{ pattern = "api.ikuux.cyou", custom_domain = true },
+	{ pattern = "epx.ikuux.cyou", custom_domain = true },
 	{ pattern = "tmdb.ikuux.cyou", custom_domain = true },
 	{ pattern = "ikuux.cyou/blocks*", zone_name = "ikuux.cyou" },
 ]
