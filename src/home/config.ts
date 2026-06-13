@@ -94,7 +94,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_tv", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_tv?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_popular_movies",
@@ -104,7 +104,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_movies", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_movies?sort=year", itemEnvelope: "data" },
     },
     {
       id: "bangumi_airing",
@@ -113,7 +113,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/bangumi_airing", itemEnvelope: "data" },
+      sort: "year",
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/bangumi_airing?sort=year", itemEnvelope: "data" },
     },
     {
       id: "imdb_top_anime",
@@ -131,7 +132,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/prime_hot_anime", itemEnvelope: "data" },
+      sort: "year",
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/prime_hot_anime?sort=year", itemEnvelope: "data" },
     },
     {
       id: "filmarks_anime_movie",
@@ -186,7 +188,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_cn", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_cn?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_tv_netflix",
@@ -322,7 +324,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_th", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_th?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_movie_th",
@@ -332,7 +334,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_th", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_th?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_movie_sea",
@@ -342,7 +344,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_sea", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_sea?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_tv_es",
@@ -352,7 +354,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_es", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_es?sort=year", itemEnvelope: "data" },
     },
     {
       id: "netflix_tv_minor",
