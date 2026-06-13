@@ -24,7 +24,7 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "blocks"
-database_id = "e8ba17f1-93da-4903-8ee5-53e2ace245cf"
+database_id = "c3a09032-48ce-471c-a0cb-0b91a170103c"
 migrations_dir = "migrations"
 
 # Existing crawler/snapshot bucket (served publicly via assets.eplayerx.com).
