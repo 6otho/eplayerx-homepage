@@ -9,12 +9,12 @@ workers_dev = true
 # 👇 【你的专属域名配置，已完美替换为 epx 前缀】
 routes = [
 	# ---------------- 第一组：ikuu.eu.org ----------------
-	{ pattern = "epx.ikuu.eu.org", custom_domain = true },
+	{ pattern = "api.ikuu.eu.org", custom_domain = true },
 	{ pattern = "tmdb.ikuu.eu.org", custom_domain = true },
 	{ pattern = "ikuu.eu.org/blocks*", zone_name = "ikuu.eu.org" },
 
 	# ---------------- 第二组：ikuux.cyou ----------------
-	{ pattern = "epx.ikuux.cyou", custom_domain = true },
+	{ pattern = "api.ikuux.cyou", custom_domain = true },
 	{ pattern = "tmdb.ikuux.cyou", custom_domain = true },
 	{ pattern = "ikuux.cyou/blocks*", zone_name = "ikuux.cyou" },
 ]
