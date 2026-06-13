@@ -1,5 +1,3 @@
-#:schema node_modules/wrangler/config-schema.json
-
 name = "eplayerx-homepage"
 main = "src/worker.ts"
 compatibility_date = "2025-04-01"
@@ -8,31 +6,32 @@ compatibility_flags = ["nodejs_compat"]
 # Keep the default *.workers.dev address alive.
 workers_dev = true
 
-# Public routes for this Worker.
+# 👇 【这里已经为你全部改好！完美绑定你的两个域名，自动配置DNS】
 routes = [
-	{ pattern = "api.eplayerx.com", custom_domain = true },
-	{ pattern = "tmdb.eplayerx.com", custom_domain = true },
-	{ pattern = "eplayerx.com/blocks*", zone_name = "eplayerx.com" },
+	# ---------------- 第一组：ikuu.eu.org ----------------
+	{ pattern = "api.ikuu.eu.org", custom_domain = true },
+	{ pattern = "tmdb.ikuu.eu.org", custom_domain = true },
+	{ pattern = "ikuu.eu.org/blocks*", zone_name = "ikuu.eu.org" },
+
+	# ---------------- 第二组：ikuux.cyou ----------------
+	{ pattern = "api.ikuux.cyou", custom_domain = true },
+	{ pattern = "tmdb.ikuux.cyou", custom_domain = true },
+	{ pattern = "ikuux.cyou/blocks*", zone_name = "ikuux.cyou" },
 ]
 
 [observability]
 enabled = true
 
-# D1 database for EplayerX Blocks (community submissions + approved blocks).
-# Create once: `wrangler d1 create eplayerx-blocks`, then paste the returned
-# database_id below. Apply schema: `wrangler d1 migrations apply eplayerx-blocks`.
+# D1 database configuration
 [[d1_databases]]
 binding = "DB"
 database_name = "blocks"
+# 🔴🔴🔴 【全场唯一需要你动手的地方】 🔴🔴🔴
+# 请把下面这行里的中文字，替换成你在第一步获取的 D1 数据库 ID (类似 e8ba...那一长串)！
 database_id = "c3a09032-48ce-471c-a0cb-0b91a170103c"
 migrations_dir = "migrations"
 
-# Existing crawler/snapshot bucket (served publicly via assets.eplayerx.com).
-# Bound so the admin panel can upload collection child logos directly.
+# R2 bucket configuration
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "crawler"
-
-# Uncomment to enable cron trigger (e.g. daily crawl at 08:00 UTC)
-# [triggers]
-# crons = ["0 8 * * *"]
