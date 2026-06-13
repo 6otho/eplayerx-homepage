@@ -34,7 +34,7 @@ type SourceQueryValue = string | number | boolean; interface HomePagination { pa
 type TmdbListRoute = { type: "tmdb-list"; title: string; params: { category: "trending" | "top-rated" | "discover"; type: "movie" | "tv"; genre?: string; language?: string; network?: string; networkName?: string; }; };
 type TmdbListRouteParams = TmdbListRoute["params"];
 interface HomeBlockSource { id?: string; path?: string; query?: Record<string, SourceQueryValue>; itemEnvelope?: "data" | "results" | "array"; pagination?: HomePagination; }
-interface HomeBlock { id: string; title?: string; mediaType?: "movie" | "tv"; preset: string; showRank?: boolean; showOverview?: boolean; showScore?: boolean; source?: HomeBlockSource; metadata?: { isAnime?: boolean; }; route?: TmdbListRoute; }
+interface HomeBlock { id: string; title?: string; mediaType?: "movie" | "tv"; preset: string; sort?: string; showRank?: boolean; showOverview?: boolean; source?: HomeBlockSource; metadata?: { isAnime?: boolean; }; route?: TmdbListRoute; }
 type HomeBlockTemplate = Omit<HomeBlock, "title"> & { titleKey?: HomeTitleKey; };
 export interface DefaultHomeConfigOptions { apiBaseUrl: string; imageBaseUrl: string; language: string; timezone: string; }
 export interface DefaultHomeConfig { version: number; apiBaseUrl: string; imageBaseUrl: string; carouselSourceId: string; blocks: HomeBlock[]; }
@@ -42,7 +42,7 @@ export const HOME_CONFIG_VERSION = 1;
 const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを視聴", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
   "home.tmdb_popular_tv_shows": { en: "Today's Popular TV Shows", zh: "今日热门电视剧", "zh-Hant": "今日熱門電視劇", ja: "今日の人気テレビ番組", es: "Series de TV Populares de Hoy", ar: "مسلسلات شائعة" },
-  "home.tmdb_popular_movies": { en: "Today's Popular Movies", zh: "今日热门电影", "zh-Hant": "今日熱門電影", ja: "今日の人気映画", es: "Películas Populares de Hoy", ar: "أفلام شائعة" },
+  "home.tmdb_popular_movies": { en: "Today's Popular Movies", zh: "今日热门电影", "zh-Hant": "今日熱門电影", ja: "今日の人気映画", es: "Películas Populares de Hoy", ar: "أفلام شائعة" },
   "home.tmdb_on_the_air_tv_shows": { en: "On The Air TV Shows", zh: "正在热播", "zh-Hant": "正在熱播", ja: "放送中", es: "En Emisión", ar: "يعرض الآن" },
   "home.tmdb_discover_genres": { en: "Browse By Category", zh: "按分类浏览", "zh-Hant": "按分類瀏覽", ja: "カテゴリで探す", es: "Explorar por Categoría", ar: "تصفح حسب الفئة" },
   "home.tmdb_discover_languages": { en: "Browse By Language", zh: "按语言浏览", "zh-Hant": "按語言瀏覽", ja: "言語で探す", es: "Explorar por Idioma", ar: "حسب اللغة" },
@@ -102,6 +102,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_movies", itemEnvelope: "data" },
     },
     {
@@ -183,7 +184,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "hero-list",
       showRank: true,
       showOverview: true,
-      showScore: true,
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_cn", itemEnvelope: "data" },
     },
     {
@@ -193,7 +193,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "hero-list",
       showRank: true,
       showOverview: true,
-      showScore: true,
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_netflix", itemEnvelope: "data" },
     },
     {
@@ -320,6 +319,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_th", itemEnvelope: "data" },
     },
     {
@@ -329,6 +329,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_th", itemEnvelope: "data" },
     },
     {
@@ -338,6 +339,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_sea", itemEnvelope: "data" },
     },
     {
@@ -347,6 +349,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
+      sort: "year",
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_es", itemEnvelope: "data" },
     },
     {
