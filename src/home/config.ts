@@ -320,7 +320,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       id: "tmdb_tv_th",
       mediaType: "tv",
       titleKey: "home.tmdb_tv_th",
-      preset: "thumb-list",
+      preset: "poster-list",
       showRank: true,
       showOverview: true,
       sort: "year",
