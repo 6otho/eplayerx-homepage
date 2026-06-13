@@ -23,6 +23,7 @@ type HomeTitleKey = "home.continue_watching" | "home.tmdb_popular_tv_shows" | "h
   | "home.popular_japanese_tv_shows"
   | "home.popular_taiwanese_tv_shows"
   | "home.popular_taiwanese_movies"
+  | "home.tmdb_movie_hk_erotic_comedy"
   | "home.tmdb_tv_th"
   | "home.tmdb_movie_th"
   | "home.tmdb_movie_sea"
@@ -72,6 +73,7 @@ const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.popular_japanese_tv_shows": { en: "Trending Japanese Dramas", zh: "细腻又治愈的高人气日剧", "zh-Hant": "細膩又治癒的高人氣日剧", ja: "話題の日本ドラマ", es: "Dramas Japoneses en Tendencia", ar: "دراما يابانية رائجة" },
   "home.popular_taiwanese_tv_shows": { en: "Popular Taiwanese Dramas", zh: "台剧当然也不能落下", "zh-Hant": "台劇當然也不能落下", ja: "人気の台湾ドラマ", es: "Dramas Taiwaneses Populares", ar: "دراما تايوانية شائعة" },
   "home.popular_taiwanese_movies": { en: "Popular Taiwanese Movies", zh: "台味浓浓的宝藏台片", "zh-Hant": "台味濃濃的寶藏台片", ja: "おすすめ台湾映画", es: "Películas Taiwanesas Populares", ar: "أفلام تايوانية شائعة" },
+  "home.tmdb_movie_hk_erotic_comedy": { en: "Classic HK Erotic Comedies", zh: "港产经典风月喜剧", "zh-Hant": "港產經典風月喜劇", ja: "香港クラシックエロティックコメディ", es: "Comedias Eróticas Clásicas HK", ar: "كوميديا إيروتيكية هونغ كونغ" },
   "home.tmdb_tv_th": { en: "Popular Thai Dramas", zh: "狗血上头的爆款泰剧", "zh-Hant": "狗血上頭的爆款泰劇", ja: "人気のタイドラマ", es: "Dramas Tailandeses Populares", ar: "دراما تايلاندية شائعة" },
   "home.tmdb_movie_th": { en: "Great Thai Movies", zh: "不止鬼片的泰国电影", "zh-Hant": "不止鬼片的泰國電影", ja: "おすすめタイ映画", es: "Grandes Películas Tailandesas", ar: "أفلام تايلاندية رائعة" },
   "home.tmdb_movie_sea": { en: "Southeast Asian Masterpieces", zh: "荷尔蒙超标的东南亚", "zh-Hant": "荷爾蒙超標的東南亞", ja: "東南アジアの傑作", es: "Obras Maestras del Sudeste Asiático", ar: "روائع جنوب شرق آسيا" },
@@ -103,8 +105,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_movies?sort=year", itemEnvelope: "data" },
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_movies", itemEnvelope: "data" },
     },
     {
       id: "bangumi_airing",
@@ -305,7 +306,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_tw", itemEnvelope: "data" },
+      sort: "year",
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_tw?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_movie_tw",
@@ -315,6 +317,16 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_tw", itemEnvelope: "data" },
+    },
+    {
+      id: "tmdb_movie_hk_erotic_comedy",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_hk_erotic_comedy",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_hk_erotic_comedy?sort=year", itemEnvelope: "data" },
     },
     {
       id: "tmdb_tv_th",
