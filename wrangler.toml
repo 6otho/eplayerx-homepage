@@ -20,11 +20,15 @@ routes = [
 [observability]
 enabled = true
 
+# 👇 【新增】环境变量配置（用于解决之前的 API 密码报错问题）
+[vars]
+# 🔴 请将下方的 "你的密码填在这里" 替换为你实际想要的管理员密码
+BLOCKS_ADMIN_PASSWORD = "080808"
+
 # D1 database configuration
 [[d1_databases]]
 binding = "DB"
 database_name = "blocks"
-# 🔴 请务必把下面的中文替换成你的 D1 数据库 ID！
 database_id = "c3a09032-48ce-471c-a0cb-0b91a170103c"
 migrations_dir = "migrations"
 
