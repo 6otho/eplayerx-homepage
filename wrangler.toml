@@ -1,5 +1,3 @@
-#:schema node_modules/wrangler/config-schema.json
-
 name = "eplayerx-homepage"
 main = "src/worker.ts"
 compatibility_date = "2025-04-01"
@@ -8,31 +6,33 @@ compatibility_flags = ["nodejs_compat"]
 # Keep the default *.workers.dev address alive.
 workers_dev = true
 
-# Public routes for this Worker.
+# 👇 【你的专属域名配置，已完美替换为 epx 前缀】
 routes = [
-	{ pattern = "api.eplayerx.com", custom_domain = true },
-	{ pattern = "tmdb.eplayerx.com", custom_domain = true },
-	{ pattern = "eplayerx.com/blocks*", zone_name = "eplayerx.com" },
+	# 拦截所有子域名 (完美覆盖 epx, tmdb, 以及未来你随便乱造的任何前缀)
+	{ pattern = "*.ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
+	{ pattern = "*.ikuux.cyou/*", zone_name = "ikuux.cyou" },
+
+	# 拦截根域名 (为了兼容原代码里的 ikuu.eu.org/blocks* 路径)
+	{ pattern = "ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
+	{ pattern = "ikuux.cyou/*", zone_name = "ikuux.cyou" },
 ]
 
 [observability]
 enabled = true
 
-# D1 database for EplayerX Blocks (community submissions + approved blocks).
-# Create once: `wrangler d1 create eplayerx-blocks`, then paste the returned
-# database_id below. Apply schema: `wrangler d1 migrations apply eplayerx-blocks`.
+# 👇 【新增】环境变量配置（用于解决之前的 API 密码报错问题）
+[vars]
+# 🔴 请将下方的 "你的密码填在这里" 替换为你实际想要的管理员密码
+BLOCKS_ADMIN_PASSWORD = "080808"
+
+# D1 database configuration
 [[d1_databases]]
 binding = "DB"
 database_name = "blocks"
-database_id = "e8ba17f1-93da-4903-8ee5-53e2ace245cf"
+database_id = "c3a09032-48ce-471c-a0cb-0b91a170103c"
 migrations_dir = "migrations"
 
-# Existing crawler/snapshot bucket (served publicly via assets.eplayerx.com).
-# Bound so the admin panel can upload collection child logos directly.
+# R2 bucket configuration
 [[r2_buckets]]
 binding = "ASSETS"
 bucket_name = "crawler"
-
-# Uncomment to enable cron trigger (e.g. daily crawl at 08:00 UTC)
-# [triggers]
-# crons = ["0 8 * * *"]
