@@ -154,7 +154,7 @@ const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.tmdb_tv_hbo": { en: "HBO Masterpieces", zh: "HBO 高分神剧", "zh-Hant": "HBO 高分神劇", ja: "HBO 傑作ドラマ", es: "Obras Maestras de HBO", ar: "روائع HBO" },
   "home.tmdb_tv_apple": { en: "Apple TV+ Originals", zh: "Apple TV+ 原创精品", "zh-Hant": "Apple TV+ 原創精品", ja: "Apple TV+ オリジナル", es: "Originales de Apple TV+", ar: "أعمال Apple TV+ الأصلية" },
   "home.trakt_movies": { en: "Global Blockbusters", zh: "火爆全球欧美大片", "zh-Hant": "火爆全球歐美大片", ja: "世界の大ヒット映画", es: "Éxitos de Taquilla Globales", ar: "أفلام أجنبية" },
-  "home.trakt_shows": { en: "Trending Western Series", zh: "时下热播欧美剧集", "zh-Hant": "時下熱播歐美劇集", ja: "話題の欧米ドラマ", es: "Series Occidentales en Tendencia", ar: "مسلسلات غربية رائجة" },
+  "home.trakt_shows": { en: "Trending Western Series", zh: "时下热播欧美剧集", "zh-Hant": "時下热播歐美劇集", ja: "話題の欧米ドラマ", es: "Series Occidentales en Tendencia", ar: "مسلسلات غربية رائجة" },
   "home.tmdb_anime_jp": { en: "Trending Japanese Anime", zh: "近期热门日本动漫", "zh-Hant": "近期熱門日本動漫", ja: "話題の日本アニメ", es: "Anime Japonés en Tendencia", ar: "أنمي ياباني رائج" },
   "home.imdb_top_anime": { en: "IMDb Epic Anime Masterpieces", zh: "IMDb 史诗动漫神作", "zh-Hant": "IMDb 史詩動漫神作", ja: "IMDb 傑作アニメ", es: "Obras Maestras de Anime en IMDb", ar: "أفضل أنمي" },
   "home.prime_hot_anime": { en: "Trending on Prime Video", zh: "Prime Video 热门日漫", "zh-Hant": "Prime Video 熱門日漫", ja: "Prime Video 人気アニメ", es: "En Tendencia en Prime Video", ar: "رائج على برايم" },
@@ -331,6 +331,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
           startPage: 1,
         },
       },
+    },
     {
       id: "tmdb-top-rated-tv-shows",
       titleKey: "home.tmdb_top_rated_tv_shows",
@@ -349,6 +350,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
           startPage: 1,
         },
       },
+    },
     {
       id: "tmdb_tv_hbo",
       mediaType: "tv",
