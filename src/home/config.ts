@@ -281,269 +281,386 @@ function createDefaultBlockTemplates(
   timezone: string
 ): HomeBlockTemplate[] {
   return [
+    
     {
-      id: "tmdb-popular-tv-shows",
-      mediaType: "tv",
-      titleKey: "home.tmdb_popular_tv_shows",
-      preset: "thumb-list",
-      showRank: true,
-      source: {
-        path: "/tmdb/trending/tv",
-        query: {
-          language,
-          page: 1,
-          limit: 20,
-        },
-        itemEnvelope: "results",
-        pagination: {
-          pageParam: "page",
-          startPage: 1,
-        },
-      },
-    },
-    {
-      id: "tmdb-popular-movies",
+      id: "tmdb_popular_movies",
       mediaType: "movie",
       titleKey: "home.tmdb_popular_movies",
       preset: "thumb-list",
       showRank: true,
-      source: {
-        path: "/tmdb/trending/movie",
-        query: {
-          language,
-          page: 1,
-        },
-        itemEnvelope: "results",
-        pagination: {
-          pageParam: "page",
-          startPage: 1,
-        },
-      },
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_movies?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "douban-popular-anime",
+      id: "tmdb_popular_tv",
       mediaType: "tv",
-      titleKey: "home.popular_domestic_anime",
-      preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/douban/animation",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
-      metadata: { isAnime: true },
+      titleKey: "home.tmdb_popular_tv_shows",
+      preset: "hero-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_tv?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "bangumi-popular-anime",
+      id: "bangumi_airing",
       mediaType: "tv",
       titleKey: "home.bangumi_popular_anime",
       preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/bangumi/animation",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
-      metadata: { isAnime: true },
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/bangumi_airing?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "tmdb-on-the-air-tv-shows",
-      mediaType: "tv",
-      titleKey: "home.tmdb_on_the_air_tv_shows",
-      preset: "hero-list",
-      source: {
-        path: "/tmdb/tv/on_the_air",
-        query: {
-          language,
-          timezone,
-        },
-        itemEnvelope: "results",
-      },
-    },
-    {
-      id: "douban-popular-tv-shows",
+      id: "douban_tv",
       mediaType: "tv",
       titleKey: "home.popular_tv_shows",
       preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/douban/tv",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
+      showRank: true,
       showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "douban-popular-korean-tv-shows",
+      id: "tmdb_tv_netflix",
       mediaType: "tv",
-      titleKey: "home.popular_korean_tv_shows",
-      preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/douban/korean-tv",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
+      titleKey: "home.tmdb_tv_netflix",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_netflix?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "douban-popular-japanese-tv-shows",
+      id: "variety_cn",
       mediaType: "tv",
-      titleKey: "home.popular_japanese_tv_shows",
+      titleKey: "home.variety_cn",
       preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/douban/japanese-tv",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_cn?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "tmdb-popular-spanish-tv-shows",
+      id: "variety_kr",
       mediaType: "tv",
-      titleKey: "home.popular_spanish_tv_shows",
+      titleKey: "home.variety_kr",
       preset: "thumb-list",
-      source: {
-        path: "/tmdb/discover/tv",
-        query: {
-          with_original_language: "es",
-          sort_by: "popularity.desc",
-          language,
-          page: 1,
-        },
-        itemEnvelope: "results",
-        pagination: {
-          pageParam: "page",
-          startPage: 1,
-        },
-      },
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_kr?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "tmdb-popular-taiwanese-tv-shows",
+      id: "variety_global",
       mediaType: "tv",
-      titleKey: "home.popular_taiwanese_tv_shows",
+      titleKey: "home.variety_global",
       preset: "thumb-list",
-      source: {
-        path: "/tmdb/discover/tv",
-        query: {
-          with_original_language: "zh",
-          with_origin_country: "TW",
-          sort_by: "popularity.desc",
-          "first_air_date.gte": "2021-01-01",
-          "vote_count.gte": 5,
-          language,
-          page: 1,
-        },
-        itemEnvelope: "results",
-        pagination: {
-          pageParam: "page",
-          startPage: 1,
-        },
-      },
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_global?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "douban-popular-movies",
+      id: "tmdb_tv_hbo",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_hbo",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_hbo?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_tv_apple",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_apple",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_apple?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "trakt_movies",
+      mediaType: "movie",
+      titleKey: "home.trakt_movies",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_movies?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_anime_cn",
+      mediaType: "tv",
+      titleKey: "home.popular_domestic_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_cn?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "trakt_shows",
+      mediaType: "tv",
+      titleKey: "home.trakt_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_shows?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "douban_movies",
       mediaType: "movie",
       titleKey: "home.popular_movies",
       preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/douban/movies",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
+      showRank: true,
       showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_movies?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "douban-popular-variety-shows",
+      id: "douban_korean_tv",
       mediaType: "tv",
-      titleKey: "home.popular_variety_shows",
+      titleKey: "home.popular_korean_tv_shows",
       preset: "thumb-list",
-      source: {
-        path: "/crawler/popular/douban/hot-variety-shows",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
+      showRank: true,
       showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_korean_tv?sort=year", itemEnvelope: "data" }
     },
     {
-      id: "tmdb-discover-genres",
-      titleKey: "home.tmdb_discover_genres",
-      preset: "genres-list",
-      source: {
-        path: "/crawler/discover/genres",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
-    },
-    {
-      id: "tmdb-discover-tv-by-language",
-      titleKey: "home.tmdb_discover_languages",
-      preset: "languages-list",
-      source: {
-        path: "/crawler/discover/tv-by-language",
-        query: {
-          language,
-        },
-        itemEnvelope: "data",
-      },
-    },
-    {
-      id: "tmdb-discover-networks",
-      titleKey: "home.tmdb_discover_networks",
-      preset: "networks-list",
-      source: {
-        path: "/crawler/discover/tv-by-network",
-        itemEnvelope: "data",
-      },
-    },
-    {
-      id: "tmdb-top-rated-movies",
-      titleKey: "home.tmdb_top_rated_movies",
-      mediaType: "movie",
-      preset: "poster-list",
-      source: {
-        path: "/tmdb/movie/top_rated",
-        query: {
-          language,
-          page: 1,
-          limit: 20,
-        },
-        itemEnvelope: "results",
-        pagination: {
-          pageParam: "page",
-          startPage: 1,
-        },
-      },
-    },
-    {
-      id: "tmdb-top-rated-tv-shows",
-      titleKey: "home.tmdb_top_rated_tv_shows",
+      id: "tmdb_tv_ja",
       mediaType: "tv",
-      preset: "poster-list",
-      source: {
-        path: "/tmdb/tv/top_rated",
-        query: {
-          language,
-          page: 1,
-          limit: 20,
-        },
-        itemEnvelope: "results",
-        pagination: {
-          pageParam: "page",
-          startPage: 1,
-        },
-      },
+      titleKey: "home.popular_japanese_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_ja?sort=year", itemEnvelope: "data" }
     },
+    {
+      id: "tmdb_anime_jp",
+      mediaType: "tv",
+      titleKey: "home.tmdb_anime_jp",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_jp?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "imdb_top_anime",
+      mediaType: "tv",
+      titleKey: "home.imdb_top_anime",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/imdb_top_anime?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "prime_hot_anime",
+      mediaType: "tv",
+      titleKey: "home.prime_hot_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/prime_hot_anime?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "filmarks_anime_movie",
+      mediaType: "movie",
+      titleKey: "home.filmarks_anime_movie",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/filmarks_anime_movie?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "netflix_hot_anime",
+      mediaType: "tv",
+      titleKey: "home.netflix_hot_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_hot_anime?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_anime_top_ja",
+      mediaType: "tv",
+      titleKey: "home.tmdb_anime_top_ja",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_top_ja?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_anime_movie_ja",
+      mediaType: "movie",
+      titleKey: "home.tmdb_anime_movie_ja",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_movie_ja?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_tv_es",
+      mediaType: "tv",
+      titleKey: "home.popular_spanish_tv_shows",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_es?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_tv_tw",
+      mediaType: "tv",
+      titleKey: "home.popular_taiwanese_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_tw?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_movie_tw",
+      mediaType: "movie",
+      titleKey: "home.popular_taiwanese_movies",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_tw?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_movie_sea",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_sea",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_sea?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_movie_hk_erotic_comedy",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_hk_erotic_comedy",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_hk_erotic_comedy?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_tv_th",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_th",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_th?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_movie_th",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_th",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_th?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "tmdb_tv_bl",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_bl",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_bl?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "netflix_tv_minor",
+      mediaType: "tv",
+      titleKey: "home.netflix_minor_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_tv_minor?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "netflix_movie_minor",
+      mediaType: "movie",
+      titleKey: "home.netflix_minor_movies",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_movie_minor?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "weekly_anime_collection",
+      mediaType: "tv",
+      titleKey: "home.weekly_anime",
+      preset: "collection-list",
+      groupMode: "weekday",
+      children: [
+        { id: "weekly_anime_collection-1", label: "周一", weekday: 1, title: "周一", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-1.json", itemEnvelope: "data" } },
+        { id: "weekly_anime_collection-2", label: "周二", weekday: 2, title: "周二", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-2.json", itemEnvelope: "data" } },
+        { id: "weekly_anime_collection-3", label: "周三", weekday: 3, title: "周三", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-3.json", itemEnvelope: "data" } },
+        { id: "weekly_anime_collection-4", label: "周四", weekday: 4, title: "周四", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-4.json", itemEnvelope: "data" } },
+        { id: "weekly_anime_collection-5", label: "周五", weekday: 5, title: "周五", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-5.json", itemEnvelope: "data" } },
+        { id: "weekly_anime_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-6.json", itemEnvelope: "data" } },
+        { id: "weekly_anime_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-7.json", itemEnvelope: "data" } }
+      ]
+    },
+    {
+      id: "weekly_drama_collection",
+      mediaType: "tv",
+      titleKey: "home.weekly_drama",
+      preset: "collection-list",
+      groupMode: "weekday",
+      children: [
+        { id: "weekly_drama_collection-1", label: "周一", weekday: 1, title: "周一", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-1.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-2", label: "周二", weekday: 2, title: "周二", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-2.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-3", label: "周三", weekday: 3, title: "周三", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-3.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-4", label: "周四", weekday: 4, title: "周四", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-4.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-5", label: "周五", weekday: 5, title: "周五", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-5.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-6.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-7.json", itemEnvelope: "data" } }
+      ]
+    },
+    {
+      id: "weekly_guoman_collection",
+      mediaType: "tv",
+      titleKey: "home.weekly_guoman",
+      preset: "collection-list",
+      groupMode: "weekday",
+      children: [
+        { id: "weekly_guoman_collection-1", label: "周一", weekday: 1, title: "周一", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-1.json", itemEnvelope: "data" } },
+        { id: "weekly_guoman_collection-2", label: "周二", weekday: 2, title: "周二", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-2.json", itemEnvelope: "data" } },
+        { id: "weekly_guoman_collection-3", label: "周三", weekday: 3, title: "周三", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-3.json", itemEnvelope: "data" } },
+        { id: "weekly_guoman_collection-4", label: "周四", weekday: 4, title: "周四", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-4.json", itemEnvelope: "data" } },
+        { id: "weekly_guoman_collection-5", label: "周五", weekday: 5, title: "周五", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-5.json", itemEnvelope: "data" } },
+        { id: "weekly_guoman_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-6.json", itemEnvelope: "data" } },
+        { id: "weekly_guoman_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-7.json", itemEnvelope: "data" } }
+      ]
+    }
+
   ];
 }
 
