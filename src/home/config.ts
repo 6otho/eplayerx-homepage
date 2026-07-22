@@ -331,7 +331,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
           startPage: 1,
         },
       },
-    },
     {
       id: "tmdb-top-rated-tv-shows",
       titleKey: "home.tmdb_top_rated_tv_shows",
@@ -350,7 +349,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
           startPage: 1,
         },
       },
-    },
     {
       id: "tmdb_tv_hbo",
       mediaType: "tv",
