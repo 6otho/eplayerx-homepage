@@ -577,33 +577,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_guoman_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_guoman_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
-    {
-      id: "continue_watching",
-      mediaType: "movie",
-      titleKey: "home.continue_watching",
-      preset: "list",
-      showRank: true,
-      showOverview: true,
-      source: { path: "continue_watching" }
-    },
-    {
-      id: "tmdb_top_rated_movies",
-      mediaType: "movie",
-      titleKey: "home.tmdb_top_rated_movies",
-      preset: "thumb-list",
-      showRank: true,
-      showOverview: true,
-      source: { path: "tmdb_top_rated_movies" }
-    },
-    {
-      id: "tmdb_top_rated_tv_shows",
-      mediaType: "tv",
-      titleKey: "home.tmdb_top_rated_tv_shows",
-      preset: "thumb-list",
-      showRank: true,
-      showOverview: true,
-      source: { path: "tmdb_top_rated_tv_shows" }
     }
   ];
 }
