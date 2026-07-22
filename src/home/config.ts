@@ -281,6 +281,77 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       source: { path: "https://homepage.eplayerx.cc.cd/api/variety_global?sort=year", itemEnvelope: "data" }
     },
     {
+      id: "tmdb-discover-genres",
+      titleKey: "home.tmdb_discover_genres",
+      preset: "genres-list",
+      source: {
+        path: "/crawler/discover/genres",
+        query: {
+          language,
+        },
+        itemEnvelope: "data",
+      },
+    },
+    {
+      id: "tmdb-discover-tv-by-language",
+      titleKey: "home.tmdb_discover_languages",
+      preset: "languages-list",
+      source: {
+        path: "/crawler/discover/tv-by-language",
+        query: {
+          language,
+        },
+        itemEnvelope: "data",
+      },
+    },
+    {
+      id: "tmdb-discover-networks",
+      titleKey: "home.tmdb_discover_networks",
+      preset: "networks-list",
+      source: {
+        path: "/crawler/discover/tv-by-network",
+        itemEnvelope: "data",
+      },
+    },
+    {
+      id: "tmdb-top-rated-movies",
+      titleKey: "home.tmdb_top_rated_movies",
+      mediaType: "movie",
+      preset: "poster-list",
+      source: {
+        path: "/tmdb/movie/top_rated",
+        query: {
+          language,
+          page: 1,
+          limit: 20,
+        },
+        itemEnvelope: "results",
+        pagination: {
+          pageParam: "page",
+          startPage: 1,
+        },
+      },
+    },
+    {
+      id: "tmdb-top-rated-tv-shows",
+      titleKey: "home.tmdb_top_rated_tv_shows",
+      mediaType: "tv",
+      preset: "poster-list",
+      source: {
+        path: "/tmdb/tv/top_rated",
+        query: {
+          language,
+          page: 1,
+          limit: 20,
+        },
+        itemEnvelope: "results",
+        pagination: {
+          pageParam: "page",
+          startPage: 1,
+        },
+      },
+    },
+    {
       id: "tmdb_tv_hbo",
       mediaType: "tv",
       titleKey: "home.tmdb_tv_hbo",
