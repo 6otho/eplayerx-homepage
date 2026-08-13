@@ -241,7 +241,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showRank: true,
       showOverview: true,
       sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv?sort=year", itemEnvelope: "data" }
+      source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_netflix",
