@@ -126,7 +126,7 @@ export interface DefaultHomeConfig {
   blocks: HomeBlock[];
 }
 
-export const HOME_CONFIG_VERSION = 8;
+export const HOME_CONFIG_VERSION = 9;
 
 const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを視聴", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -213,8 +213,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_movies?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_movies", itemEnvelope: "data" }
     },
     {
       id: "tmdb_popular_tv",
@@ -223,8 +222,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "hero-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_tv?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_tv", itemEnvelope: "data" }
     },
     {
       id: "bangumi_airing",
@@ -233,8 +231,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/bangumi_airing?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/bangumi_airing", itemEnvelope: "data" }
     },
     {
       id: "douban_tv",
@@ -253,8 +250,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_netflix?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_netflix", itemEnvelope: "data" }
     },
     {
       id: "variety_cn",
@@ -263,8 +259,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_cn?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_cn", itemEnvelope: "data" }
     },
     {
       id: "variety_kr",
@@ -273,8 +268,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_kr?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_kr", itemEnvelope: "data" }
     },
     {
       id: "variety_global",
@@ -283,8 +277,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_global?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_global", itemEnvelope: "data" }
     },
     {
       id: "tmdb-discover-genres",
@@ -364,8 +357,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_hbo?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_hbo", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_apple",
@@ -374,8 +366,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_apple?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_apple", itemEnvelope: "data" }
     },
     {
       id: "trakt_movies",
@@ -384,8 +375,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_movies?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_movies", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_cn",
@@ -394,8 +384,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_cn?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_cn", itemEnvelope: "data" }
     },
     {
       id: "trakt_shows",
@@ -404,8 +393,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_shows?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_shows", itemEnvelope: "data" }
     },
     {
       id: "douban_movies",
@@ -414,8 +402,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_movies?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_movies", itemEnvelope: "data" }
     },
     {
       id: "douban_korean_tv",
@@ -424,8 +411,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_korean_tv?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_korean_tv", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_ja",
@@ -434,8 +420,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_ja?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_ja", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_jp",
@@ -444,8 +429,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_jp?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_jp", itemEnvelope: "data" }
     },
     {
       id: "imdb_top_anime",
@@ -454,8 +438,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/imdb_top_anime?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/imdb_top_anime", itemEnvelope: "data" }
     },
     {
       id: "prime_hot_anime",
@@ -464,8 +447,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/prime_hot_anime?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/prime_hot_anime", itemEnvelope: "data" }
     },
     {
       id: "filmarks_anime_movie",
@@ -474,8 +456,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/filmarks_anime_movie?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/filmarks_anime_movie", itemEnvelope: "data" }
     },
     {
       id: "netflix_hot_anime",
@@ -484,8 +465,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_hot_anime?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_hot_anime", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_top_ja",
@@ -494,8 +474,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_top_ja?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_top_ja", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_movie_ja",
@@ -504,8 +483,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_movie_ja?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_movie_ja", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_es",
@@ -514,8 +492,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_es?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_es", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_tw",
@@ -524,8 +501,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_tw?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_tw", itemEnvelope: "data" }
     },
     {
       id: "tmdb_movie_tw",
@@ -534,28 +510,25 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_tw?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_tw", itemEnvelope: "data" }
     },
     {
       id: "tmdb_movie_sea",
       mediaType: "movie",
       titleKey: "home.tmdb_movie_sea",
-      preset: "thumb-list",
+      preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_sea?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_sea", itemEnvelope: "data" }
     },
     {
       id: "tmdb_movie_hk_erotic_comedy",
       mediaType: "movie",
       titleKey: "home.tmdb_movie_hk_erotic_comedy",
-      preset: "thumb-list",
+      preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_hk_erotic_comedy?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_hk_erotic_comedy", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_th",
@@ -564,8 +537,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_th?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_th", itemEnvelope: "data" }
     },
     {
       id: "tmdb_movie_th",
@@ -574,8 +546,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_th?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_th", itemEnvelope: "data" }
     },
     {
       id: "tmdb_tv_bl",
@@ -584,8 +555,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_bl?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_bl", itemEnvelope: "data" }
     },
     {
       id: "netflix_tv_minor",
@@ -594,18 +564,16 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_tv_minor?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_tv_minor", itemEnvelope: "data" }
     },
     {
       id: "netflix_movie_minor",
       mediaType: "movie",
       titleKey: "home.netflix_minor_movies",
-      preset: "thumb-list",
+      preset: "poster-list",
       showRank: true,
       showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_movie_minor?sort=year", itemEnvelope: "data" }
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_movie_minor", itemEnvelope: "data" }
     },
     
     
@@ -705,6 +673,15 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_sea_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_sea_drama_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_sea_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_sea_drama_collection-7.json", itemEnvelope: "data" } }
       ]
+    },
+    {
+      id: "douban_tv_custom",
+      mediaType: "tv",
+      titleKey: "home.popular_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv_custom", itemEnvelope: "data" }
     }
 ];
 }
