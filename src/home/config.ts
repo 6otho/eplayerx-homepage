@@ -126,7 +126,7 @@ export interface DefaultHomeConfig {
   blocks: HomeBlock[];
 }
 
-export const HOME_CONFIG_VERSION = 9;
+export const HOME_CONFIG_VERSION = 10;
 
 const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを視聴", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -681,7 +681,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv_custom", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv_custom?sort=year", itemEnvelope: "data" }
     }
 ];
 }
