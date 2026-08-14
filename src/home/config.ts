@@ -126,7 +126,7 @@ export interface DefaultHomeConfig {
   blocks: HomeBlock[];
 }
 
-export const HOME_CONFIG_VERSION = 18;
+export const HOME_CONFIG_VERSION = 19;
 
 const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを視聴", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -213,7 +213,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_movies", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_popular_movies?sort=year", itemEnvelope: "data" }
     },
     {
       id: "tmdb_popular_tv",
@@ -232,7 +233,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/bangumi_airing", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/bangumi_airing?sort=year", itemEnvelope: "data" }
     },
     
     {
@@ -242,7 +244,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_netflix", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_netflix?sort=year", itemEnvelope: "data" }
     },
     {
       id: "variety_cn",
@@ -251,7 +254,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_cn", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/variety_cn?sort=year", itemEnvelope: "data" }
     },
     {
       id: "variety_kr",
@@ -361,7 +365,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_apple", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_tv_apple?sort=year", itemEnvelope: "data" }
     },
     {
       id: "trakt_movies",
@@ -370,7 +375,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_movies", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_movies?sort=year", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_cn",
@@ -379,7 +385,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_cn", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_cn?sort=year", itemEnvelope: "data" }
     },
     {
       id: "trakt_shows",
@@ -388,7 +395,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_shows", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/trakt_shows?sort=year", itemEnvelope: "data" }
     },
     {
       id: "douban_movies",
@@ -397,7 +405,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_movies", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/douban_movies?sort=year", itemEnvelope: "data" }
     },
     {
       id: "douban_korean_tv",
@@ -426,7 +435,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_jp", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_jp?sort=year", itemEnvelope: "data" }
     },
     {
       id: "imdb_top_anime",
@@ -435,7 +445,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/imdb_top_anime", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/imdb_top_anime?sort=year", itemEnvelope: "data" }
     },
     {
       id: "prime_hot_anime",
@@ -444,7 +455,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/prime_hot_anime", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/prime_hot_anime?sort=year", itemEnvelope: "data" }
     },
     {
       id: "filmarks_anime_movie",
@@ -453,7 +465,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/filmarks_anime_movie", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/filmarks_anime_movie?sort=year", itemEnvelope: "data" }
     },
     {
       id: "netflix_hot_anime",
@@ -462,7 +475,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "thumb-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_hot_anime", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_hot_anime?sort=year", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_top_ja",
@@ -471,7 +485,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_top_ja", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_anime_top_ja?sort=year", itemEnvelope: "data" }
     },
     {
       id: "tmdb_anime_movie_ja",
@@ -510,7 +525,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       preset: "poster-list",
       showRank: true,
       showOverview: true,
-      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_tw", itemEnvelope: "data" }
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/tmdb_movie_tw?sort=year", itemEnvelope: "data" }
     },
     {
       id: "tmdb_movie_sea",
@@ -690,6 +706,16 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showOverview: true,
       sort: "year",
       source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv_custom?sort=year", itemEnvelope: "data" }
+    },
+    {
+      id: "popular_taiwanese_movies",
+      mediaType: "movie",
+      titleKey: "home.popular_taiwanese_movies",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      sort: "year",
+      source: { path: "https://homepage.eplayerx.cc.cd/api/popular_taiwanese_movies?sort=year", itemEnvelope: "data" }
     }
 ];
 }
