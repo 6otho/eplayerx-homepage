@@ -16,6 +16,7 @@ type HomeTitleKey =
   | "home.popular_japanese_tv_shows"
   | "home.popular_spanish_tv_shows"
   | "home.popular_taiwanese_tv_shows"
+  | "home.popular_taiwanese_movies"
   | "home.tmdb_discover_genres"
   | "home.tmdb_discover_languages"
   | "home.tmdb_discover_networks"
@@ -126,7 +127,7 @@ export interface DefaultHomeConfig {
   blocks: HomeBlock[];
 }
 
-export const HOME_CONFIG_VERSION = 20;
+export const HOME_CONFIG_VERSION = 21;
 
 const TITLE_TRANSLATIONS: Record<HomeTitleKey, Record<Locale, string>> = {
   "home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを視聴", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -206,7 +207,7 @@ function createTmdbListRoute(title: string, params: TmdbListRouteParams): TmdbLi
 
 function createDefaultBlockTemplates(language: string, timezone: string): HomeBlockTemplate[] {
   return [
-{
+    {
       id: "tmdb_popular_movies",
       mediaType: "movie",
       titleKey: "home.tmdb_popular_movies",
@@ -236,7 +237,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       sort: "year",
       source: { path: "https://homepage.eplayerx.cc.cd/api/bangumi_airing?sort=year", itemEnvelope: "data" }
     },
-    
     {
       id: "tmdb_tv_netflix",
       mediaType: "tv",
@@ -598,9 +598,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       sort: "year",
       source: { path: "https://homepage.eplayerx.cc.cd/api/netflix_movie_minor?sort=year", itemEnvelope: "data" }
     },
-    
-    
-    
     {
       id: "weekly_korean_drama_collection",
       mediaType: "tv",
@@ -706,18 +703,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
       showOverview: true,
       sort: "year",
       source: { path: "https://homepage.eplayerx.cc.cd/api/douban_tv_custom?sort=year", itemEnvelope: "data" }
-    },
-    {
-      id: "popular_taiwanese_movies",
-      mediaType: "movie",
-      titleKey: "home.popular_taiwanese_movies",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: true,
-      sort: "year",
-      source: { path: "https://homepage.eplayerx.cc.cd/api/popular_taiwanese_movies?sort=year", itemEnvelope: "data" }
     }
-];
+  ];
 }
 
 function resolveBlockTitle(block: HomeBlockTemplate, language: string): HomeBlock {
