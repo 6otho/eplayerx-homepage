@@ -1,5 +1,3 @@
-import type { TmdbListRoute } from "../blocks/types.js";
-
 type Locale = "en" | "zh" | "zh-Hant" | "ja" | "es" | "ar";
 
 type HomeTitleKey =
@@ -66,7 +64,7 @@ interface HomeBlockSource {
   pagination?: HomePagination;
 }
 
-type TmdbListRoute = {
+export type TmdbListRoute = {
   type: "tmdb-list";
   title: string;
   params: {
@@ -76,6 +74,7 @@ type TmdbListRoute = {
     language?: string;
     network?: string;
     networkName?: string;
+    originCountry?: string;
   };
 };
 
@@ -126,6 +125,9 @@ export interface DefaultHomeConfig {
   carouselSourceId: string;
   blocks: HomeBlock[];
 }
+
+export type HomeConfigV2Options = DefaultHomeConfigOptions;
+export type HomeConfigV2 = DefaultHomeConfig;
 
 export const HOME_CONFIG_VERSION = 22;
 
@@ -715,7 +717,7 @@ function resolveBlockTitle(block: HomeBlockTemplate, language: string): HomeBloc
   return { ...rest, title, ...(routeParams ? { route: createTmdbListRoute(title, routeParams) } : {}) };
 }
 
-export function createDefaultHomeConfig(options: DefaultHomeConfigOptions): DefaultHomeConfig {
+export function createHomeConfigV2(options: DefaultHomeConfigOptions): DefaultHomeConfig {
   return {
     version: HOME_CONFIG_VERSION,
     apiBaseUrl: options.apiBaseUrl,
@@ -724,3 +726,5 @@ export function createDefaultHomeConfig(options: DefaultHomeConfigOptions): Defa
     blocks: createDefaultBlockTemplates(options.language, options.timezone).map((block) => resolveBlockTitle(block, options.language)),
   };
 }
+
+export const createDefaultHomeConfig = createHomeConfigV2;
