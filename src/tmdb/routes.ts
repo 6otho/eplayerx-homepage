@@ -1,7 +1,12 @@
 import { Hono, type Context } from "hono";
+import { pickPreferredLogo } from "../crawler/tmdb-enrich.js";
+import { cachedRatings, getRatingsCache } from "../ratings/cache.js";
 import { tmdb } from "./client.js";
 
 const tmdbApp = new Hono();
+
+/** Bump to drop Cache API entries after discover filter changes. */
+const TMDB_CACHE_EPOCH = "20260818-videos-all-langs";
 
 const TMDB_IMAGE_CACHE_CONTROL =
   "public, max-age=31536000, s-maxage=31536000, immutable";
@@ -144,7 +149,9 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
   }
 
   const cache = defaultCache();
-  const cacheKey = new Request(c.req.url, { method: "GET" });
+  const cacheKey = new Request(`${c.req.url}#${TMDB_CACHE_EPOCH}`, {
+    method: "GET",
+  });
   if (cache) {
     const hit = await cache.match(cacheKey);
     if (hit) {
@@ -164,6 +171,45 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
   }
 }
 
+function mergeWithoutGenres(upstream: URL, ids: string[]) {
+	const excluded = new Set(
+		(upstream.searchParams.get("without_genres") ?? "")
+			.split(",")
+			.map((id) => id.trim())
+			.filter(Boolean),
+	);
+	for (const id of ids) excluded.add(id);
+	upstream.searchParams.set("without_genres", [...excluded].join(","));
+}
+
+/** Stale homepage clients still hit the unfiltered ja/es popularity URLs. */
+function applyHomepageDramaDefaults(path: string, upstream: URL) {
+	if (path !== "/3/discover/tv") return;
+	if (upstream.searchParams.get("with_genres") === "16") return;
+
+	const language = upstream.searchParams.get("with_original_language");
+	const sort = upstream.searchParams.get("sort_by");
+
+	if (language === "ja") {
+		mergeWithoutGenres(upstream, ["16", "10762"]);
+		return;
+	}
+
+	if (
+		language === "es" &&
+		sort === "popularity.desc" &&
+		!upstream.searchParams.has("with_genres") &&
+		!upstream.searchParams.has("vote_count.gte")
+	) {
+		upstream.searchParams.set("with_genres", "18");
+		mergeWithoutGenres(upstream, ["16", "10762", "10764"]);
+		upstream.searchParams.set("vote_count.gte", "20");
+		if (!upstream.searchParams.has("first_air_date.gte")) {
+			upstream.searchParams.set("first_air_date.gte", "2018-01-01");
+		}
+	}
+}
+
 async function proxyTmdbDiscover(c: Context, path: string) {
   if (!process.env.TMDB_API_TOKEN) {
     throw new Error("TMDB_API_TOKEN is not set");
@@ -179,6 +225,8 @@ async function proxyTmdbDiscover(c: Context, path: string) {
     upstream.searchParams.append(key, value);
   }
 
+  applyHomepageDramaDefaults(path, upstream);
+
   const response = await fetch(upstream, {
     headers: {
       accept: "application/json",
@@ -189,6 +237,22 @@ async function proxyTmdbDiscover(c: Context, path: string) {
 
   if (!response.ok) {
     return c.json({ error: data }, 500);
+  }
+
+  const page = Number.parseInt(requestUrl.searchParams.get("page") || "1", 10);
+  const mediaType = path.endsWith("/movie") ? "movie" : "tv";
+  if (
+    page === 1 &&
+    data &&
+    typeof data === "object" &&
+    Array.isArray((data as { results?: unknown }).results) &&
+    (data as { results: unknown[] }).results.length > 0
+  ) {
+    const results = (data as { results: Record<string, unknown>[] }).results;
+    const top = results.slice(0, 20);
+    const rest = results.slice(20);
+    const rated = await attachListRatings(top, mediaType);
+    return c.json({ ...(data as object), results: [...rated, ...rest] });
   }
 
   return c.json(data);
@@ -269,6 +333,7 @@ tmdbApp.get("/movie/details", async (c) => {
     params: {
       query: {
         language,
+        append_to_response: "release_dates",
       },
       path: {
         movie_id: Number(id),
@@ -385,14 +450,51 @@ tmdbApp.get("/movie/similar", async (c) => {
   return c.json(result.data);
 });
 
+/** ISO 639-1 only. Regional tags like zh-CN make TMDB drop other languages. */
+const VIDEO_INCLUDE_LANGUAGES =
+  "en,zh,ja,ko,fr,de,es,pt,it,ru,ar,hi,th,id,vi,tr,pl,nl,sv,cs,uk,null";
+const VIDEO_INCLUDE_LANGUAGE_SET = new Set(VIDEO_INCLUDE_LANGUAGES.split(","));
+
+function videoLanguagePrimary(language: string): string {
+  return language.trim().toLowerCase().split(/[-_]/)[0] ?? "";
+}
+
+function includeVideoLanguage(language: string): string {
+  const primary = videoLanguagePrimary(language);
+  if (!primary || VIDEO_INCLUDE_LANGUAGE_SET.has(primary)) {
+    return VIDEO_INCLUDE_LANGUAGES;
+  }
+  return `${primary},${VIDEO_INCLUDE_LANGUAGES}`;
+}
+
+function preferClientLanguageVideos<T extends { iso_639_1?: string }>(
+  results: T[] | undefined,
+  language: string,
+): T[] {
+  if (!results?.length) return results ?? [];
+  const primary = videoLanguagePrimary(language);
+  if (!primary) return results;
+  const matched: T[] = [];
+  const rest: T[] = [];
+  for (const video of results) {
+    if ((video.iso_639_1 ?? "").toLowerCase() === primary) {
+      matched.push(video);
+    } else {
+      rest.push(video);
+    }
+  }
+  return matched.length === 0 ? results : [...matched, ...rest];
+}
+
 tmdbApp.get("/movie/videos", async (c) => {
   const id = c.req.query("id") || "";
   const language = c.req.query("language") || "en";
   const result = await tmdb.GET(`/3/movie/${Number(id)}/videos`, {
     params: {
+      // Movie OpenAPI omits include_video_language; TMDB accepts it.
       query: {
-        language,
-      },
+        include_video_language: includeVideoLanguage(language),
+      } as { language?: string },
       path: {
         movie_id: Number(id),
       },
@@ -401,7 +503,11 @@ tmdbApp.get("/movie/videos", async (c) => {
   if (result.response.status !== 200) {
     return c.json({ error: result.error }, 500);
   }
-  return c.json(result.data);
+  const data = result.data;
+  return c.json({
+    ...data,
+    results: preferClientLanguageVideos(data?.results, language),
+  });
 });
 
 tmdbApp.get("/movie/popular", async (c) => {
@@ -505,6 +611,7 @@ tmdbApp.get("/tv/details", async (c) => {
     params: {
       query: {
         language,
+        append_to_response: "content_ratings",
       },
       path: {
         series_id: Number(id),
@@ -620,7 +727,7 @@ tmdbApp.get("/tv/videos", async (c) => {
   const result = await tmdb.GET(`/3/tv/${Number(id)}/videos`, {
     params: {
       query: {
-        language,
+        include_video_language: includeVideoLanguage(language),
       },
       path: {
         series_id: Number(id),
@@ -630,7 +737,11 @@ tmdbApp.get("/tv/videos", async (c) => {
   if (result.response.status !== 200) {
     return c.json({ error: result.error }, 500);
   }
-  return c.json(result.data);
+  const data = result.data;
+  return c.json({
+    ...data,
+    results: preferClientLanguageVideos(data?.results, language),
+  });
 });
 
 tmdbApp.get("/tv/popular", async (c) => {
@@ -702,12 +813,35 @@ type ImageEntry = {
   iso_3166_1?: string;
   file_path?: string;
   vote_average?: number;
+  aspect_ratio?: number;
+  width?: number;
+  height?: number;
 };
 
 function bestByVote<T extends { vote_average?: number }>(items: T[]) {
   return items.length
     ? items.sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0))[0]
     : undefined;
+}
+
+function withCachedRatings(
+  item: Record<string, unknown>,
+  mediaType: "movie" | "tv",
+  cache: Awaited<ReturnType<typeof getRatingsCache>>,
+): Record<string, unknown> {
+  const id = Number(item.id);
+  if (!Number.isFinite(id) || id <= 0) return item;
+  const ratings = cachedRatings(cache, mediaType, id);
+  return ratings ? { ...item, ratings } : item;
+}
+
+/** Ratings only — used by discover lists that skip artwork enrich. */
+async function attachListRatings(
+  items: Record<string, unknown>[],
+  mediaType: "movie" | "tv",
+): Promise<Record<string, unknown>[]> {
+  const cache = await getRatingsCache();
+  return items.map((item) => withCachedRatings(item, mediaType, cache));
 }
 
 async function enrichWithImages(
@@ -718,41 +852,36 @@ async function enrichWithImages(
   const [languageCode] = language.split("-");
   const preferredRegion =
     languageCode === "zh" ? (language.includes("TW") ? "TW" : "CN") : undefined;
+  const ratingsCache = getRatingsCache();
 
   const enrichOne = async (item: Record<string, unknown>) => {
-    try {
-      const type = mediaType ?? (item.media_type as string);
-      if (type !== "movie" && type !== "tv") return item;
+    const type = mediaType ?? (item.media_type as string);
+    if (type !== "movie" && type !== "tv") return item;
 
-      const id = item.id as number;
-      const imagesResult =
-        type === "tv"
-          ? await tmdb.GET(`/3/tv/${id}/images`, {
-              params: { path: { series_id: id } },
-            })
-          : await tmdb.GET(`/3/movie/${id}/images`, {
-              params: { path: { movie_id: id } },
-            });
-      if (imagesResult.response.status !== 200) return item;
+    const id = item.id as number;
+    const imagesPromise =
+      type === "tv"
+        ? tmdb.GET(`/3/tv/${id}/images`, {
+            params: { path: { series_id: id } },
+          })
+        : tmdb.GET(`/3/movie/${id}/images`, {
+            params: { path: { movie_id: id } },
+          });
+
+    try {
+      const [imagesResult, cache] = await Promise.all([
+        imagesPromise,
+        ratingsCache,
+      ]);
+
+      const withRatings = withCachedRatings(item, type, cache);
+      if (imagesResult.response.status !== 200) return withRatings;
 
       const images = imagesResult.data;
 
       const logos = (images?.logos ?? []) as ImageEntry[];
-      let logo: string | undefined;
-      if (logos.length) {
-        const regionMatches = preferredRegion
-          ? logos.filter(
-              (l) =>
-                l.iso_639_1 === languageCode && l.iso_3166_1 === preferredRegion
-            )
-          : [];
-        const langMatches = logos.filter((l) => l.iso_639_1 === languageCode);
-        const best =
-          bestByVote(regionMatches) ??
-          bestByVote(langMatches) ??
-          bestByVote(logos);
-        logo = best?.file_path;
-      }
+      const logo = pickPreferredLogo(logos, languageCode, preferredRegion)
+        ?.file_path;
 
       const posters = (images?.posters ?? []) as ImageEntry[];
       const noLogoPoster = bestByVote(
@@ -766,9 +895,13 @@ async function enrichWithImages(
         (item.backdrop_path as string | undefined) ||
         (item.poster_path as string | undefined);
 
-      return { ...item, logo, noLogoPoster, thumb };
+      return { ...withRatings, logo, noLogoPoster, thumb };
     } catch {
-      return item;
+      try {
+        return withCachedRatings(item, type, await ratingsCache);
+      } catch {
+        return item;
+      }
     }
   };
 
