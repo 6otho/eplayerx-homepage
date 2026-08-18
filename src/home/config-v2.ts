@@ -223,7 +223,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// =============================================================
 		{
 			id: "weekly_drama_collection",
-			title: "🇨🇳 国产追剧周更表 (合集)",
+			title: "国产追剧周更表",
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
@@ -240,7 +240,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_guoman_collection",
-			title: "🇨🇳 国漫追番周历表 (合集)",
+			title: "国漫追番周历表",
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
@@ -257,7 +257,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_anime_collection",
-			title: "🇯🇵 动漫新番周更表 (合集)",
+			title: "动漫新番周更表",
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
@@ -274,7 +274,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_korean_drama_collection",
-			title: "🇰🇷 韩剧追剧周更表 (合集)",
+			title: "韩剧追剧周更表",
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
@@ -291,7 +291,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_japanese_drama_collection",
-			title: "🇯🇵 日剧追剧周更表 (合集)",
+			title: "日剧追剧周更表",
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
@@ -308,7 +308,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_sea_drama_collection",
-			title: "🇹🇭 东南亚剧周更表 (合集)",
+			title: "东南亚剧周更表",
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
