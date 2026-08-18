@@ -181,10 +181,8 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.netflix_minor_movies": { en: "Hidden Gem Minor Language Movies", zh: "冷门却惊艳的小语种电影", "zh-Hant": "冷門卻驚豔的小語種电影", ja: "隠れた名作外国映画", es: "Películas Sorprendentes en Otros Idiomas", ar: "أفلام بلغات أخرى" }
 };
 
-const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
-	"tmdb_popular_tv": { category: "trending", type: "tv" },
-	"tmdb_popular_movies": { category: "trending", type: "movie" },
-};
+// 🌟 置空路由劫持，确保所有列表全量读取 R2 评分资产
+const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {};
 
 const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
 
@@ -214,7 +212,6 @@ function isDecadesCollectionSlot(section: V2Section): section is DecadesCollecti
 }
 
 function createV2BlockTemplates(language: string, timezone: string): V2Section[] {
-	// 🌟 你的 R2 独立大盘域名
 	const myR2 = "https://r2.eplayerx.cc.cd";
 
 	return [
