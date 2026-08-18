@@ -182,8 +182,6 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 };
 
 const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
-	"tmdb-popular-tv-shows": { category: "trending", type: "tv" },
-	"tmdb-popular-movies": { category: "trending", type: "movie" },
 	"tmdb_popular_tv": { category: "trending", type: "tv" },
 	"tmdb_popular_movies": { category: "trending", type: "movie" },
 };
@@ -198,11 +196,6 @@ function resolveLocale(language: string): Locale {
 	if (normalized.startsWith("es")) return "es";
 	if (normalized.startsWith("ar")) return "ar";
 	return "en";
-}
-
-function isChineseLocale(language: string): boolean {
-	const locale = resolveLocale(language);
-	return locale === "zh" || locale === "zh-Hant";
 }
 
 function resolveTitle(titleKey: string, language: string): string {
@@ -221,168 +214,13 @@ function isDecadesCollectionSlot(section: V2Section): section is DecadesCollecti
 }
 
 function createV2BlockTemplates(language: string, timezone: string): V2Section[] {
-	const chineseOnly = isChineseLocale(language);
-	
-	// 🌟 你的自建 R2 存储桶域名
+	// 🌟 你的 R2 独立大盘域名
 	const myR2 = "https://r2.eplayerx.cc.cd";
 
-	const doubanHeadBlocks: V2Section[] = chineseOnly
-		? [
-				{
-					id: "douban-popular-tv-shows",
-					mediaType: "tv",
-					titleKey: "home.popular_tv_shows",
-					preset: "poster-list",
-					showRank: true,
-					source: { path: "/crawler/popular/douban/tv", query: { language }, itemEnvelope: "data" },
-				},
-				{
-					id: "douban-popular-movies",
-					mediaType: "movie",
-					titleKey: "home.popular_movies",
-					preset: "poster-list",
-					showRank: true,
-					source: { path: "/crawler/popular/douban/movies", itemEnvelope: "data" },
-				},
-			]
-		: [];
-
-	const chineseAnimeBlocks: V2Section[] = chineseOnly
-		? [
-				{
-					id: "douban-popular-anime",
-					mediaType: "tv",
-					titleKey: "home.popular_domestic_anime",
-					preset: "poster-list",
-					showRank: true,
-					source: { path: "/crawler/popular/douban/animation", query: { language }, itemEnvelope: "data" },
-					metadata: { isAnime: true },
-				},
-				{
-					id: "bangumi-popular-anime",
-					mediaType: "tv",
-					titleKey: "home.bangumi_popular_anime",
-					preset: "poster-list",
-					showRank: true,
-					source: { path: "/crawler/popular/bangumi/animation", query: { language }, itemEnvelope: "data" },
-					metadata: { isAnime: true },
-				},
-			]
-		: [];
-
-	const doubanTailBlocks: V2Section[] = chineseOnly
-		? [
-				{
-					id: "douban-popular-variety-shows",
-					mediaType: "tv",
-					titleKey: "home.popular_variety_shows",
-					preset: "poster-list",
-					showRank: true,
-					source: { path: "/crawler/popular/douban/hot-variety-shows", itemEnvelope: "data" },
-				},
-			]
-		: [];
-
 	return [
-		// -------------------------------------------------------------
-		// 🌟 1. 官方原生内置模块（全部使用标准相对路径，仅语言浏览补充官方前缀）
-		// -------------------------------------------------------------
-		{
-			id: "tmdb-popular-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.tmdb_popular_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: "/tmdb/trending/tv", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-popular-movies",
-			mediaType: "movie",
-			titleKey: "home.tmdb_popular_movies",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: "/tmdb/trending/movie", query: { language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		...doubanHeadBlocks,
-		{
-			id: "tmdb-discover-genres",
-			titleKey: "home.tmdb_discover_genres",
-			preset: "genres-list",
-			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
-		},
-		{ type: "decades-collection" },
-		{
-			id: "tmdb-discover-networks",
-			titleKey: "home.tmdb_discover_networks",
-			preset: "networks-list",
-			source: { path: "/crawler/discover/tv-by-network", itemEnvelope: "data" },
-		},
-		{
-			id: "tmdb-discover-tv-by-language",
-			titleKey: "home.tmdb_discover_languages",
-			preset: "languages-list",
-			// 🌟 仅在此处定向补充官方主接口地址以获取官方语言快照
-			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" },
-		},
-		{
-			id: "tmdb-on-the-air-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.tmdb_on_the_air_tv_shows",
-			preset: "hero-list",
-			source: { path: "/tmdb/tv/on_the_air", query: { language, timezone }, itemEnvelope: "results" },
-		},
-		...chineseAnimeBlocks,
-		...doubanTailBlocks,
-		{
-			id: "tmdb-popular-korean-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.popular_korean_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: "/tmdb/discover/tv", query: { with_original_language: "ko", sort_by: "popularity.desc", language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-popular-japanese-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.popular_japanese_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: "/tmdb/discover/tv", query: { with_original_language: "ja", with_genres: 18, without_genres: "16,10762", without_keywords: "317204", "first_air_date.gte": "2018-01-01", "vote_count.gte": 15, sort_by: "popularity.desc", language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-popular-spanish-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.popular_spanish_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: "/tmdb/discover/tv", query: { with_original_language: "es", with_genres: 18, without_genres: "16,10762,10764", "first_air_date.gte": "2018-01-01", "vote_count.gte": 20, sort_by: "popularity.desc", language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-popular-taiwanese-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.popular_taiwanese_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: "/tmdb/discover/tv", query: { with_original_language: "zh", with_origin_country: "TW", sort_by: "popularity.desc", "first_air_date.gte": "2021-01-01", "vote_count.gte": 5, language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-top-rated-movies",
-			titleKey: "home.tmdb_top_rated_movies",
-			mediaType: "movie",
-			preset: "poster-list",
-			source: { path: "/tmdb/movie/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-top-rated-tv-shows",
-			titleKey: "home.tmdb_top_rated_tv_shows",
-			mediaType: "tv",
-			preset: "poster-list",
-			source: { path: "/tmdb/tv/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-
-		// -------------------------------------------------------------
-		// 🌟 2. 六大追剧周更表合集 (读取你的 R2: https://r2.eplayerx.cc.cd)
-		// -------------------------------------------------------------
+		// =============================================================
+		// 🌟 1. 你的自建六大追剧周更表 (首屏优先展示)
+		// =============================================================
 		{
 			id: "weekly_drama_collection",
 			title: "🇨🇳 国产追剧周更表 (合集)",
@@ -486,9 +324,9 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			}))
 		} as unknown as HomeBlockTemplate,
 
-		// -------------------------------------------------------------
-		// 🌟 3. 自建大盘专属分类 (读取你的 R2: https://r2.eplayerx.cc.cd)
-		// -------------------------------------------------------------
+		// =============================================================
+		// 🌟 2. 你的核心大盘分类（已彻底替代并剔除原生重复项）
+		// =============================================================
 		{
 			id: "tmdb_popular_movies",
 			mediaType: "movie",
@@ -525,6 +363,109 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showOverview: true,
 			source: { path: `${myR2}/douban-tv-custom.json`, itemEnvelope: "data" }
 		},
+		{
+			id: "douban_movies",
+			mediaType: "movie",
+			titleKey: "home.popular_movies",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: true,
+			source: { path: `${myR2}/douban-movies.json`, itemEnvelope: "data" }
+		},
+		{
+			id: "tmdb_anime_cn",
+			mediaType: "tv",
+			titleKey: "home.popular_domestic_anime",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: true,
+			source: { path: `${myR2}/tmdb-anime-cn.json`, itemEnvelope: "data" }
+		},
+		{
+			id: "douban_korean_tv",
+			mediaType: "tv",
+			titleKey: "home.popular_korean_tv_shows",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: true,
+			source: { path: `${myR2}/douban-korean-tv.json`, itemEnvelope: "data" }
+		},
+		{
+			id: "tmdb_tv_ja",
+			mediaType: "tv",
+			titleKey: "home.popular_japanese_tv_shows",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: true,
+			source: { path: `${myR2}/tmdb-tv-ja.json`, itemEnvelope: "data" }
+		},
+		{
+			id: "tmdb_tv_es",
+			mediaType: "tv",
+			titleKey: "home.popular_spanish_tv_shows",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: true,
+			source: { path: `${myR2}/tmdb-tv-es.json`, itemEnvelope: "data" }
+		},
+		{
+			id: "tmdb_tv_tw",
+			mediaType: "tv",
+			titleKey: "home.popular_taiwanese_tv_shows",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: true,
+			source: { path: `${myR2}/tmdb-tv-tw.json`, itemEnvelope: "data" }
+		},
+
+		// =============================================================
+		// 🌟 3. 官方原生独有模块（按分类/平台/语言/年代/正在热播/高分榜）
+		// =============================================================
+		{
+			id: "tmdb-discover-genres",
+			titleKey: "home.tmdb_discover_genres",
+			preset: "genres-list",
+			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
+		},
+		{ type: "decades-collection" },
+		{
+			id: "tmdb-discover-networks",
+			titleKey: "home.tmdb_discover_networks",
+			preset: "networks-list",
+			source: { path: "/crawler/discover/tv-by-network", itemEnvelope: "data" },
+		},
+		{
+			id: "tmdb-discover-tv-by-language",
+			titleKey: "home.tmdb_discover_languages",
+			preset: "languages-list",
+			// 🌟 仅在此处定向补充官方主接口地址，保证语言卡片快照正常加载
+			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" },
+		},
+		{
+			id: "tmdb-on-the-air-tv-shows",
+			mediaType: "tv",
+			titleKey: "home.tmdb_on_the_air_tv_shows",
+			preset: "hero-list",
+			source: { path: "/tmdb/tv/on_the_air", query: { language, timezone }, itemEnvelope: "results" },
+		},
+		{
+			id: "tmdb-top-rated-movies",
+			titleKey: "home.tmdb_top_rated_movies",
+			mediaType: "movie",
+			preset: "poster-list",
+			source: { path: "/tmdb/movie/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
+		},
+		{
+			id: "tmdb-top-rated-tv-shows",
+			titleKey: "home.tmdb_top_rated_tv_shows",
+			mediaType: "tv",
+			preset: "poster-list",
+			source: { path: "/tmdb/tv/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
+		},
+
+		// =============================================================
+		// 🌟 4. 你的专属特色大盘分类（流媒体/综艺/小语种/特色专区）
+		// =============================================================
 		{
 			id: "tmdb_tv_netflix",
 			mediaType: "tv",
@@ -589,15 +530,6 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			source: { path: `${myR2}/trakt-movies.json`, itemEnvelope: "data" }
 		},
 		{
-			id: "tmdb_anime_cn",
-			mediaType: "tv",
-			titleKey: "home.popular_domestic_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-anime-cn.json`, itemEnvelope: "data" }
-		},
-		{
 			id: "trakt_shows",
 			mediaType: "tv",
 			titleKey: "home.trakt_shows",
@@ -605,33 +537,6 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: true,
 			source: { path: `${myR2}/trakt-shows.json`, itemEnvelope: "data" }
-		},
-		{
-			id: "douban_movies",
-			mediaType: "movie",
-			titleKey: "home.popular_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/douban-movies.json`, itemEnvelope: "data" }
-		},
-		{
-			id: "douban_korean_tv",
-			mediaType: "tv",
-			titleKey: "home.popular_korean_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/douban-korean-tv.json`, itemEnvelope: "data" }
-		},
-		{
-			id: "tmdb_tv_ja",
-			mediaType: "tv",
-			titleKey: "home.popular_japanese_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-ja.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_anime_jp",
@@ -657,6 +562,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.prime_hot_anime",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/prime-hot-anime.json`, itemEnvelope: "data" }
 		},
 		{
@@ -665,6 +571,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.filmarks_anime_movie",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/filmarks-anime-movie.json`, itemEnvelope: "data" }
 		},
 		{
@@ -673,6 +580,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.netflix_hot_anime",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/netflix-hot-anime.json`, itemEnvelope: "data" }
 		},
 		{
@@ -681,6 +589,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_anime_top_ja",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-anime-top-ja.json`, itemEnvelope: "data" }
 		},
 		{
@@ -689,23 +598,8 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_anime_movie_ja",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-anime-movie-ja.json`, itemEnvelope: "data" }
-		},
-		{
-			id: "tmdb_tv_es",
-			mediaType: "tv",
-			titleKey: "home.popular_spanish_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: `${myR2}/tmdb-tv-es.json`, itemEnvelope: "data" }
-		},
-		{
-			id: "tmdb_tv_tw",
-			mediaType: "tv",
-			titleKey: "home.popular_taiwanese_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: { path: `${myR2}/tmdb-tv-tw.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_movie_tw",
@@ -713,6 +607,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.popular_taiwanese_movies",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-movie-tw.json`, itemEnvelope: "data" }
 		},
 		{
@@ -721,6 +616,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_movie_sea",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-movie-sea.json`, itemEnvelope: "data" }
 		},
 		{
@@ -729,6 +625,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_movie_hk_erotic_comedy",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-movie-hk-erotic-comedy.json`, itemEnvelope: "data" }
 		},
 		{
@@ -737,6 +634,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_tv_th",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-tv-th.json`, itemEnvelope: "data" }
 		},
 		{
@@ -745,6 +643,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_movie_th",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-movie-th.json`, itemEnvelope: "data" }
 		},
 		{
@@ -753,6 +652,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.tmdb_tv_bl",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/tmdb-tv-bl.json`, itemEnvelope: "data" }
 		},
 		{
@@ -761,6 +661,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.netflix_minor_tv_shows",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/netflix-tv-minor.json`, itemEnvelope: "data" }
 		},
 		{
@@ -769,6 +670,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			titleKey: "home.netflix_minor_movies",
 			preset: "poster-list",
 			showRank: true,
+			showOverview: true,
 			source: { path: `${myR2}/netflix-movie-minor.json`, itemEnvelope: "data" }
 		}
 	];
@@ -849,7 +751,7 @@ export async function createHomeConfigV2(
 		version: HOME_CONFIG_V2_VERSION,
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
-		carouselSourceId: "tmdb-popular-tv-shows",
+		carouselSourceId: "tmdb_popular_movies",
 		blocks,
 	};
 }
