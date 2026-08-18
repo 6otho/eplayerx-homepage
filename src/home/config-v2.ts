@@ -285,7 +285,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 
 	return [
 		// -------------------------------------------------------------
-		// 🌟 1. 官方原生内置模块（走 EPlayerX 主程序内置相对路径 /tmdb/..., /crawler/...）
+		// 🌟 1. 官方原生内置模块（全部严格使用开发者的原生相对路径）
 		// -------------------------------------------------------------
 		{
 			id: "tmdb-popular-tv-shows",
@@ -380,7 +380,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		},
 
 		// -------------------------------------------------------------
-		// 🌟 2. 六大追剧周更表合集 (直接读取 R2 存储桶中的 weekly_*.json)
+		// 🌟 2. 六大追剧周更表合集 (直接读取 R2 存储桶中对应的 weekly_*.json)
 		// -------------------------------------------------------------
 		{
 			id: "weekly_drama_collection",
