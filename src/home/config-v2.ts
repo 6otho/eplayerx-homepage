@@ -247,15 +247,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
       title: "🇨🇳 国产追剧周更表 (合集)",
       mediaType: "tv",
       preset: "collection-list",
+      style: "image-landscape",
       groupMode: "weekday",
       children: [
-        { id: "weekly_drama_collection-1", label: "周一", weekday: 1, title: "周一", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-1.json`, itemEnvelope: "data" } },
-        { id: "weekly_drama_collection-2", label: "周二", weekday: 2, title: "周二", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-2.json`, itemEnvelope: "data" } },
-        { id: "weekly_drama_collection-3", label: "周三", weekday: 3, title: "周三", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-3.json`, itemEnvelope: "data" } },
-        { id: "weekly_drama_collection-4", label: "周四", weekday: 4, title: "周四", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-4.json`, itemEnvelope: "data" } },
-        { id: "weekly_drama_collection-5", label: "周五", weekday: 5, title: "周五", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-5.json`, itemEnvelope: "data" } },
-        { id: "weekly_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-6.json`, itemEnvelope: "data" } },
-        { id: "weekly_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: `${originUrl}/blocks/public/weekly_drama_collection-7.json`, itemEnvelope: "data" } }
+        { id: "weekly_drama_collection-1", label: "周一", weekday: 1, title: "周一", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-1.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-2", label: "周二", weekday: 2, title: "周二", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-2.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-3", label: "周三", weekday: 3, title: "周三", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-3.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-4", label: "周四", weekday: 4, title: "周四", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-4.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-5", label: "周五", weekday: 5, title: "周五", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-5.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-6.json", itemEnvelope: "data" } },
+        { id: "weekly_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-7.json", itemEnvelope: "data" } }
       ]
     } as unknown as HomeBlockTemplate,
     {
