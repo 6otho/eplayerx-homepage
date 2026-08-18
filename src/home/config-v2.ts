@@ -138,7 +138,7 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.popular_movies": { en: "Trending Movies", zh: "实时热门电影", "zh-Hant": "實時熱門電影", ja: "リアルタイム人気映画", es: "Películas en Tendencia", ar: "أفلام رائجة" },
 	"home.tmdb_discover_genres": { en: "Browse By Category", zh: "按分类浏览", "zh-Hant": "按分類瀏覽", ja: "カテゴリで探す", es: "Explorar por Categoría", ar: "تصفح حسب الفئة" },
 	"home.classic_decades": { en: "Classic Decades", zh: "年代经典", "zh-Hant": "年代經典", ja: "年代別クラシック", es: "Clásicos por Década", ar: "كلاسيكيات العقود" },
-	"home.tmdb_discover_networks": { en: "Browse By Network", zh: "按平台浏览", "zh-Hant": "按平台瀏覽", ja: "配信服务で探す", es: "Explorar por Plataforma", ar: "حسب الشبكة" },
+	"home.tmdb_discover_networks": { en: "Browse By Network", zh: "按平台浏览", "zh-Hant": "按平台瀏覽", ja: "配信サービスで探す", es: "Explorar por Plataforma", ar: "حسب الشبكة" },
 	"home.tmdb_discover_languages": { en: "Browse By Language", zh: "按语言浏览", "zh-Hant": "按語言瀏覽", ja: "言語で探す", es: "Explorar por Idioma", ar: "حسب اللغة" },
 	"home.tmdb_on_the_air_tv_shows": { en: "On The Air TV Shows", zh: "正在热播", "zh-Hant": "正在熱播", ja: "放送中", es: "En Emisión", ar: "يعرض الآن" },
 	"home.popular_domestic_anime": { en: "Popular Domestic Anime", zh: "热门国产动漫", "zh-Hant": "熱門國產動漫", ja: "人気の国内アニメ", es: "Anime Doméstico Popular", ar: "أنمي محلي" },
@@ -223,8 +223,8 @@ function isDecadesCollectionSlot(section: V2Section): section is DecadesCollecti
 function createV2BlockTemplates(language: string, timezone: string): V2Section[] {
 	const chineseOnly = isChineseLocale(language);
 	
-	// 🌟 你的专属大盘 Worker 域名
-	const myCmsUrl = "https://homepage.eplayerx.cc.cd";
+	// 🌟 你的 R2 真实公共存储桶域名
+	const r2 = "https://r2.eplayerx.cc.cd";
 
 	const doubanHeadBlocks: V2Section[] = chineseOnly
 		? [
@@ -285,7 +285,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 
 	return [
 		// -------------------------------------------------------------
-		// 🌟 1. 官方原生内置模块（走 EPlayerX 主程序相对路径 /tmdb/..., /crawler/...）
+		// 🌟 1. 官方原生内置模块（走 EPlayerX 主程序内置相对路径 /tmdb/..., /crawler/...）
 		// -------------------------------------------------------------
 		{
 			id: "tmdb-popular-tv-shows",
@@ -380,7 +380,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		},
 
 		// -------------------------------------------------------------
-		// 🌟 2. 六大追剧周更表合集 (必须使用你的大盘完整域名 myCmsUrl)
+		// 🌟 2. 六大追剧周更表合集 (直接读取 R2 存储桶中的 weekly_*.json)
 		// -------------------------------------------------------------
 		{
 			id: "weekly_drama_collection",
@@ -396,7 +396,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `${myCmsUrl}/blocks/public/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
+				source: { path: `${r2}/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		{
@@ -413,7 +413,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `${myCmsUrl}/blocks/public/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
+				source: { path: `${r2}/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		{
@@ -430,7 +430,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `${myCmsUrl}/blocks/public/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
+				source: { path: `${r2}/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		{
@@ -447,7 +447,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `${myCmsUrl}/blocks/public/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
+				source: { path: `${r2}/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		{
@@ -464,7 +464,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `${myCmsUrl}/blocks/public/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
+				source: { path: `${r2}/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		{
@@ -481,12 +481,12 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `${myCmsUrl}/blocks/public/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
+				source: { path: `${r2}/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 
 		// -------------------------------------------------------------
-		// 🌟 3. 自建大盘专属分类 (必须使用你的大盘完整域名 myCmsUrl)
+		// 🌟 3. 自建大盘专属分类 (直接读取 R2 存储桶中对应的具体 .json 文件)
 		// -------------------------------------------------------------
 		{
 			id: "tmdb_popular_movies",
@@ -495,8 +495,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_popular_movies?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-popular-movies.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_popular_tv",
@@ -505,8 +504,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "hero-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_popular_tv?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-popular-tv.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "bangumi_airing",
@@ -515,8 +513,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/bangumi_airing?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/bangumi-airing.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "douban_tv_custom",
@@ -525,8 +522,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/douban_tv_custom?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/douban-tv-custom.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_netflix",
@@ -535,8 +531,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_netflix?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-netflix.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "variety_cn",
@@ -545,8 +540,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/variety_cn?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/variety-cn.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "variety_kr",
@@ -555,8 +549,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/variety_kr?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/variety-kr.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "variety_global",
@@ -565,8 +558,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/variety_global?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/variety-global.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_hbo",
@@ -575,8 +567,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_hbo?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-hbo.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_apple",
@@ -585,8 +576,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_apple?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-apple.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "trakt_movies",
@@ -595,8 +585,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/trakt_movies?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/trakt-movies.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_anime_cn",
@@ -605,8 +594,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_anime_cn?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-anime-cn.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "trakt_shows",
@@ -615,8 +603,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/trakt_shows?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/trakt-shows.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "douban_movies",
@@ -625,8 +612,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/douban_movies?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/douban-movies.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "douban_korean_tv",
@@ -635,8 +621,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/douban_korean_tv?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/douban-korean-tv.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_ja",
@@ -645,8 +630,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_ja?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-ja.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_anime_jp",
@@ -655,8 +639,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_anime_jp?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-anime-jp.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "imdb_top_anime",
@@ -665,8 +648,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/imdb_top_anime?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/imdb-top-anime.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "prime_hot_anime",
@@ -675,8 +657,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/prime_hot_anime?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/prime-hot-anime.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "filmarks_anime_movie",
@@ -685,8 +666,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/filmarks_anime_movie?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/filmarks-anime-movie.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "netflix_hot_anime",
@@ -695,8 +675,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/netflix_hot_anime?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/netflix-hot-anime.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_anime_top_ja",
@@ -705,8 +684,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_anime_top_ja?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-anime-top-ja.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_anime_movie_ja",
@@ -715,8 +693,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_anime_movie_ja?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-anime-movie-ja.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_es",
@@ -725,8 +702,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_es?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-es.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_tw",
@@ -735,8 +711,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_tw?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-tw.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_movie_tw",
@@ -745,8 +720,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_movie_tw?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-movie-tw.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_movie_sea",
@@ -755,8 +729,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_movie_sea?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-movie-sea.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_movie_hk_erotic_comedy",
@@ -765,8 +738,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_movie_hk_erotic_comedy?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-movie-hk-erotic-comedy.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_th",
@@ -775,8 +747,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_th?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-th.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_movie_th",
@@ -785,8 +756,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_movie_th?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-movie-th.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb_tv_bl",
@@ -795,8 +765,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/tmdb_tv_bl?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/tmdb-tv-bl.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "netflix_tv_minor",
@@ -805,8 +774,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/netflix_tv_minor?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/netflix-tv-minor.json`, itemEnvelope: "data" }
 		},
 		{
 			id: "netflix_movie_minor",
@@ -815,8 +783,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "poster-list",
 			showRank: true,
 			showOverview: true,
-			sort: "year",
-			source: { path: `${myCmsUrl}/api/netflix_movie_minor?sort=year`, itemEnvelope: "data" }
+			source: { path: `${r2}/netflix-movie-minor.json`, itemEnvelope: "data" }
 		}
 	];
 }
