@@ -242,8 +242,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 					preset: "poster-list",
 					showRank: true,
 					source: { path: "/crawler/popular/douban/movies", itemEnvelope: "data" },
-				},
-			]
+				}]
 		: [];
 
 	// 官方原生动漫
@@ -266,8 +265,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 					showRank: true,
 					source: { path: "/crawler/popular/bangumi/animation", query: { language }, itemEnvelope: "data" },
 					metadata: { isAnime: true },
-				},
-			]
+				}]
 		: [];
 
 	return [
@@ -275,107 +273,107 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 🌟 1. 你的自建六大追剧周更表合集（6 个合集）
 		// =============================================================
 		{
-			id: "weekly_drama_collection",
-			title: "🇨🇳 国产追剧周更表 (合集)",
-			mediaType: "tv",
-			preset: COLLECTION_PRESET,
-			style: "image-landscape",
-			groupMode: "weekday",
-			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-				id: `weekly_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				mediaType: "tv",
-				preset: "poster-list",
-				source: { path: `${myR2}/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
-			}))
-		} as unknown as HomeBlockTemplate,
+      id: "weekly_drama_collection",
+      title: "🇨🇳 国产追剧周更表 (合集)",
+      mediaType: "tv",
+      preset: COLLECTION_PRESET,
+      style: "image-landscape",
+      groupMode: "weekday",
+      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+        id: `weekly_drama_collection-${d}`,
+        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        weekday: d,
+        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        mediaType: "tv",
+        preset: "poster-list",
+        source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
+      }))
+    } as unknown as HomeBlockTemplate as unknown as HomeBlockTemplate,
 		{
-			id: "weekly_guoman_collection",
-			title: "🇨🇳 国漫追番周历表 (合集)",
-			mediaType: "tv",
-			preset: COLLECTION_PRESET,
-			style: "image-landscape",
-			groupMode: "weekday",
-			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-				id: `weekly_guoman_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				mediaType: "tv",
-				preset: "poster-list",
-				source: { path: `${myR2}/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
-			}))
-		} as unknown as HomeBlockTemplate,
+      id: "weekly_guoman_collection",
+      title: "🇨🇳 国漫追番周历表 (合集)",
+      mediaType: "tv",
+      preset: COLLECTION_PRESET,
+      style: "image-landscape",
+      groupMode: "weekday",
+      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+        id: `weekly_guoman_collection-${d}`,
+        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        weekday: d,
+        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        mediaType: "tv",
+        preset: "poster-list",
+        source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
+      }))
+    } as unknown as HomeBlockTemplate as unknown as HomeBlockTemplate,
 		{
-			id: "weekly_anime_collection",
-			title: "🇯🇵 动漫新番周更表 (合集)",
-			mediaType: "tv",
-			preset: COLLECTION_PRESET,
-			style: "image-landscape",
-			groupMode: "weekday",
-			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-				id: `weekly_anime_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				mediaType: "tv",
-				preset: "poster-list",
-				source: { path: `${myR2}/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
-			}))
-		} as unknown as HomeBlockTemplate,
+      id: "weekly_anime_collection",
+      title: "🇯🇵 动漫新番周更表 (合集)",
+      mediaType: "tv",
+      preset: COLLECTION_PRESET,
+      style: "image-landscape",
+      groupMode: "weekday",
+      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+        id: `weekly_anime_collection-${d}`,
+        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        weekday: d,
+        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        mediaType: "tv",
+        preset: "poster-list",
+        source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
+      }))
+    } as unknown as HomeBlockTemplate as unknown as HomeBlockTemplate,
 		{
-			id: "weekly_korean_drama_collection",
-			title: "🇰🇷 韩剧追剧周更表 (合集)",
-			mediaType: "tv",
-			preset: COLLECTION_PRESET,
-			style: "image-landscape",
-			groupMode: "weekday",
-			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-				id: `weekly_korean_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				mediaType: "tv",
-				preset: "poster-list",
-				source: { path: `${myR2}/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
-			}))
-		} as unknown as HomeBlockTemplate,
+      id: "weekly_korean_drama_collection",
+      title: "🇰🇷 韩剧追剧周更表 (合集)",
+      mediaType: "tv",
+      preset: COLLECTION_PRESET,
+      style: "image-landscape",
+      groupMode: "weekday",
+      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+        id: `weekly_korean_drama_collection-${d}`,
+        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        weekday: d,
+        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        mediaType: "tv",
+        preset: "poster-list",
+        source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
+      }))
+    } as unknown as HomeBlockTemplate as unknown as HomeBlockTemplate,
 		{
-			id: "weekly_japanese_drama_collection",
-			title: "🇯🇵 日剧追剧周更表 (合集)",
-			mediaType: "tv",
-			preset: COLLECTION_PRESET,
-			style: "image-landscape",
-			groupMode: "weekday",
-			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-				id: `weekly_japanese_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				mediaType: "tv",
-				preset: "poster-list",
-				source: { path: `${myR2}/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
-			}))
-		} as unknown as HomeBlockTemplate,
+      id: "weekly_japanese_drama_collection",
+      title: "🇯🇵 日剧追剧周更表 (合集)",
+      mediaType: "tv",
+      preset: COLLECTION_PRESET,
+      style: "image-landscape",
+      groupMode: "weekday",
+      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+        id: `weekly_japanese_drama_collection-${d}`,
+        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        weekday: d,
+        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        mediaType: "tv",
+        preset: "poster-list",
+        source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
+      }))
+    } as unknown as HomeBlockTemplate as unknown as HomeBlockTemplate,
 		{
-			id: "weekly_sea_drama_collection",
-			title: "🇹🇭 东南亚剧周更表 (合集)",
-			mediaType: "tv",
-			preset: COLLECTION_PRESET,
-			style: "image-landscape",
-			groupMode: "weekday",
-			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-				id: `weekly_sea_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-				mediaType: "tv",
-				preset: "poster-list",
-				source: { path: `${myR2}/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
-			}))
-		} as unknown as HomeBlockTemplate,
+      id: "weekly_sea_drama_collection",
+      title: "🇹🇭 东南亚剧周更表 (合集)",
+      mediaType: "tv",
+      preset: COLLECTION_PRESET,
+      style: "image-landscape",
+      groupMode: "weekday",
+      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+        id: `weekly_sea_drama_collection-${d}`,
+        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        weekday: d,
+        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+        mediaType: "tv",
+        preset: "poster-list",
+        source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
+      }))
+    } as unknown as HomeBlockTemplate as unknown as HomeBlockTemplate,
 
 		// =============================================================
 		// 🌟 2. 官方原生内置模块（11 个原生块）
@@ -428,302 +426,302 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 🌟 3. 你的自建大盘专属精选分类（33 个大盘块，直连 R2）
 		// =============================================================
 		{
-			id: "tmdb_popular_movies",
-			mediaType: "movie",
-			titleKey: "home.tmdb_popular_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-popular-movies.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_popular_movies",
+      mediaType: "movie",
+      titleKey: "home.tmdb_popular_movies",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-movies.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_popular_tv",
-			mediaType: "tv",
-			titleKey: "home.tmdb_popular_tv_shows",
-			preset: "hero-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-popular-tv.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_popular_tv",
+      mediaType: "tv",
+      titleKey: "home.tmdb_popular_tv_shows",
+      preset: "hero-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-tv.json", itemEnvelope: "data" }
+    },
 		{
-			id: "bangumi_airing",
-			mediaType: "tv",
-			titleKey: "home.bangumi_popular_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/bangumi-airing.json`, itemEnvelope: "data" }
-		},
+      id: "bangumi_airing",
+      mediaType: "tv",
+      titleKey: "home.bangumi_popular_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/bangumi-airing.json", itemEnvelope: "data" }
+    },
 		{
-			id: "douban_tv_custom",
-			mediaType: "tv",
-			titleKey: "home.popular_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/douban-tv-custom.json`, itemEnvelope: "data" }
-		},
+      id: "douban_tv_custom",
+      mediaType: "tv",
+      titleKey: "home.popular_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_netflix",
-			mediaType: "tv",
-			titleKey: "home.tmdb_tv_netflix",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-netflix.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_netflix",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_netflix",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-netflix.json", itemEnvelope: "data" }
+    },
 		{
-			id: "variety_cn",
-			mediaType: "tv",
-			titleKey: "home.variety_cn",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/variety-cn.json`, itemEnvelope: "data" }
-		},
+      id: "variety_cn",
+      mediaType: "tv",
+      titleKey: "home.variety_cn",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json", itemEnvelope: "data" }
+    },
 		{
-			id: "variety_kr",
-			mediaType: "tv",
-			titleKey: "home.variety_kr",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/variety-kr.json`, itemEnvelope: "data" }
-		},
+      id: "variety_kr",
+      mediaType: "tv",
+      titleKey: "home.variety_kr",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json", itemEnvelope: "data" }
+    },
 		{
-			id: "variety_global",
-			mediaType: "tv",
-			titleKey: "home.variety_global",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/variety-global.json`, itemEnvelope: "data" }
-		},
+      id: "variety_global",
+      mediaType: "tv",
+      titleKey: "home.variety_global",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/variety-global.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_hbo",
-			mediaType: "tv",
-			titleKey: "home.tmdb_tv_hbo",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-hbo.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_hbo",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_hbo",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-hbo.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_apple",
-			mediaType: "tv",
-			titleKey: "home.tmdb_tv_apple",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-apple.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_apple",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_apple",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-apple.json", itemEnvelope: "data" }
+    },
 		{
-			id: "trakt_movies",
-			mediaType: "movie",
-			titleKey: "home.trakt_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/trakt-movies.json`, itemEnvelope: "data" }
-		},
+      id: "trakt_movies",
+      mediaType: "movie",
+      titleKey: "home.trakt_movies",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/trakt-movies.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_anime_cn",
-			mediaType: "tv",
-			titleKey: "home.popular_domestic_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-anime-cn.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_anime_cn",
+      mediaType: "tv",
+      titleKey: "home.popular_domestic_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json", itemEnvelope: "data" }
+    },
 		{
-			id: "trakt_shows",
-			mediaType: "tv",
-			titleKey: "home.trakt_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/trakt-shows.json`, itemEnvelope: "data" }
-		},
+      id: "trakt_shows",
+      mediaType: "tv",
+      titleKey: "home.trakt_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/trakt-shows.json", itemEnvelope: "data" }
+    },
 		{
-			id: "douban_movies",
-			mediaType: "movie",
-			titleKey: "home.popular_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/douban-movies.json`, itemEnvelope: "data" }
-		},
+      id: "douban_movies",
+      mediaType: "movie",
+      titleKey: "home.popular_movies",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json", itemEnvelope: "data" }
+    },
 		{
-			id: "douban_korean_tv",
-			mediaType: "tv",
-			titleKey: "home.popular_korean_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/douban-korean-tv.json`, itemEnvelope: "data" }
-		},
+      id: "douban_korean_tv",
+      mediaType: "tv",
+      titleKey: "home.popular_korean_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/douban-korean-tv.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_ja",
-			mediaType: "tv",
-			titleKey: "home.popular_japanese_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-ja.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_ja",
+      mediaType: "tv",
+      titleKey: "home.popular_japanese_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-ja.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_anime_jp",
-			mediaType: "tv",
-			titleKey: "home.tmdb_anime_jp",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-anime-jp.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_anime_jp",
+      mediaType: "tv",
+      titleKey: "home.tmdb_anime_jp",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-jp.json", itemEnvelope: "data" }
+    },
 		{
-			id: "imdb_top_anime",
-			mediaType: "tv",
-			titleKey: "home.imdb_top_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/imdb-top-anime.json`, itemEnvelope: "data" }
-		},
+      id: "imdb_top_anime",
+      mediaType: "tv",
+      titleKey: "home.imdb_top_anime",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/imdb-top-anime.json", itemEnvelope: "data" }
+    },
 		{
-			id: "prime_hot_anime",
-			mediaType: "tv",
-			titleKey: "home.prime_hot_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/prime-hot-anime.json`, itemEnvelope: "data" }
-		},
+      id: "prime_hot_anime",
+      mediaType: "tv",
+      titleKey: "home.prime_hot_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/prime-hot-anime.json", itemEnvelope: "data" }
+    },
 		{
-			id: "filmarks_anime_movie",
-			mediaType: "movie",
-			titleKey: "home.filmarks_anime_movie",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/filmarks-anime-movie.json`, itemEnvelope: "data" }
-		},
+      id: "filmarks_anime_movie",
+      mediaType: "movie",
+      titleKey: "home.filmarks_anime_movie",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/filmarks-anime-movie.json", itemEnvelope: "data" }
+    },
 		{
-			id: "netflix_hot_anime",
-			mediaType: "tv",
-			titleKey: "home.netflix_hot_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/netflix-hot-anime.json`, itemEnvelope: "data" }
-		},
+      id: "netflix_hot_anime",
+      mediaType: "tv",
+      titleKey: "home.netflix_hot_anime",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/netflix-hot-anime.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_anime_top_ja",
-			mediaType: "tv",
-			titleKey: "home.tmdb_anime_top_ja",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-anime-top-ja.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_anime_top_ja",
+      mediaType: "tv",
+      titleKey: "home.tmdb_anime_top_ja",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-top-ja.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_anime_movie_ja",
-			mediaType: "movie",
-			titleKey: "home.tmdb_anime_movie_ja",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-anime-movie-ja.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_anime_movie_ja",
+      mediaType: "movie",
+      titleKey: "home.tmdb_anime_movie_ja",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-movie-ja.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_es",
-			mediaType: "tv",
-			titleKey: "home.popular_spanish_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-es.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_es",
+      mediaType: "tv",
+      titleKey: "home.popular_spanish_tv_shows",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-es.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_tw",
-			mediaType: "tv",
-			titleKey: "home.popular_taiwanese_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-tw.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_tw",
+      mediaType: "tv",
+      titleKey: "home.popular_taiwanese_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-tw.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_movie_tw",
-			mediaType: "movie",
-			titleKey: "home.popular_taiwanese_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-movie-tw.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_movie_tw",
+      mediaType: "movie",
+      titleKey: "home.popular_taiwanese_movies",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-tw.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_movie_sea",
-			mediaType: "movie",
-			titleKey: "home.tmdb_movie_sea",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-movie-sea.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_movie_sea",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_sea",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-sea.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_movie_hk_erotic_comedy",
-			mediaType: "movie",
-			titleKey: "home.tmdb_movie_hk_erotic_comedy",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-movie-hk-erotic-comedy.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_movie_hk_erotic_comedy",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_hk_erotic_comedy",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-hk-erotic-comedy.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_th",
-			mediaType: "tv",
-			titleKey: "home.tmdb_tv_th",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-th.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_th",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_th",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-th.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_movie_th",
-			mediaType: "movie",
-			titleKey: "home.tmdb_movie_th",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-movie-th.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_movie_th",
+      mediaType: "movie",
+      titleKey: "home.tmdb_movie_th",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-th.json", itemEnvelope: "data" }
+    },
 		{
-			id: "tmdb_tv_bl",
-			mediaType: "tv",
-			titleKey: "home.tmdb_tv_bl",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/tmdb-tv-bl.json`, itemEnvelope: "data" }
-		},
+      id: "tmdb_tv_bl",
+      mediaType: "tv",
+      titleKey: "home.tmdb_tv_bl",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-bl.json", itemEnvelope: "data" }
+    },
 		{
-			id: "netflix_tv_minor",
-			mediaType: "tv",
-			titleKey: "home.netflix_minor_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/netflix-tv-minor.json`, itemEnvelope: "data" }
-		},
+      id: "netflix_tv_minor",
+      mediaType: "tv",
+      titleKey: "home.netflix_minor_tv_shows",
+      preset: "thumb-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/netflix-tv-minor.json", itemEnvelope: "data" }
+    },
 		{
-			id: "netflix_movie_minor",
-			mediaType: "movie",
-			titleKey: "home.netflix_minor_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: true,
-			source: { path: `${myR2}/netflix-movie-minor.json`, itemEnvelope: "data" }
-		}
+      id: "netflix_movie_minor",
+      mediaType: "movie",
+      titleKey: "home.netflix_minor_movies",
+      preset: "poster-list",
+      showRank: true,
+      showOverview: true,
+      source: { path: "https://r2.eplayerx.cc.cd/netflix-movie-minor.json", itemEnvelope: "data" }
+    }
 	];
 }
 
