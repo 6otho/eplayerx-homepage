@@ -600,8 +600,8 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
     },
     {
       id: "weekly_korean_drama_collection",
+      title: "🇰🇷 韩剧追剧周更表 (合集)",
       mediaType: "tv",
-      titleKey: "home.weekly_korean_drama",
       preset: "collection-list",
       groupMode: "weekday",
       children: [
@@ -613,11 +613,11 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_korean_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_korean_drama_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_korean_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_korean_drama_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
+    } as unknown as HomeBlockTemplate,
     {
       id: "weekly_anime_collection",
+      title: "🇯🇵 动漫新番周更表 (合集)",
       mediaType: "tv",
-      titleKey: "home.weekly_anime",
       preset: "collection-list",
       groupMode: "weekday",
       children: [
@@ -629,11 +629,11 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_anime_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_anime_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_anime_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
+    } as unknown as HomeBlockTemplate,
     {
       id: "weekly_drama_collection",
+      title: "🇨🇳 国产追剧周更表 (合集)",
       mediaType: "tv",
-      titleKey: "home.weekly_drama",
       preset: "collection-list",
       groupMode: "weekday",
       children: [
@@ -645,11 +645,11 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_drama_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
+    } as unknown as HomeBlockTemplate,
     {
       id: "weekly_guoman_collection",
+      title: "🇨🇳 国漫追番周历表 (合集)",
       mediaType: "tv",
-      titleKey: "home.weekly_guoman",
       preset: "collection-list",
       groupMode: "weekday",
       children: [
@@ -661,11 +661,11 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_guoman_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_guoman_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_guoman_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
+    } as unknown as HomeBlockTemplate,
     {
       id: "weekly_japanese_drama_collection",
+      title: "🇯🇵 日剧追剧周更表 (合集)",
       mediaType: "tv",
-      titleKey: "home.weekly_japanese_drama",
       preset: "collection-list",
       groupMode: "weekday",
       children: [
@@ -677,11 +677,11 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_japanese_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_japanese_drama_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_japanese_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_japanese_drama_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
+    } as unknown as HomeBlockTemplate,
     {
       id: "weekly_sea_drama_collection",
+      title: "🇹🇭 东南亚剧周更表 (合集)",
       mediaType: "tv",
-      titleKey: "home.weekly_sea_drama",
       preset: "collection-list",
       groupMode: "weekday",
       children: [
@@ -693,7 +693,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
         { id: "weekly_sea_drama_collection-6", label: "周六", weekday: 6, title: "周六", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_sea_drama_collection-6.json", itemEnvelope: "data" } },
         { id: "weekly_sea_drama_collection-7", label: "周日", weekday: 7, title: "周日", mediaType: "tv", preset: "thumb-list", source: { path: "https://homepage.eplayerx.cc.cd/blocks/public/weekly_sea_drama_collection-7.json", itemEnvelope: "data" } }
       ]
-    },
+    } as unknown as HomeBlockTemplate,
     {
       id: "douban_tv_custom",
       mediaType: "tv",
