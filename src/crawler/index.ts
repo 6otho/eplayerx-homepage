@@ -519,7 +519,7 @@ const LANGUAGE_ITEMS = [
 
 const GENRE_ITEMS: { id: string; key: GenreKey; imageName: string }[] = [
 { id: “18”, key: “drama”, imageName: “DRAMA-2.png” },
-{ id: “35”, key: “comedy”, imageName: “COMEDY-3.png” },
+{ id: “35”, key: “comedy”, imageName: “COMEDY-2.png” },
 { id: “9648,53”, key: “thriller”, imageName: “THRILLER-2.png” },
 { id: “28”, key: “action”, imageName: “ACTION-2.png” },
 { id: “878”, key: “scifi”, imageName: “SCI-FI-2.png” },
