@@ -4,7 +4,7 @@ import { createDefaultHomeConfig } from "./config.js";
 import { createHomeConfigV2 } from "./config-v2.js";
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-const DEFAULT_TIMEZONE = "Asia/Shanghai";
+const DEFAULT_TIMEZONE = "UTC";
 
 const app = new Hono<{ Bindings: BlocksBindings }>();
 
@@ -35,24 +35,21 @@ function cacheHomeConfig(c: Context) {
 	);
 }
 
-// 🌟 1. 自定义专属接口 (/home/config) -> 独立处理，绝不干涉 v2
-app.get("/config", async (c) => {
+// 🌟 原作者原版：同步执行，不包 Promise
+app.get("/config", (c) => {
 	cacheHomeConfig(c);
-	const config = await createDefaultHomeConfig({
-		...resolveConfigRequest(c),
-		db: c.env?.DB,
-	});
-	return c.json(config);
+	return c.json(createDefaultHomeConfig(resolveConfigRequest(c)));
 });
 
-// 🌟 2. 官方默认接口 (/home/config/v2) -> 独立处理，纯净原版，绝不干涉自定义
+// 🌟 原作者原版 V2：异步执行
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
-	const config = await createHomeConfigV2({
-		...resolveConfigRequest(c),
-		db: c.env?.DB,
-	});
-	return c.json(config);
+	return c.json(
+		await createHomeConfigV2({
+			...resolveConfigRequest(c),
+			db: c.env?.DB,
+		}),
+	);
 });
 
 export default app;
