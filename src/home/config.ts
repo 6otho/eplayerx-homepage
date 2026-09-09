@@ -1,18 +1,11 @@
 /// <reference types="@cloudflare/workers-types" />
-/**
- * Default homepage V2. Old clients keep using `/home/config` (version 1);
- * new clients should fetch `/home/config/v2`.
- *
- * Edit `createV2BlockTemplates` to change the new home layout. The decades
- * collection is resolved from D1 and dropped when the binding or row is missing.
- */
-
 import { getCommunityBlocksByIds } from "../blocks/storage.js";
 import {
 	COLLECTION_PRESET,
 	type CollectionBlock,
 	type TmdbListRoute,
 } from "../blocks/types.js";
+import type { HomeConfigV2Block, HomeConfigV2Options, HomeConfigV2 } from "./config-v2.js";
 
 type Locale = "en" | "zh" | "zh-Hant" | "ja" | "es" | "ar";
 
@@ -95,8 +88,6 @@ export interface HomeConfigV2MediaBlock {
 	route?: TmdbListRoute;
 }
 
-export type HomeConfigV2Block = HomeConfigV2MediaBlock | CollectionBlock;
-
 type TmdbListRouteParams = TmdbListRoute["params"];
 
 type HomeBlockTemplate = Omit<HomeConfigV2MediaBlock, "title"> & {
@@ -109,26 +100,7 @@ type HomeBlockTemplate = Omit<HomeConfigV2MediaBlock, "title"> & {
 };
 
 type DecadesCollectionSlot = { type: "decades-collection" };
-
 type V2Section = HomeBlockTemplate | DecadesCollectionSlot;
-
-export interface HomeConfigV2Options {
-	apiBaseUrl: string;
-	imageBaseUrl: string;
-	language: string;
-	timezone: string;
-	db?: D1Database;
-}
-
-export interface HomeConfigV2 {
-	version: number;
-	apiBaseUrl: string;
-	imageBaseUrl: string;
-	carouselSourceId: string;
-	blocks: HomeConfigV2Block[];
-}
-
-export const HOME_CONFIG_V2_VERSION = 2;
 
 const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを見る", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -181,8 +153,6 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.netflix_minor_movies": { en: "Hidden Gem Minor Language Movies", zh: "冷门却惊艳的小语种电影", "zh-Hant": "冷門卻驚豔的小語種电影", ja: "隠れた名作外国映画", es: "Películas Sorprendentes en Otros Idiomas", ar: "أفلام بلغات أخرى" }
 };
 
-const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {};
-
 const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
 
 function resolveLocale(language: string): Locale {
@@ -202,127 +172,118 @@ function resolveTitle(titleKey: string, language: string): string {
 	return trans[resolveLocale(language)] || trans["zh"] || trans["en"] || titleKey;
 }
 
-function createTmdbListRoute(title: string, params: TmdbListRouteParams): TmdbListRoute {
-	return { type: "tmdb-list", title, params };
-}
-
 function isDecadesCollectionSlot(section: V2Section): section is DecadesCollectionSlot {
 	return "type" in section && section.type === "decades-collection";
 }
 
-function createV2BlockTemplates(language: string, timezone: string): V2Section[] {
-	const myR2 = "https://r2.eplayerx.cc.cd";
-
+// 🌟 你的 43 个完整分类模板（包含 6 大周更表 + 原生探索 + 33 个自建 R2 大盘分类）
+function createCustomBlockTemplates(language: string, timezone: string): V2Section[] {
 	return [
-		// =============================================================
-		// 🌟 1. 你的自建六大追剧周更表合集（6 个合集）
-		// =============================================================
+		// 1. 六大追剧周更表
 		{
-      id: "weekly_drama_collection",
-      title: "国产追剧周更表",
-      mediaType: "tv",
-      preset: COLLECTION_PRESET,
-      style: "image-landscape",
-      groupMode: "weekday",
-      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-        id: `weekly_drama_collection-${d}`,
-        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        weekday: d,
-        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        mediaType: "tv",
-        preset: "poster-list",
-        source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
-      }))
-    } as unknown as HomeBlockTemplate,
+			id: "weekly_drama_collection",
+			title: "国产追剧周更表",
+			mediaType: "tv",
+			preset: COLLECTION_PRESET,
+			style: "image-landscape",
+			groupMode: "weekday",
+			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+				id: `weekly_drama_collection-${d}`,
+				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				weekday: d,
+				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				mediaType: "tv",
+				preset: "poster-list",
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
+			}))
+		} as unknown as HomeBlockTemplate,
 		{
-      id: "weekly_guoman_collection",
-      title: "国漫追番周历表",
-      mediaType: "tv",
-      preset: COLLECTION_PRESET,
-      style: "image-landscape",
-      groupMode: "weekday",
-      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-        id: `weekly_guoman_collection-${d}`,
-        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        weekday: d,
-        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        mediaType: "tv",
-        preset: "poster-list",
-        source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
-      }))
-    } as unknown as HomeBlockTemplate,
+			id: "weekly_guoman_collection",
+			title: "国漫追番周历表",
+			mediaType: "tv",
+			preset: COLLECTION_PRESET,
+			style: "image-landscape",
+			groupMode: "weekday",
+			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+				id: `weekly_guoman_collection-${d}`,
+				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				weekday: d,
+				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				mediaType: "tv",
+				preset: "poster-list",
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
+			}))
+		} as unknown as HomeBlockTemplate,
 		{
-      id: "weekly_anime_collection",
-      title: "动漫新番周更表",
-      mediaType: "tv",
-      preset: COLLECTION_PRESET,
-      style: "image-landscape",
-      groupMode: "weekday",
-      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-        id: `weekly_anime_collection-${d}`,
-        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        weekday: d,
-        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        mediaType: "tv",
-        preset: "poster-list",
-        source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
-      }))
-    } as unknown as HomeBlockTemplate,
+			id: "weekly_anime_collection",
+			title: "动漫新番周更表",
+			mediaType: "tv",
+			preset: COLLECTION_PRESET,
+			style: "image-landscape",
+			groupMode: "weekday",
+			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+				id: `weekly_anime_collection-${d}`,
+				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				weekday: d,
+				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				mediaType: "tv",
+				preset: "poster-list",
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
+			}))
+		} as unknown as HomeBlockTemplate,
 		{
-      id: "weekly_korean_drama_collection",
-      title: "韩剧追剧周更表",
-      mediaType: "tv",
-      preset: COLLECTION_PRESET,
-      style: "image-landscape",
-      groupMode: "weekday",
-      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-        id: `weekly_korean_drama_collection-${d}`,
-        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        weekday: d,
-        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        mediaType: "tv",
-        preset: "poster-list",
-        source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
-      }))
-    } as unknown as HomeBlockTemplate,
+			id: "weekly_korean_drama_collection",
+			title: "韩剧追剧周更表",
+			mediaType: "tv",
+			preset: COLLECTION_PRESET,
+			style: "image-landscape",
+			groupMode: "weekday",
+			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+				id: `weekly_korean_drama_collection-${d}`,
+				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				weekday: d,
+				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				mediaType: "tv",
+				preset: "poster-list",
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
+			}))
+		} as unknown as HomeBlockTemplate,
 		{
-      id: "weekly_japanese_drama_collection",
-      title: "日剧追剧周更表",
-      mediaType: "tv",
-      preset: COLLECTION_PRESET,
-      style: "image-landscape",
-      groupMode: "weekday",
-      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-        id: `weekly_japanese_drama_collection-${d}`,
-        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        weekday: d,
-        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        mediaType: "tv",
-        preset: "poster-list",
-        source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
-      }))
-    } as unknown as HomeBlockTemplate,
+			id: "weekly_japanese_drama_collection",
+			title: "日剧追剧周更表",
+			mediaType: "tv",
+			preset: COLLECTION_PRESET,
+			style: "image-landscape",
+			groupMode: "weekday",
+			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+				id: `weekly_japanese_drama_collection-${d}`,
+				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				weekday: d,
+				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				mediaType: "tv",
+				preset: "poster-list",
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
+			}))
+		} as unknown as HomeBlockTemplate,
 		{
-      id: "weekly_sea_drama_collection",
-      title: "东南亚剧周更表",
-      mediaType: "tv",
-      preset: COLLECTION_PRESET,
-      style: "image-landscape",
-      groupMode: "weekday",
-      children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
-        id: `weekly_sea_drama_collection-${d}`,
-        label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        weekday: d,
-        title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
-        mediaType: "tv",
-        preset: "poster-list",
-        source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
-      }))
-    } as unknown as HomeBlockTemplate,
+			id: "weekly_sea_drama_collection",
+			title: "东南亚剧周更表",
+			mediaType: "tv",
+			preset: COLLECTION_PRESET,
+			style: "image-landscape",
+			groupMode: "weekday",
+			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
+				id: `weekly_sea_drama_collection-${d}`,
+				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				weekday: d,
+				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				mediaType: "tv",
+				preset: "poster-list",
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
+			}))
+		} as unknown as HomeBlockTemplate,
 
-		// =============================================================
-		// 🌟 2. 官方原生纯功能探索组件（保留 4 个原生导航发现块）
-		// =============================================================
+		// 2. 原生探索入口
 		{
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
@@ -343,369 +304,57 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" },
 		},
 
-		// =============================================================
-		// 🌟 3. 自建大盘专属分类（全部 showOverview: false 彻底隐藏首页冗余简介）
-		// =============================================================
-		{
-      id: "tmdb_popular_movies",
-      mediaType: "movie",
-      titleKey: "home.tmdb_popular_movies",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-movies.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_popular_tv",
-      mediaType: "tv",
-      titleKey: "home.tmdb_popular_tv_shows",
-      preset: "hero-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-tv.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "bangumi_airing",
-      mediaType: "tv",
-      titleKey: "home.bangumi_popular_anime",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/bangumi-airing.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "douban_tv_custom",
-      mediaType: "tv",
-      titleKey: "home.popular_tv_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_netflix",
-      mediaType: "tv",
-      titleKey: "home.tmdb_tv_netflix",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-netflix.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "variety_cn",
-      mediaType: "tv",
-      titleKey: "home.variety_cn",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "variety_kr",
-      mediaType: "tv",
-      titleKey: "home.variety_kr",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "variety_global",
-      mediaType: "tv",
-      titleKey: "home.variety_global",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/variety-global.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_hbo",
-      mediaType: "tv",
-      titleKey: "home.tmdb_tv_hbo",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-hbo.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_apple",
-      mediaType: "tv",
-      titleKey: "home.tmdb_tv_apple",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-apple.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "trakt_movies",
-      mediaType: "movie",
-      titleKey: "home.trakt_movies",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/trakt-movies.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_anime_cn",
-      mediaType: "tv",
-      titleKey: "home.popular_domestic_anime",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "trakt_shows",
-      mediaType: "tv",
-      titleKey: "home.trakt_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/trakt-shows.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "douban_movies",
-      mediaType: "movie",
-      titleKey: "home.popular_movies",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "douban_korean_tv",
-      mediaType: "tv",
-      titleKey: "home.popular_korean_tv_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/douban-korean-tv.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_ja",
-      mediaType: "tv",
-      titleKey: "home.popular_japanese_tv_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-ja.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_anime_jp",
-      mediaType: "tv",
-      titleKey: "home.tmdb_anime_jp",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-jp.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "imdb_top_anime",
-      mediaType: "tv",
-      titleKey: "home.imdb_top_anime",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/imdb-top-anime.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "prime_hot_anime",
-      mediaType: "tv",
-      titleKey: "home.prime_hot_anime",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/prime-hot-anime.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "filmarks_anime_movie",
-      mediaType: "movie",
-      titleKey: "home.filmarks_anime_movie",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/filmarks-anime-movie.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "netflix_hot_anime",
-      mediaType: "tv",
-      titleKey: "home.netflix_hot_anime",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/netflix-hot-anime.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_anime_top_ja",
-      mediaType: "tv",
-      titleKey: "home.tmdb_anime_top_ja",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-top-ja.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_anime_movie_ja",
-      mediaType: "movie",
-      titleKey: "home.tmdb_anime_movie_ja",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-movie-ja.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_es",
-      mediaType: "tv",
-      titleKey: "home.popular_spanish_tv_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-es.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_tw",
-      mediaType: "tv",
-      titleKey: "home.popular_taiwanese_tv_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-tw.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_movie_tw",
-      mediaType: "movie",
-      titleKey: "home.popular_taiwanese_movies",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-tw.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_movie_sea",
-      mediaType: "movie",
-      titleKey: "home.tmdb_movie_sea",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-sea.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_movie_hk_erotic_comedy",
-      mediaType: "movie",
-      titleKey: "home.tmdb_movie_hk_erotic_comedy",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-hk-erotic-comedy.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_th",
-      mediaType: "tv",
-      titleKey: "home.tmdb_tv_th",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-th.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_movie_th",
-      mediaType: "movie",
-      titleKey: "home.tmdb_movie_th",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-th.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "tmdb_tv_bl",
-      mediaType: "tv",
-      titleKey: "home.tmdb_tv_bl",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-bl.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "netflix_tv_minor",
-      mediaType: "tv",
-      titleKey: "home.netflix_minor_tv_shows",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/netflix-tv-minor.json?sort=year", itemEnvelope: "data" }
-    },
-		{
-      id: "netflix_movie_minor",
-      mediaType: "movie",
-      titleKey: "home.netflix_minor_movies",
-      preset: "poster-list",
-      showRank: true,
-      showOverview: false,
-      sort: "year",
-      source: { path: "https://r2.eplayerx.cc.cd/netflix-movie-minor.json?sort=year", itemEnvelope: "data" }
-    }
+		// 3. 自建大盘专属分类（全部 showOverview: false）
+		{ id: "tmdb_popular_movies", mediaType: "movie", titleKey: "home.tmdb_popular_movies", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-movies.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_popular_tv", mediaType: "tv", titleKey: "home.tmdb_popular_tv_shows", preset: "hero-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-tv.json?sort=year", itemEnvelope: "data" } },
+		{ id: "bangumi_airing", mediaType: "tv", titleKey: "home.bangumi_popular_anime", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/bangumi-airing.json?sort=year", itemEnvelope: "data" } },
+		{ id: "douban_tv_custom", mediaType: "tv", titleKey: "home.popular_tv_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_netflix", mediaType: "tv", titleKey: "home.tmdb_tv_netflix", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-netflix.json?sort=year", itemEnvelope: "data" } },
+		{ id: "variety_cn", mediaType: "tv", titleKey: "home.variety_cn", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json?sort=year", itemEnvelope: "data" } },
+		{ id: "variety_kr", mediaType: "tv", titleKey: "home.variety_kr", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json?sort=year", itemEnvelope: "data" } },
+		{ id: "variety_global", mediaType: "tv", titleKey: "home.variety_global", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/variety-global.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_hbo", mediaType: "tv", titleKey: "home.tmdb_tv_hbo", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-hbo.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_apple", mediaType: "tv", titleKey: "home.tmdb_tv_apple", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-apple.json?sort=year", itemEnvelope: "data" } },
+		{ id: "trakt_movies", mediaType: "movie", titleKey: "home.trakt_movies", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/trakt-movies.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_anime_cn", mediaType: "tv", titleKey: "home.popular_domestic_anime", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json?sort=year", itemEnvelope: "data" } },
+		{ id: "trakt_shows", mediaType: "tv", titleKey: "home.trakt_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/trakt-shows.json?sort=year", itemEnvelope: "data" } },
+		{ id: "douban_movies", mediaType: "movie", titleKey: "home.popular_movies", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json?sort=year", itemEnvelope: "data" } },
+		{ id: "douban_korean_tv", mediaType: "tv", titleKey: "home.popular_korean_tv_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/douban-korean-tv.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_ja", mediaType: "tv", titleKey: "home.popular_japanese_tv_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-ja.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_anime_jp", mediaType: "tv", titleKey: "home.tmdb_anime_jp", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-jp.json?sort=year", itemEnvelope: "data" } },
+		{ id: "imdb_top_anime", mediaType: "tv", titleKey: "home.imdb_top_anime", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/imdb-top-anime.json?sort=year", itemEnvelope: "data" } },
+		{ id: "prime_hot_anime", mediaType: "tv", titleKey: "home.prime_hot_anime", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/prime-hot-anime.json?sort=year", itemEnvelope: "data" } },
+		{ id: "filmarks_anime_movie", mediaType: "movie", titleKey: "home.filmarks_anime_movie", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/filmarks-anime-movie.json?sort=year", itemEnvelope: "data" } },
+		{ id: "netflix_hot_anime", mediaType: "tv", titleKey: "home.netflix_hot_anime", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/netflix-hot-anime.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_anime_top_ja", mediaType: "tv", titleKey: "home.tmdb_anime_top_ja", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-top-ja.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_anime_movie_ja", mediaType: "movie", titleKey: "home.tmdb_anime_movie_ja", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-movie-ja.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_es", mediaType: "tv", titleKey: "home.popular_spanish_tv_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-es.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_tw", mediaType: "tv", titleKey: "home.popular_taiwanese_tv_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-tw.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_movie_tw", mediaType: "movie", titleKey: "home.popular_taiwanese_movies", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-tw.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_movie_sea", mediaType: "movie", titleKey: "home.tmdb_movie_sea", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-sea.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_movie_hk_erotic_comedy", mediaType: "movie", titleKey: "home.tmdb_movie_hk_erotic_comedy", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-hk-erotic-comedy.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_th", mediaType: "tv", titleKey: "home.tmdb_tv_th", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-th.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_movie_th", mediaType: "movie", titleKey: "home.tmdb_movie_th", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-th.json?sort=year", itemEnvelope: "data" } },
+		{ id: "tmdb_tv_bl", mediaType: "tv", titleKey: "home.tmdb_tv_bl", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-bl.json?sort=year", itemEnvelope: "data" } },
+		{ id: "netflix_tv_minor", mediaType: "tv", titleKey: "home.netflix_minor_tv_shows", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/netflix-tv-minor.json?sort=year", itemEnvelope: "data" } },
+		{ id: "netflix_movie_minor", mediaType: "movie", titleKey: "home.netflix_minor_movies", preset: "poster-list", showRank: true, showOverview: false, sort: "year", source: { path: "https://r2.eplayerx.cc.cd/netflix-movie-minor.json?sort=year", itemEnvelope: "data" } }
 	];
 }
 
-function resolveMediaBlock(
-	block: HomeBlockTemplate,
-	language: string,
-): HomeConfigV2MediaBlock {
+function resolveMediaBlock(block: HomeBlockTemplate, language: string): HomeConfigV2MediaBlock {
 	const { titleKey, ...rest } = block;
-	if (!titleKey) return rest as HomeConfigV2MediaBlock;
-	const title = resolveTitle(titleKey, language);
-	const routeParams = TMDB_LIST_ROUTE_PARAMS[rest.id];
-
+	const title = block.title || (titleKey ? resolveTitle(titleKey, language) : "");
 	return {
 		...rest,
 		title,
-		...(routeParams ? { route: createTmdbListRoute(title, routeParams) } : {}),
 	} as HomeConfigV2MediaBlock;
 }
 
-function parseDecadesCollection(
-	blockId: string,
-	blockJson: string,
-	language: string,
-): CollectionBlock | null {
+function parseDecadesCollection(blockId: string, blockJson: string, language: string): CollectionBlock | null {
 	try {
 		const parsed = JSON.parse(blockJson) as CollectionBlock;
 		if (parsed.preset !== COLLECTION_PRESET) return null;
-		if (!Array.isArray(parsed.children) || parsed.children.length < 2) {
-			return null;
-		}
+		if (!Array.isArray(parsed.children) || parsed.children.length < 2) return null;
 		return {
 			...parsed,
 			id: parsed.id || blockId,
@@ -717,12 +366,8 @@ function parseDecadesCollection(
 	}
 }
 
-async function resolveDecadesCollection(
-	db: D1Database | undefined,
-	language: string,
-): Promise<CollectionBlock | null> {
+async function resolveDecadesCollection(db: D1Database | undefined, language: string): Promise<CollectionBlock | null> {
 	if (!db) return null;
-
 	try {
 		const rows = await getCommunityBlocksByIds(db, [DECADES_COLLECTION_ID]);
 		const row = rows.get(DECADES_COLLECTION_ID);
@@ -733,25 +378,25 @@ async function resolveDecadesCollection(
 	}
 }
 
-export async function createHomeConfigV2(
-	options: HomeConfigV2Options,
-): Promise<HomeConfigV2> {
+// 导出为可直接被 V2 客户端调用的主函数
+export async function createDefaultHomeConfig(options: HomeConfigV2Options): Promise<HomeConfigV2> {
 	const decades = await resolveDecadesCollection(options.db, options.language);
 	const blocks: HomeConfigV2Block[] = [];
 
-	for (const section of createV2BlockTemplates(
-		options.language,
-		options.timezone,
-	)) {
+	for (const section of createCustomBlockTemplates(options.language, options.timezone)) {
 		if (isDecadesCollectionSlot(section)) {
 			if (decades) blocks.push(decades);
 			continue;
 		}
-		blocks.push(resolveMediaBlock(section as HomeBlockTemplate, options.language) as HomeConfigV2Block);
+		if ((section as any).preset === COLLECTION_PRESET) {
+			blocks.push(section as unknown as CollectionBlock);
+			continue;
+		}
+		blocks.push(resolveMediaBlock(section as HomeBlockTemplate, options.language));
 	}
 
 	return {
-		version: HOME_CONFIG_V2_VERSION,
+		version: 2, // 保证客户端新首页按 V2 标准完整渲染你的合集与周更表
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
 		carouselSourceId: "tmdb_popular_movies",
