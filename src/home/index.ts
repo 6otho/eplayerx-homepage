@@ -4,12 +4,12 @@ import { createDefaultHomeConfig } from "./config.js";
 import { createHomeConfigV2 } from "./config-v2.js";
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-const DEFAULT_TIMEZONE = "Asia/Shanghai";
+const DEFAULT_TIMEZONE = "UTC";
 
 const app = new Hono<{ Bindings: BlocksBindings }>();
 
 function resolveRequestLanguage(c: Context): string {
-	return c.req.query("language") || "zh-CN";
+	return c.req.query("language") || "en-US";
 }
 
 function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
@@ -31,29 +31,22 @@ function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
 function cacheHomeConfig(c: Context) {
 	c.header(
 		"Cache-Control",
-		"no-cache, no-store, must-revalidate, max-age=0",
+		"public, max-age=300, s-maxage=300, stale-while-revalidate=3600",
 	);
 }
 
-// 🌟 1. 自定义接口 (/home/config) -> 严格指向 config.js
-app.get("/config", async (c) => {
+app.get("/config", (c) => {
 	cacheHomeConfig(c);
-	return c.json(
-		await createDefaultHomeConfig({
-			...resolveConfigRequest(c),
-			db: c.env?.DB,
-		})
-	);
+	return c.json(createDefaultHomeConfig(resolveConfigRequest(c)));
 });
 
-// 🌟 2. 官方默认 V2 接口 (/home/config/v2) -> 严格指向 config-v2.js
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
 	return c.json(
 		await createHomeConfigV2({
 			...resolveConfigRequest(c),
 			db: c.env?.DB,
-		})
+		}),
 	);
 });
 
