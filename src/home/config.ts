@@ -106,7 +106,7 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.continue_watching": { en: "Continue Watching", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを見る", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
 	"home.tmdb_popular_tv_shows": { en: "Today's Popular TV Shows", zh: "今日热门电视剧", "zh-Hant": "今日熱門電視劇", ja: "今日の人気テレビ番組", es: "Series de TV Populares de Hoy", ar: "مسلسلات شائعة" },
 	"home.tmdb_popular_movies": { en: "Today's Popular Movies", zh: "今日热门电影", "zh-Hant": "今日熱門電影", ja: "今日の人気映画", es: "Películas Populares de Hoy", ar: "أفلام شائعة" },
-	"home.popular_tv_shows": { en: "Popular Domestic Dramas", zh: "时下热门国产剧", "zh-Hant": "時下熱門國產劇", ja: "人気の中国ドラマ", es: "Dramas Chinos Populares", ar: "دراما صينية شائعة" },
+	"home.popular_tv_shows": { en: "Popular Domestic Dramas", zh: "时下热门国产剧", "zh-Hant": "時下熱門國產剧", ja: "人気の中国ドラマ", es: "Dramas Chinos Populares", ar: "دراما صينية شائعة" },
 	"home.popular_movies": { en: "Trending Movies", zh: "实时热门电影", "zh-Hant": "實時熱門電影", ja: "リアルタイム人気映画", es: "Películas en Tendencia", ar: "أفلام رائجة" },
 	"home.tmdb_discover_genres": { en: "Browse By Category", zh: "按分类浏览", "zh-Hant": "按分類瀏覽", ja: "カテゴリで探す", es: "Explorar por Categoría", ar: "تصفح حسب الفئة" },
 	"home.classic_decades": { en: "Classic Decades", zh: "年代经典", "zh-Hant": "年代經典", ja: "年代別クラシック", es: "Clásicos por Década", ar: "كلاسيكيات العقود" },
@@ -176,15 +176,15 @@ function isDecadesCollectionSlot(section: V2Section): section is DecadesCollecti
 	return "type" in section && section.type === "decades-collection";
 }
 
-// 🌟 你的 43 个完整分类模板（包含 6 大周更表 + 原生探索 + 33 个自建 R2 大盘分类）
-function createCustomBlockTemplates(language: string, timezone: string): V2Section[] {
+// 🌟 你的 43 个完整分类
+function createCustomBlockTemplates(language: string): V2Section[] {
 	return [
 		// 1. 六大追剧周更表
 		{
 			id: "weekly_drama_collection",
 			title: "国产追剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -201,7 +201,7 @@ function createCustomBlockTemplates(language: string, timezone: string): V2Secti
 			id: "weekly_guoman_collection",
 			title: "国漫追番周历表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -218,7 +218,7 @@ function createCustomBlockTemplates(language: string, timezone: string): V2Secti
 			id: "weekly_anime_collection",
 			title: "动漫新番周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -235,7 +235,7 @@ function createCustomBlockTemplates(language: string, timezone: string): V2Secti
 			id: "weekly_korean_drama_collection",
 			title: "韩剧追剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -252,7 +252,7 @@ function createCustomBlockTemplates(language: string, timezone: string): V2Secti
 			id: "weekly_japanese_drama_collection",
 			title: "日剧追剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -269,7 +269,7 @@ function createCustomBlockTemplates(language: string, timezone: string): V2Secti
 			id: "weekly_sea_drama_collection",
 			title: "东南亚剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -353,7 +353,7 @@ function resolveMediaBlock(block: HomeBlockTemplate, language: string): HomeConf
 function parseDecadesCollection(blockId: string, blockJson: string, language: string): CollectionBlock | null {
 	try {
 		const parsed = JSON.parse(blockJson) as CollectionBlock;
-		if (parsed.preset !== COLLECTION_PRESET) return null;
+		if (parsed.preset !== "collection") return null;
 		if (!Array.isArray(parsed.children) || parsed.children.length < 2) return null;
 		return {
 			...parsed,
@@ -378,17 +378,16 @@ async function resolveDecadesCollection(db: D1Database | undefined, language: st
 	}
 }
 
-// 导出为可直接被 V2 客户端调用的主函数
 export async function createDefaultHomeConfig(options: HomeConfigV2Options): Promise<HomeConfigV2> {
 	const decades = await resolveDecadesCollection(options.db, options.language);
 	const blocks: HomeConfigV2Block[] = [];
 
-	for (const section of createCustomBlockTemplates(options.language, options.timezone)) {
+	for (const section of createCustomBlockTemplates(options.language)) {
 		if (isDecadesCollectionSlot(section)) {
 			if (decades) blocks.push(decades);
 			continue;
 		}
-		if ((section as any).preset === COLLECTION_PRESET) {
+		if ((section as any).preset === "collection") {
 			blocks.push(section as unknown as CollectionBlock);
 			continue;
 		}
@@ -396,7 +395,7 @@ export async function createDefaultHomeConfig(options: HomeConfigV2Options): Pro
 	}
 
 	return {
-		version: 2, // 保证客户端新首页按 V2 标准完整渲染你的合集与周更表
+		version: 2, // 保证客户端新首页按 V2 标准完整渲染
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
 		carouselSourceId: "tmdb_popular_movies",
