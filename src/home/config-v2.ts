@@ -120,13 +120,20 @@ const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
 const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
 
 function resolveLocale(language: string): Locale {
-	const normalized = (language || "").toLowerCase();
-	if (normalized.startsWith("zh-hant") || normalized.includes("tw") || normalized.includes("hk")) return "zh-Hant";
+	const normalized = language.toLowerCase();
+	if (normalized.startsWith("zh-hant") || normalized.includes("tw") || normalized.includes("hk")) {
+		return "zh-Hant";
+	}
 	if (normalized.startsWith("zh")) return "zh";
 	if (normalized.startsWith("ja")) return "ja";
 	if (normalized.startsWith("es")) return "es";
 	if (normalized.startsWith("ar")) return "ar";
-	return "zh";
+	return "en";
+}
+
+function isChineseLocale(language: string): boolean {
+	const locale = resolveLocale(language);
+	return locale === "zh" || locale === "zh-Hant";
 }
 
 function resolveTitle(titleKey: HomeTitleKey, language: string): string {
@@ -142,79 +149,42 @@ function isDecadesCollectionSlot(section: V2Section): section is DecadesCollecti
 }
 
 function createV2BlockTemplates(language: string, timezone: string): V2Section[] {
+	const chineseOnly = isChineseLocale(language);
+	const doubanHeadBlocks: V2Section[] = chineseOnly ? [
+		{ id: "douban-popular-tv-shows", mediaType: "tv", titleKey: "home.popular_tv_shows", preset: "poster-list", showRank: true, source: { path: "/crawler/popular/douban/tv", query: { language }, itemEnvelope: "data" } },
+		{ id: "douban-popular-movies", mediaType: "movie", titleKey: "home.popular_movies", preset: "poster-list", showRank: true, source: { path: "/crawler/popular/douban/movies", itemEnvelope: "data" } }
+	] : [];
+	const chineseAnimeBlocks: V2Section[] = chineseOnly ? [
+		{ id: "douban-popular-anime", mediaType: "tv", titleKey: "home.popular_domestic_anime", preset: "poster-list", showRank: true, source: { path: "/crawler/popular/douban/animation", query: { language }, itemEnvelope: "data" }, metadata: { isAnime: true } },
+		{ id: "bangumi-popular-anime", mediaType: "tv", titleKey: "home.bangumi_popular_anime", preset: "poster-list", showRank: true, source: { path: "/crawler/popular/bangumi/animation", query: { language }, itemEnvelope: "data" }, metadata: { isAnime: true } }
+	] : [];
+	const doubanTailBlocks: V2Section[] = chineseOnly ? [
+		{ id: "douban-popular-variety-shows", mediaType: "tv", titleKey: "home.popular_variety_shows", preset: "poster-list", showRank: true, source: { path: "/crawler/popular/douban/hot-variety-shows", itemEnvelope: "data" } }
+	] : [];
+
 	return [
-		{
-			id: "tmdb-popular-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.tmdb_popular_tv_shows",
-			preset: "poster-list",
-			showRank: true,
-			source: {
-				path: "/tmdb/trending/tv",
-				query: { language, page: 1, limit: 20 },
-				itemEnvelope: "results",
-				pagination: { pageParam: "page", startPage: 1 },
-			},
-		},
-		{
-			id: "tmdb-popular-movies",
-			mediaType: "movie",
-			titleKey: "home.tmdb_popular_movies",
-			preset: "poster-list",
-			showRank: true,
-			source: {
-				path: "/tmdb/trending/movie",
-				query: { language, page: 1 },
-				itemEnvelope: "results",
-				pagination: { pageParam: "page", startPage: 1 },
-			},
-		},
-		{
-			id: "tmdb-discover-genres",
-			titleKey: "home.tmdb_discover_genres",
-			preset: "genres-list",
-			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
-		},
+		{ id: "tmdb-popular-tv-shows", mediaType: "tv", titleKey: "home.tmdb_popular_tv_shows", preset: "poster-list", showRank: true, source: { path: "/tmdb/trending/tv", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		{ id: "tmdb-popular-movies", mediaType: "movie", titleKey: "home.tmdb_popular_movies", preset: "poster-list", showRank: true, source: { path: "/tmdb/trending/movie", query: { language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		...doubanHeadBlocks,
+		{ id: "tmdb-discover-genres", titleKey: "home.tmdb_discover_genres", preset: "genres-list", source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" } },
 		{ type: "decades-collection" },
-		{
-			id: "tmdb-discover-networks",
-			titleKey: "home.tmdb_discover_networks",
-			preset: "networks-list",
-			source: { path: "/crawler/discover/tv-by-network", itemEnvelope: "data" },
-		},
-		{
-			id: "tmdb-discover-tv-by-language",
-			titleKey: "home.tmdb_discover_languages",
-			preset: "languages-list",
-			source: { path: "/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" },
-		},
-		{
-			id: "tmdb-on-the-air-tv-shows",
-			mediaType: "tv",
-			titleKey: "home.tmdb_on_the_air_tv_shows",
-			preset: "hero-list",
-			source: { path: "/tmdb/tv/on_the_air", query: { language, timezone }, itemEnvelope: "results" },
-		},
-		{
-			id: "tmdb-top-rated-movies",
-			titleKey: "home.tmdb_top_rated_movies",
-			mediaType: "movie",
-			preset: "poster-list",
-			source: { path: "/tmdb/movie/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
-		{
-			id: "tmdb-top-rated-tv-shows",
-			titleKey: "home.tmdb_top_rated_tv_shows",
-			mediaType: "tv",
-			preset: "poster-list",
-			source: { path: "/tmdb/tv/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } },
-		},
+		{ id: "tmdb-discover-networks", titleKey: "home.tmdb_discover_networks", preset: "networks-list", source: { path: "/crawler/discover/tv-by-network", itemEnvelope: "data" } },
+		{ id: "tmdb-discover-tv-by-language", titleKey: "home.tmdb_discover_languages", preset: "languages-list", source: { path: "/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" } },
+		{ id: "tmdb-on-the-air-tv-shows", mediaType: "tv", titleKey: "home.tmdb_on_the_air_tv_shows", preset: "hero-list", source: { path: "/tmdb/tv/on_the_air", query: { language, timezone }, itemEnvelope: "results" } },
+		...chineseAnimeBlocks,
+		...doubanTailBlocks,
+		{ id: "tmdb-popular-korean-tv-shows", mediaType: "tv", titleKey: "home.popular_korean_tv_shows", preset: "poster-list", showRank: true, source: { path: "/tmdb/discover/tv", query: { with_original_language: "ko", with_genres: 18, without_genres: "16,10762,10764", "first_air_date.gte": "2018-01-01", "vote_count.gte": 15, sort_by: "popularity.desc", language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		{ id: "tmdb-popular-japanese-tv-shows", mediaType: "tv", titleKey: "home.popular_japanese_tv_shows", preset: "poster-list", showRank: true, source: { path: "/tmdb/discover/tv", query: { with_original_language: "ja", with_genres: 18, without_genres: "16,10762", without_keywords: "317204", "first_air_date.gte": "2018-01-01", "vote_count.gte": 15, sort_by: "popularity.desc", language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		{ id: "tmdb-popular-spanish-tv-shows", mediaType: "tv", titleKey: "home.popular_spanish_tv_shows", preset: "poster-list", showRank: true, source: { path: "/tmdb/discover/tv", query: { with_original_language: "es", with_genres: 18, without_genres: "16,10762,10764", "first_air_date.gte": "2018-01-01", "vote_count.gte": 20, sort_by: "popularity.desc", language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		{ id: "tmdb-popular-taiwanese-tv-shows", mediaType: "tv", titleKey: "home.popular_taiwanese_tv_shows", preset: "poster-list", showRank: true, source: { path: "/tmdb/discover/tv", query: { with_original_language: "zh", with_origin_country: "TW", sort_by: "popularity.desc", "first_air_date.gte": "2021-01-01", "vote_count.gte": 5, language, page: 1 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		{ id: "tmdb-top-rated-movies", titleKey: "home.tmdb_top_rated_movies", mediaType: "movie", preset: "poster-list", source: { path: "/tmdb/movie/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
+		{ id: "tmdb-top-rated-tv-shows", titleKey: "home.tmdb_top_rated_tv_shows", mediaType: "tv", preset: "poster-list", source: { path: "/tmdb/tv/top_rated", query: { language, page: 1, limit: 20 }, itemEnvelope: "results", pagination: { pageParam: "page", startPage: 1 } } },
 	];
 }
 
 function resolveMediaBlock(block: HomeBlockTemplate, language: string): HomeConfigV2MediaBlock {
 	const { titleKey, ...rest } = block;
-	if (!titleKey) return rest;
+	if (!titleKey) return rest as HomeConfigV2MediaBlock;
 	const title = resolveTitle(titleKey, language);
 	const routeParams = TMDB_LIST_ROUTE_PARAMS[rest.id];
 
@@ -222,7 +192,7 @@ function resolveMediaBlock(block: HomeBlockTemplate, language: string): HomeConf
 		...rest,
 		title,
 		...(routeParams ? { route: createTmdbListRoute(title, routeParams) } : {}),
-	};
+	} as HomeConfigV2MediaBlock;
 }
 
 function parseDecadesCollection(blockId: string, blockJson: string, language: string): CollectionBlock | null {
@@ -262,7 +232,7 @@ export async function createHomeConfigV2(options: HomeConfigV2Options): Promise<
 			if (decades) blocks.push(decades);
 			continue;
 		}
-		blocks.push(resolveMediaBlock(section, options.language));
+		blocks.push(resolveMediaBlock(section as HomeBlockTemplate, options.language) as HomeConfigV2Block);
 	}
 
 	return {
