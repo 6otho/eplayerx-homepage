@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 /**
- * Custom Homepage Config for EPlayerX.
- * Contains all your weekly drama collections & R2 asset blocks.
+ * Custom Homepage Config (V1 Endpoint).
+ * Dedicated for `/home/config`. Completely isolated from V2.
  */
 
 import { getCommunityBlocksByIds } from "../blocks/storage.js";
@@ -123,6 +123,7 @@ export interface HomeConfig {
 	blocks: HomeConfigBlock[];
 }
 
+// 🌟 核心：自定义 V1 接口的版本号严格必须是 1
 export const HOME_CONFIG_VERSION = 1;
 
 const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
@@ -213,7 +214,7 @@ function isDecadesCollectionSlot(section: SectionTemplate): section is DecadesCo
 
 function createDefaultBlockTemplates(language: string, timezone: string): SectionTemplate[] {
 	return [
-		// 🌟 1. 顶部轮播普通列表（保证自定义大盘在客户端打开时有轮播图可展示）
+		// 🌟 1. 顶部轮播卡片（普通列表），与 carouselSourceId 完全对应
 		{
 			id: "tmdb-popular-tv-shows",
 			mediaType: "tv",
@@ -228,12 +229,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			},
 		},
 
-		// 🌟 2. 你的六大追剧周更表（从第 2 位起）
+		// 🌟 2. 你的六大追剧周更表（preset 严格使用 V1 标准的 "collection"）
 		{
 			id: "weekly_drama_collection",
 			title: "国产追剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -250,7 +251,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			id: "weekly_guoman_collection",
 			title: "国漫追番周历表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -267,7 +268,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			id: "weekly_anime_collection",
 			title: "动漫新番周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -284,7 +285,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			id: "weekly_korean_drama_collection",
 			title: "韩剧追剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -301,7 +302,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			id: "weekly_japanese_drama_collection",
 			title: "日剧追剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -318,7 +319,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			id: "weekly_sea_drama_collection",
 			title: "东南亚剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -332,7 +333,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			})),
 		},
 
-		// 🌟 3. 官方发现组件
+		// 🌟 3. 官方原生探索组件
 		{
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
@@ -741,6 +742,7 @@ async function resolveDecadesCollection(
 	}
 }
 
+// 🌟 导出自定义主页的构建逻辑
 export async function createDefaultHomeConfig(
 	options: HomeConfigOptions,
 ): Promise<HomeConfig> {
@@ -759,10 +761,10 @@ export async function createDefaultHomeConfig(
 	}
 
 	return {
-		version: 1, // 🌟 自定义必须返回 1，与 /home/config 完全匹配
+		version: HOME_CONFIG_VERSION, // 严格输出 1
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
-		carouselSourceId: "tmdb-popular-tv-shows", // 🌟 必须与 blocks[0].id 一致
+		carouselSourceId: "tmdb-popular-tv-shows", // 与 blocks[0] 一致
 		blocks,
 	};
 }
