@@ -1,15 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 /**
- * Custom Homepage Config (V2 structure mapped to /home/config).
- * Contains customized weekly collections and R2 data blocks.
+ * Custom Homepage Config (Version 1).
+ * Strictly mapped to `/home/config`. Pure synchronous V1 format.
  */
 
-import { getCommunityBlocksByIds } from "../blocks/storage.js";
-import {
-	COLLECTION_PRESET,
-	type CollectionBlock,
-	type TmdbListRoute,
-} from "../blocks/types.js";
+import type { TmdbListRoute } from "../blocks/types.js";
 
 type Locale = "en" | "zh" | "zh-Hant" | "ja" | "es" | "ar";
 
@@ -31,7 +26,6 @@ type HomeTitleKey =
 	| "home.tmdb_discover_genres"
 	| "home.tmdb_discover_languages"
 	| "home.tmdb_discover_networks"
-	| "home.classic_decades"
 	| "home.tmdb_top_rated_movies"
 	| "home.tmdb_top_rated_tv_shows"
 	| "home.weekly_anime"
@@ -78,13 +72,17 @@ interface HomeBlockSource {
 	pagination?: HomePagination;
 }
 
-export interface HomeConfigMediaBlock {
+export interface HomeBlock {
 	id: string;
 	title?: string;
 	mediaType?: "movie" | "tv";
 	preset: string;
+	style?: string;
+	groupMode?: string;
 	showRank?: boolean;
 	showOverview?: boolean;
+	sort?: string;
+	children?: any[];
 	source?: HomeBlockSource;
 	metadata?: {
 		isAnime?: boolean;
@@ -92,40 +90,29 @@ export interface HomeConfigMediaBlock {
 	route?: TmdbListRoute;
 }
 
-export type HomeConfigBlock = HomeConfigMediaBlock | CollectionBlock;
-
 type TmdbListRouteParams = TmdbListRoute["params"];
 
-export type HomeBlockTemplate = Omit<HomeConfigMediaBlock, "title"> & {
+export type HomeBlockTemplate = Omit<HomeBlock, "title"> & {
 	titleKey?: HomeTitleKey;
-	title?: string;
-	groupMode?: string;
-	style?: string;
-	sort?: string;
-	children?: any[];
 };
 
-type DecadesCollectionSlot = { type: "decades-collection" };
-type SectionTemplate = HomeBlockTemplate | DecadesCollectionSlot;
-
-export interface HomeConfigOptions {
+export interface DefaultHomeConfigOptions {
 	apiBaseUrl: string;
 	imageBaseUrl: string;
 	language: string;
 	timezone: string;
-	db?: D1Database;
 }
 
-export interface HomeConfig {
+export interface DefaultHomeConfig {
 	version: number;
 	apiBaseUrl: string;
 	imageBaseUrl: string;
 	carouselSourceId: string;
-	blocks: HomeConfigBlock[];
+	blocks: HomeBlock[];
 }
 
-// 🌟 版本号：客户端识别 V2 必须配置
-export const HOME_CONFIG_VERSION = 2;
+// 🌟 这里是全盘重点：自定义主页的 Version 必须且只能是 1！
+export const HOME_CONFIG_VERSION = 1;
 
 const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.continue_watching": { en: "继续观看", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを見る", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -134,7 +121,6 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.popular_tv_shows": { en: "时下热门国产剧", zh: "时下热门国产剧", "zh-Hant": "時下熱門國產劇", ja: "人気の中国ドラマ", es: "Dramas Chinos Populares", ar: "دراما صينية شائعة" },
 	"home.popular_movies": { en: "实时热门电影", zh: "实时热门电影", "zh-Hant": "實時熱門電影", ja: "リアルタイム人気映画", es: "Películas en Tendencia", ar: "أفلام رائجة" },
 	"home.tmdb_discover_genres": { en: "按分类浏览", zh: "按分类浏览", "zh-Hant": "按分類瀏覽", ja: "カテゴリで探す", es: "Explorar por Categoría", ar: "تصفح حسب الفئة" },
-	"home.classic_decades": { en: "年代经典", zh: "年代经典", "zh-Hant": "年代經典", ja: "年代別クラシック", es: "Clásicos por Década", ar: "كلاسيكيات العقود" },
 	"home.tmdb_discover_networks": { en: "按平台浏览", zh: "按平台浏览", "zh-Hant": "按平台瀏覽", ja: "配信サービスで探す", es: "Explorar por Plataforma", ar: "حسب الشبكة" },
 	"home.tmdb_discover_languages": { en: "按语言浏览", zh: "按语言浏览", "zh-Hant": "按語言瀏覽", ja: "言語で探す", es: "Explorar por Idioma", ar: "حسب اللغة" },
 	"home.tmdb_on_the_air_tv_shows": { en: "正在热播", zh: "正在热播", "zh-Hant": "正在熱播", ja: "放送中", es: "En Emisión", ar: "يعرض الآن" },
@@ -185,8 +171,6 @@ const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
 	"tmdb_popular_movies": { category: "trending", type: "movie" },
 };
 
-const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
-
 function resolveLocale(language: string): Locale {
 	const normalized = (language || "").toLowerCase();
 	if (normalized.startsWith("zh-hant") || normalized.includes("tw") || normalized.includes("hk")) return "zh-Hant";
@@ -209,18 +193,14 @@ function createTmdbListRoute(title: string, params: TmdbListRouteParams): TmdbLi
 	return { type: "tmdb-list", title, params };
 }
 
-function isDecadesCollectionSlot(section: SectionTemplate): section is DecadesCollectionSlot {
-	return "type" in section && section.type === "decades-collection";
-}
-
-function createDefaultBlockTemplates(language: string, timezone: string): SectionTemplate[] {
+function createDefaultBlockTemplates(language: string, timezone: string): HomeBlockTemplate[] {
 	return [
 		// 🌟 第 0 个固定放官方电视列表，配合 carouselSourceId 给轮播图解析
 		{
 			id: "tmdb-popular-tv-shows",
 			mediaType: "tv",
 			titleKey: "home.tmdb_popular_tv_shows",
-			preset: "poster-list",
+			preset: "poster-list", // V1 的海报列表名
 			showRank: true,
 			source: {
 				path: "/tmdb/trending/tv",
@@ -230,12 +210,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			},
 		},
 
-		// 🌟 第 1 个起：六大追剧周更表合集
+		// 🌟 第 1 个起：六大追剧周更表（在 V1 里 preset 必须写 "collection"！）
 		{
 			id: "weekly_drama_collection",
 			title: "国产追剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET, // 使用标准的 collection-list 预设
+			preset: "collection", // 👈 V1 必须是 collection
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -247,12 +227,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		} as unknown as HomeBlockTemplate,
+		},
 		{
 			id: "weekly_guoman_collection",
 			title: "国漫追番周历表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection", // 👈 V1 必须是 collection
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -264,12 +244,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		} as unknown as HomeBlockTemplate,
+		},
 		{
 			id: "weekly_anime_collection",
 			title: "动漫新番周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -281,12 +261,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		} as unknown as HomeBlockTemplate,
+		},
 		{
 			id: "weekly_korean_drama_collection",
 			title: "韩剧追剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -298,12 +278,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		} as unknown as HomeBlockTemplate,
+		},
 		{
 			id: "weekly_japanese_drama_collection",
 			title: "日剧追剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -315,12 +295,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		} as unknown as HomeBlockTemplate,
+		},
 		{
 			id: "weekly_sea_drama_collection",
 			title: "东南亚剧周更表",
 			mediaType: "tv",
-			preset: COLLECTION_PRESET,
+			preset: "collection",
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -332,7 +312,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		} as unknown as HomeBlockTemplate,
+		},
 
 		// 🌟 探索组件
 		{
@@ -341,7 +321,6 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			preset: "genres-list",
 			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
 		},
-		{ type: "decades-collection" },
 		{
 			id: "tmdb-discover-networks",
 			titleKey: "home.tmdb_discover_networks",
@@ -355,7 +334,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" },
 		},
 
-		// 🌟 R2 大盘分类
+		// 🌟 你的自建 R2 大盘分类
 		{
 			id: "tmdb_popular_movies",
 			mediaType: "movie",
@@ -689,12 +668,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 	];
 }
 
-function resolveMediaBlock(
+function resolveBlockTitle(
 	block: HomeBlockTemplate,
 	language: string,
-): HomeConfigBlock {
+): HomeBlock {
 	const { titleKey, ...rest } = block;
-	if (!titleKey) return rest as HomeConfigBlock;
+	if (!titleKey) return rest as HomeBlock;
 	const title = resolveTitle(titleKey, language);
 	const routeParams = TMDB_LIST_ROUTE_PARAMS[rest.id];
 
@@ -702,74 +681,23 @@ function resolveMediaBlock(
 		...rest,
 		title,
 		...(routeParams ? { route: createTmdbListRoute(title, routeParams) } : {}),
-	} as HomeConfigBlock;
+	} as HomeBlock;
 }
 
-function parseDecadesCollection(
-	blockId: string,
-	blockJson: string,
-	language: string,
-): CollectionBlock | null {
-	try {
-		const parsed = JSON.parse(blockJson) as CollectionBlock;
-		if (parsed.preset !== COLLECTION_PRESET) return null;
-		if (!Array.isArray(parsed.children) || parsed.children.length < 2) {
-			return null;
-		}
-		return {
-			...parsed,
-			id: parsed.id || blockId,
-			title: resolveTitle("home.classic_decades", language),
-			style: "image-landscape",
-		};
-	} catch {
-		return null;
-	}
-}
-
-async function resolveDecadesCollection(
-	db: D1Database | undefined,
-	language: string,
-): Promise<CollectionBlock | null> {
-	if (!db) return null;
-
-	try {
-		const rows = await getCommunityBlocksByIds(db, [DECADES_COLLECTION_ID]);
-		const row = rows.get(DECADES_COLLECTION_ID);
-		if (!row) return null;
-		return parseDecadesCollection(DECADES_COLLECTION_ID, row.block_json, language);
-	} catch {
-		return null;
-	}
-}
-
-// 🌟 输出你定制的配置
-export async function createDefaultHomeConfig(
-	options: HomeConfigOptions,
-): Promise<HomeConfig> {
-	const decades = await resolveDecadesCollection(options.db, options.language);
-	const blocks: HomeConfigBlock[] = [];
-
-	for (const section of createDefaultBlockTemplates(
-		options.language,
-		options.timezone,
-	)) {
-		if (isDecadesCollectionSlot(section)) {
-			if (decades) blocks.push(decades);
-			continue;
-		}
-		blocks.push(resolveMediaBlock(section as HomeBlockTemplate, options.language));
-	}
-
+// 🌟 这里没有 async，也不去请求数据库！纯纯的同步函数！
+export function createDefaultHomeConfig(
+	options: DefaultHomeConfigOptions,
+): DefaultHomeConfig {
 	return {
-		version: 2, // 让这套自定义配置直接输出为客户端合规的 V2 格式！
+		version: HOME_CONFIG_VERSION, // 👈 严格等于 1
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
-		carouselSourceId: "tmdb-popular-tv-shows", // 与 blocks[0] 的 ID 严格对齐
-		blocks,
+		carouselSourceId: "tmdb-popular-tv-shows", // 👈 与 blocks[0].id 完全对应
+		blocks: createDefaultBlockTemplates(options.language, options.timezone).map(
+			(block) => resolveBlockTitle(block, options.language),
+		),
 	};
 }
 
 export const createHomeConfig = createDefaultHomeConfig;
-export const createHomeConfigV2 = createDefaultHomeConfig;
 export default createDefaultHomeConfig;
