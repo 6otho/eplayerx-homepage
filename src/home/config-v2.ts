@@ -253,11 +253,10 @@ const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
 	},
 };
 
-/** Decades collection. Child charts are TMDB; only the section title is localized. */
 const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
 
 function resolveLocale(language: string): Locale {
-	const normalized = language.toLowerCase();
+	const normalized = (language || "").toLowerCase();
 	if (
 		normalized.startsWith("zh-hant") ||
 		normalized.includes("tw") ||
@@ -269,7 +268,7 @@ function resolveLocale(language: string): Locale {
 	if (normalized.startsWith("ja")) return "ja";
 	if (normalized.startsWith("es")) return "es";
 	if (normalized.startsWith("ar")) return "ar";
-	return "en";
+	return "zh"; // 默认优先中文
 }
 
 function isChineseLocale(language: string): boolean {
@@ -310,9 +309,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 					showRank: true,
 					source: {
 						path: "/crawler/popular/douban/tv",
-						query: {
-							language,
-						},
+						query: { language },
 						itemEnvelope: "data",
 					},
 				},
@@ -339,9 +336,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 					showRank: true,
 					source: {
 						path: "/crawler/popular/douban/animation",
-						query: {
-							language,
-						},
+						query: { language },
 						itemEnvelope: "data",
 					},
 					metadata: { isAnime: true },
@@ -354,9 +349,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 					showRank: true,
 					source: {
 						path: "/crawler/popular/bangumi/animation",
-						query: {
-							language,
-						},
+						query: { language },
 						itemEnvelope: "data",
 					},
 					metadata: { isAnime: true },
@@ -426,9 +419,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "genres-list",
 			source: {
 				path: "/crawler/discover/genres",
-				query: {
-					language,
-				},
+				query: { language },
 				itemEnvelope: "data",
 			},
 		},
@@ -448,9 +439,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			preset: "languages-list",
 			source: {
 				path: "/crawler/discover/tv-by-language/v2",
-				query: {
-					language,
-				},
+				query: { language },
 				itemEnvelope: "data",
 			},
 		},
