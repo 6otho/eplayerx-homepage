@@ -1,7 +1,6 @@
 import { type Context, Hono } from "hono";
 import type { BlocksBindings } from "../blocks/types.js";
 import { createDefaultHomeConfig } from "./config.js";
-import { createHomeConfigV2 } from "./config-v2.js";
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const DEFAULT_TIMEZONE = "UTC";
@@ -35,8 +34,7 @@ function cacheHomeConfig(c: Context) {
 	);
 }
 
-// 🌟 1. 自定义接口 (/home/config) -> 用户在 App 里填了你的 API 域名后读取这里！
-// 必须加上 async 和 await，等待 Promise 解析完成再返回 JSON！
+// 客户端填了自定义 API 之后，调用的接口在这里：
 app.get("/config", async (c) => {
 	cacheHomeConfig(c);
 	const config = await createDefaultHomeConfig({
@@ -46,10 +44,9 @@ app.get("/config", async (c) => {
 	return c.json(config);
 });
 
-// 🌟 2. 默认官方 V2 接口 (/home/config/v2) -> 默认官方首页走这里！
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
-	const config = await createHomeConfigV2({
+	const config = await createDefaultHomeConfig({
 		...resolveConfigRequest(c),
 		db: c.env?.DB,
 	});
