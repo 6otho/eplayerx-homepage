@@ -1,4 +1,12 @@
 /// <reference types="@cloudflare/workers-types" />
+/**
+ * Default homepage V2. Old clients keep using `/home/config` (version 1);
+ * new clients should fetch `/home/config/v2`.
+ *
+ * Edit `createV2BlockTemplates` to change the new home layout. The decades
+ * collection is resolved from D1 and dropped when the binding or row is missing.
+ */
+
 import { getCommunityBlocksByIds } from "../blocks/storage.js";
 import {
 	COLLECTION_PRESET,
@@ -725,6 +733,7 @@ async function resolveDecadesCollection(
 	}
 }
 
+// 🌟 导出自定义主页生成函数
 export async function createDefaultHomeConfig(
 	options: HomeConfigV2Options,
 ): Promise<HomeConfigV2> {
@@ -750,3 +759,6 @@ export async function createDefaultHomeConfig(
 		blocks,
 	};
 }
+
+// 兼容别名导出
+export const createHomeConfigV2 = createDefaultHomeConfig;
