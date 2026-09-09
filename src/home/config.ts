@@ -727,8 +727,8 @@ async function resolveDecadesCollection(
 	}
 }
 
-// 经典的 createHomeConfig 导出函数，供 /home/config 调用
-export async function createHomeConfig(
+// 主导出函数：必须叫 createDefaultHomeConfig
+export async function createDefaultHomeConfig(
 	options: HomeConfigOptions,
 ): Promise<HomeConfig> {
 	const decades = await resolveDecadesCollection(options.db, options.language);
@@ -753,3 +753,7 @@ export async function createHomeConfig(
 		blocks,
 	};
 }
+
+// 🌟 保留所有可能的别名导出，防止任何其他文件引用报错
+export const createHomeConfig = createDefaultHomeConfig;
+export const createHomeConfigV2 = createDefaultHomeConfig;
