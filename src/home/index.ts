@@ -1,15 +1,15 @@
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import type { BlocksBindings } from "../blocks/types.js";
-import { createDefaultHomeConfig } from "./config.js";       // 你的 43 个自建分类与周更表
-import { createHomeConfigV2 } from "./config-v2.js";          // 官方原生默认分类数据
+import { createDefaultHomeConfig } from "./config.js";       // 你的自定义数据
+import { createHomeConfigV2 } from "./config-v2.js";          // 官方默认 V2 数据
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const DEFAULT_TIMEZONE = "UTC";
 
 const app = new Hono<{ Bindings: BlocksBindings }>();
 
-// 开启全局 CORS，确保客户端（iOS/Android/TV/Web）跨域请求不被拦截
+// 开启跨域，防止客户端请求报 CORS 错误
 app.use("*", cors());
 
 function resolveRequestLanguage(c: Context): string {
@@ -40,54 +40,30 @@ function cacheHomeConfig(c: Context) {
 }
 
 /**
- * 客户端新首页写死请求的 /config/v2
- * 逻辑：客户端只要填了你的 API 访问这里，默认直接返回 config.ts 你的全部自定义数据！
- * （若传 ?default=1 则获取官方原版数据）
- */
-app.get("/config/v2", async (c) => {
-	cacheHomeConfig(c);
-	const options = {
-		...resolveConfigRequest(c),
-		db: c.env?.DB,
-	};
-
-	// 只有当明确指定获取官方默认数据时才走原生 V2
-	if (c.req.query("default") === "1" || c.req.query("official") === "1") {
-		return c.json(await createHomeConfigV2(options));
-	}
-
-	// 客户端填好 API 默认直接返回你的自定义 config.ts 数据！
-	return c.json(await createDefaultHomeConfig(options));
-});
-
-/**
- * 客户端旧首页请求的 /config（与 V2 保持一致，直接返回自定义数据）
+ * 🌟 1. /config 接口：你的自定义数据！
+ * 客户端在设置里填入 API（如 https://epx.ikuux.cyou/home/config）时，直接获取你的周更表和自建源！
+ * （关键点：必须加 await，否则会返回空对象 {}）
  */
 app.get("/config", async (c) => {
 	cacheHomeConfig(c);
-	const options = {
+	const data = await createDefaultHomeConfig({
 		...resolveConfigRequest(c),
 		db: c.env?.DB,
-	};
-
-	if (c.req.query("default") === "1" || c.req.query("official") === "1") {
-		return c.json(await createHomeConfigV2(options));
-	}
-
-	return c.json(await createDefaultHomeConfig(options));
+	});
+	return c.json(data);
 });
 
 /**
- * 保留一个专门获取官方原生 V2 数据的接口（防备用）
+ * 🌟 2. /config/v2 接口：官方原版 V2 数据！
+ * 客户端不填 API 或默认请求时，返回官方原本的分类数据，完全不改动！
  */
-app.get("/config/v2/official", async (c) => {
+app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
-	return c.json(
-		await createHomeConfigV2({
-			...resolveConfigRequest(c),
-			db: c.env?.DB,
-		})
-	);
+	const data = await createHomeConfigV2({
+		...resolveConfigRequest(c),
+		db: c.env?.DB,
+	});
+	return c.json(data);
 });
 
 export default app;
