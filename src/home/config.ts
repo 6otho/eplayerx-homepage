@@ -1,10 +1,9 @@
 /// <reference types="@cloudflare/workers-types" />
 /**
- * Custom Homepage Config (V1 Endpoint).
- * Dedicated for `/home/config`. Completely isolated from V2.
+ * Custom Homepage Config (Version 1).
+ * Standard synchronous implementation matching original author's design.
  */
 
-import { getCommunityBlocksByIds } from "../blocks/storage.js";
 import {
 	type CollectionBlock,
 	type TmdbListRoute,
@@ -30,7 +29,6 @@ type HomeTitleKey =
 	| "home.tmdb_discover_genres"
 	| "home.tmdb_discover_languages"
 	| "home.tmdb_discover_networks"
-	| "home.classic_decades"
 	| "home.tmdb_top_rated_movies"
 	| "home.tmdb_top_rated_tv_shows"
 	| "home.weekly_anime"
@@ -104,15 +102,11 @@ export type HomeBlockTemplate = Omit<HomeConfigMediaBlock, "title"> & {
 	children?: any[];
 };
 
-type DecadesCollectionSlot = { type: "decades-collection" };
-type SectionTemplate = HomeBlockTemplate | DecadesCollectionSlot;
-
 export interface HomeConfigOptions {
 	apiBaseUrl: string;
 	imageBaseUrl: string;
 	language: string;
 	timezone: string;
-	db?: D1Database;
 }
 
 export interface HomeConfig {
@@ -123,7 +117,6 @@ export interface HomeConfig {
 	blocks: HomeConfigBlock[];
 }
 
-// 🌟 核心：自定义 V1 接口的版本号严格必须是 1
 export const HOME_CONFIG_VERSION = 1;
 
 const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
@@ -133,7 +126,6 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.popular_tv_shows": { en: "时下热门国产剧", zh: "时下热门国产剧", "zh-Hant": "時下熱門國產劇", ja: "人気の中国ドラマ", es: "Dramas Chinos Populares", ar: "دراما صينية شائعة" },
 	"home.popular_movies": { en: "实时热门电影", zh: "实时热门电影", "zh-Hant": "實時熱門電影", ja: "リアルタイム人気映画", es: "Películas en Tendencia", ar: "أفلام رائجة" },
 	"home.tmdb_discover_genres": { en: "按分类浏览", zh: "按分类浏览", "zh-Hant": "按分類瀏覽", ja: "カテゴリで探す", es: "Explorar por Categoría", ar: "تصفح حسب الفئة" },
-	"home.classic_decades": { en: "年代经典", zh: "年代经典", "zh-Hant": "年代經典", ja: "年代別クラシック", es: "Clásicos por Década", ar: "كلاسيكيات العقود" },
 	"home.tmdb_discover_networks": { en: "按平台浏览", zh: "按平台浏览", "zh-Hant": "按平台瀏覽", ja: "配信サービスで探す", es: "Explorar por Plataforma", ar: "حسب الشبكة" },
 	"home.tmdb_discover_languages": { en: "按语言浏览", zh: "按语言浏览", "zh-Hant": "按語言瀏覽", ja: "言語で探す", es: "Explorar por Idioma", ar: "حسب اللغة" },
 	"home.tmdb_on_the_air_tv_shows": { en: "正在热播", zh: "正在热播", "zh-Hant": "正在熱播", ja: "放送中", es: "En Emisión", ar: "يعرض الآن" },
@@ -184,8 +176,6 @@ const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
 	"tmdb_popular_movies": { category: "trending", type: "movie" },
 };
 
-const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
-
 function resolveLocale(language: string): Locale {
 	const normalized = (language || "").toLowerCase();
 	if (normalized.startsWith("zh-hant") || normalized.includes("tw") || normalized.includes("hk")) return "zh-Hant";
@@ -208,13 +198,9 @@ function createTmdbListRoute(title: string, params: TmdbListRouteParams): TmdbLi
 	return { type: "tmdb-list", title, params };
 }
 
-function isDecadesCollectionSlot(section: SectionTemplate): section is DecadesCollectionSlot {
-	return "type" in section && section.type === "decades-collection";
-}
-
-function createDefaultBlockTemplates(language: string, timezone: string): SectionTemplate[] {
+function createDefaultBlockTemplates(language: string, timezone: string): HomeBlockTemplate[] {
 	return [
-		// 🌟 1. 顶部轮播卡片（普通列表），与 carouselSourceId 完全对应
+		// 🌟 1. 顶部普通列表，供顶部 Banner 轮播匹配
 		{
 			id: "tmdb-popular-tv-shows",
 			mediaType: "tv",
@@ -229,7 +215,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			},
 		},
 
-		// 🌟 2. 你的六大追剧周更表（preset 严格使用 V1 标准的 "collection"）
+		// 🌟 2. 六大追剧周更表（预设名严格用客户端认准的 "collection"）
 		{
 			id: "weekly_drama_collection",
 			title: "国产追剧周更表",
@@ -333,14 +319,13 @@ function createDefaultBlockTemplates(language: string, timezone: string): Sectio
 			})),
 		},
 
-		// 🌟 3. 官方原生探索组件
+		// 🌟 3. 探索组件
 		{
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
 			preset: "genres-list",
 			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
 		},
-		{ type: "decades-collection" },
 		{
 			id: "tmdb-discover-networks",
 			titleKey: "home.tmdb_discover_networks",
@@ -704,71 +689,21 @@ function resolveMediaBlock(
 	} as HomeConfigBlock;
 }
 
-function parseDecadesCollection(
-	blockId: string,
-	blockJson: string,
-	language: string,
-): CollectionBlock | null {
-	try {
-		const parsed = JSON.parse(blockJson) as CollectionBlock;
-		if (parsed.preset !== "collection-list" && (parsed as any).preset !== "collection") return null;
-		if (!Array.isArray(parsed.children) || parsed.children.length < 2) {
-			return null;
-		}
-		return {
-			...parsed,
-			id: parsed.id || blockId,
-			title: resolveTitle("home.classic_decades", language),
-			style: "image-landscape",
-		};
-	} catch {
-		return null;
-	}
-}
-
-async function resolveDecadesCollection(
-	db: D1Database | undefined,
-	language: string,
-): Promise<CollectionBlock | null> {
-	if (!db) return null;
-
-	try {
-		const rows = await getCommunityBlocksByIds(db, [DECADES_COLLECTION_ID]);
-		const row = rows.get(DECADES_COLLECTION_ID);
-		if (!row) return null;
-		return parseDecadesCollection(DECADES_COLLECTION_ID, row.block_json, language);
-	} catch {
-		return null;
-	}
-}
-
-// 🌟 导出自定义主页的构建逻辑
-export async function createDefaultHomeConfig(
+// 🌟 原作者标准：同步函数！不需要 async，不查 D1，直接返回纯 JSON 对象
+export function createDefaultHomeConfig(
 	options: HomeConfigOptions,
-): Promise<HomeConfig> {
-	const decades = await resolveDecadesCollection(options.db, options.language);
-	const blocks: HomeConfigBlock[] = [];
-
-	for (const section of createDefaultBlockTemplates(
-		options.language,
-		options.timezone,
-	)) {
-		if (isDecadesCollectionSlot(section)) {
-			if (decades) blocks.push(decades);
-			continue;
-		}
-		blocks.push(resolveMediaBlock(section as HomeBlockTemplate, options.language));
-	}
+): HomeConfig {
+	const templates = createDefaultBlockTemplates(options.language, options.timezone);
+	const blocks = templates.map(b => resolveMediaBlock(b, options.language));
 
 	return {
 		version: HOME_CONFIG_VERSION, // 严格输出 1
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
-		carouselSourceId: "tmdb-popular-tv-shows", // 与 blocks[0] 一致
+		carouselSourceId: "tmdb-popular-tv-shows", // 与 blocks[0].id 一致
 		blocks,
 	};
 }
 
 export const createHomeConfig = createDefaultHomeConfig;
-export const createHomeConfigV2 = createDefaultHomeConfig;
 export default createDefaultHomeConfig;
