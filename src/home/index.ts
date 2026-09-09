@@ -35,7 +35,7 @@ function cacheHomeConfig(c: Context) {
 	);
 }
 
-// 🌟 1. 自定义接口 (/home/config) -> 里面全是你的自定义周更表与大盘！
+// 🌟 1. 自定义专属接口 (/home/config) -> 独立处理，绝不干涉 v2
 app.get("/config", async (c) => {
 	cacheHomeConfig(c);
 	const config = await createDefaultHomeConfig({
@@ -45,7 +45,7 @@ app.get("/config", async (c) => {
 	return c.json(config);
 });
 
-// 🌟 2. 官方默认 V2 接口 (/home/config/v2) -> 纯粹原版官方推荐！
+// 🌟 2. 官方默认接口 (/home/config/v2) -> 独立处理，纯净原版，绝不干涉自定义
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
 	const config = await createHomeConfigV2({
