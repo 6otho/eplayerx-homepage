@@ -1,3 +1,32 @@
+真的很对不起，我彻底看偏了你的意图，把你原作者给的原版默认 V2 文件给强行塞了那么多自建大盘，搞乱了整个文件，非常抱歉！
+
+真正的问题根源
+
+原作者的架构设计非常清楚：
+
+1.  默认的 V2
+    接口（/home/config/v2）：原作者的原版文件（就是你前面发的那份纯净代码），只包含最基础的官方模块，根本没有那些周更表和大盘！第一个模块就是官方的
+    tmdb-popular-tv-shows，且 carouselSourceId 也是 tmdb-popular-tv-shows。
+2.  自定义接口（/home/config）：才是放我们自己那堆追剧周更表、R2 大盘数据的。
+
+为什么之前访问 /home/config/v2 会返回带有周更表的错误数据？
+
+在前面的排查中，在路由文件 src/home/index.ts 里把 /config/v2 的请求强行重定向到了自定义的
+createDefaultHomeConfig：
+
+// 之前改错的路由：
+app.get("/config/v2", async (c) => {
+    return c.json(await createDefaultHomeConfig(...)); // 👈 把自定义数据强行当成 v2 返回了！导致 carouselSourceId 和第一个 blocks 全乱了！
+});
+
+这导致访问 /home/config/v2 时，返回的根本不是 V2，而是变成了第一项是周更表的结构。
+
+正确的修改方案（2 个文件全部还原为原作者标准）
+
+1. 恢复原汁原味的默认 V2 文件（src/home/config-v2.ts）
+
+这里没有任何多余的周更表和自建大盘，原作者默认的是什么样就是什么样，第一个是电视剧：
+
 /// <reference types="@cloudflare/workers-types" />
 /**
  * Default homepage V2. Old clients keep using `/home/config` (version 1);
@@ -690,3 +719,77 @@ export async function createHomeConfigV2(
 		blocks,
 	};
 }
+
+2. 还原路由文件 src/home/index.ts（彻底解决路由走错的问题）
+
+把路由文件还原回原作者规范（分别调用各自的对应文件）：
+
+import { type Context, Hono } from "hono";
+import type { BlocksBindings } from "../blocks/types.js";
+import { createDefaultHomeConfig } from "./config.js";
+import { createHomeConfigV2 } from "./config-v2.js";
+
+const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+const DEFAULT_TIMEZONE = "UTC";
+
+const app = new Hono<{ Bindings: BlocksBindings }>();
+
+function resolveRequestLanguage(c: Context): string {
+	return c.req.query("language") || "en-US";
+}
+
+function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
+	const requestUrl = new URL(c.req.url);
+	return {
+		language: resolveRequestLanguage(c),
+		timezone: c.req.query("timezone") || DEFAULT_TIMEZONE,
+		apiBaseUrl:
+			c.req.query("apiBaseUrl") ||
+			process.env.API_BASE_URL ||
+			requestUrl.origin,
+		imageBaseUrl:
+			c.req.query("imageBaseUrl") ||
+			process.env.TMDB_IMAGE_BASE_URL ||
+			DEFAULT_IMAGE_BASE_URL,
+	};
+}
+
+function cacheHomeConfig(c: Context) {
+	c.header(
+		"Cache-Control",
+		"no-cache, no-store, must-revalidate, max-age=0",
+	);
+}
+
+// 1. 自定义接口
+app.get("/config", async (c) => {
+	cacheHomeConfig(c);
+	return c.json(await createDefaultHomeConfig({
+		...resolveConfigRequest(c),
+		db: c.env?.DB,
+	}));
+});
+
+// 2. 默认官方 V2 接口（只调用 config-v2.js）
+app.get("/config/v2", async (c) => {
+	cacheHomeConfig(c);
+	return c.json(
+		await createHomeConfigV2({
+			...resolveConfigRequest(c),
+			db: c.env?.DB,
+		}),
+	);
+});
+
+export default app;
+
+修改后核对结果
+
+这两份代码提交后，等 Cloudflare 重新部署完成，再次在浏览器打开： 👉 https://epx.ikuux.cyou/home/config/v2
+
+查看结果：
+
+1.  没有一大串乱七八糟的周更表。
+2.  "carouselSourceId": "tmdb-popular-tv-shows"。
+3.  blocks[0] 的 id 是 "tmdb-popular-tv-shows"。
+4.  结构与官方完全一致，原作者说的“第一个应该是 tmdb 电视剧”直接得到解决。
