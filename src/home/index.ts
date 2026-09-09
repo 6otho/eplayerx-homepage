@@ -9,7 +9,7 @@ const DEFAULT_TIMEZONE = "UTC";
 const app = new Hono<{ Bindings: BlocksBindings }>();
 
 function resolveRequestLanguage(c: Context): string {
-	return c.req.query("language") || "en-US";
+	return c.req.query("language") || "zh-CN";
 }
 
 function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
@@ -35,24 +35,25 @@ function cacheHomeConfig(c: Context) {
 	);
 }
 
-// 1. 自定义接口
+// 🌟 1. 自定义接口 (/home/config) -> 用户在 App 里填了你的 API 域名后读取这里！
+// 必须加上 async 和 await，等待 Promise 解析完成再返回 JSON！
 app.get("/config", async (c) => {
 	cacheHomeConfig(c);
-	return c.json(await createDefaultHomeConfig({
+	const config = await createDefaultHomeConfig({
 		...resolveConfigRequest(c),
 		db: c.env?.DB,
-	}));
+	});
+	return c.json(config);
 });
 
-// 2. 默认官方 V2 接口（只调用 config-v2.js）
+// 🌟 2. 默认官方 V2 接口 (/home/config/v2) -> 默认官方首页走这里！
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
-	return c.json(
-		await createHomeConfigV2({
-			...resolveConfigRequest(c),
-			db: c.env?.DB,
-		}),
-	);
+	const config = await createHomeConfigV2({
+		...resolveConfigRequest(c),
+		db: c.env?.DB,
+	});
+	return c.json(config);
 });
 
 export default app;
