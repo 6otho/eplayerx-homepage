@@ -1,9 +1,10 @@
 /// <reference types="@cloudflare/workers-types" />
 /**
- * Custom Homepage Config for EPlayerX.
- * Valid V2 format: preset "collection-list" & version 2.
+ * Custom Homepage Config (V2 structure mapped to /home/config).
+ * Contains customized weekly collections and R2 data blocks.
  */
 
+import { getCommunityBlocksByIds } from "../blocks/storage.js";
 import {
 	COLLECTION_PRESET,
 	type CollectionBlock,
@@ -30,6 +31,7 @@ type HomeTitleKey =
 	| "home.tmdb_discover_genres"
 	| "home.tmdb_discover_languages"
 	| "home.tmdb_discover_networks"
+	| "home.classic_decades"
 	| "home.tmdb_top_rated_movies"
 	| "home.tmdb_top_rated_tv_shows"
 	| "home.weekly_anime"
@@ -103,20 +105,27 @@ export type HomeBlockTemplate = Omit<HomeConfigMediaBlock, "title"> & {
 	children?: any[];
 };
 
-export interface DefaultHomeConfigOptions {
+type DecadesCollectionSlot = { type: "decades-collection" };
+type SectionTemplate = HomeBlockTemplate | DecadesCollectionSlot;
+
+export interface HomeConfigOptions {
 	apiBaseUrl: string;
 	imageBaseUrl: string;
 	language: string;
 	timezone: string;
+	db?: D1Database;
 }
 
-export interface DefaultHomeConfig {
+export interface HomeConfig {
 	version: number;
 	apiBaseUrl: string;
 	imageBaseUrl: string;
 	carouselSourceId: string;
 	blocks: HomeConfigBlock[];
 }
+
+// 🌟 版本号：客户端识别 V2 必须配置
+export const HOME_CONFIG_VERSION = 2;
 
 const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.continue_watching": { en: "继续观看", zh: "继续观看", "zh-Hant": "繼續觀看", ja: "続きを見る", es: "Continuar Viendo", ar: "متابعة المشاهدة" },
@@ -125,8 +134,9 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.popular_tv_shows": { en: "时下热门国产剧", zh: "时下热门国产剧", "zh-Hant": "時下熱門國產劇", ja: "人気の中国ドラマ", es: "Dramas Chinos Populares", ar: "دراما صينية شائعة" },
 	"home.popular_movies": { en: "实时热门电影", zh: "实时热门电影", "zh-Hant": "實時熱門電影", ja: "リアルタイム人気映画", es: "Películas en Tendencia", ar: "أفلام رائجة" },
 	"home.tmdb_discover_genres": { en: "按分类浏览", zh: "按分类浏览", "zh-Hant": "按分類瀏覽", ja: "カテゴリで探す", es: "Explorar por Categoría", ar: "تصفح حسب الفئة" },
-	"home.tmdb_discover_networks": { en: "按平台浏览", zh: "按平台浏览", "zh-Hant": "按平台瀏覽", ja: "配信服务で探す", es: "Explorar por Plataforma", ar: "حسب الشبكة" },
-	"home.tmdb_discover_languages": { en: "按语言浏览", zh: "按语言浏览", "zh-Hant": "按語言瀏覽", ja: "语言で探す", es: "Explorar por Idioma", ar: "حسب اللغة" },
+	"home.classic_decades": { en: "年代经典", zh: "年代经典", "zh-Hant": "年代經典", ja: "年代別クラシック", es: "Clásicos por Década", ar: "كلاسيكيات العقود" },
+	"home.tmdb_discover_networks": { en: "按平台浏览", zh: "按平台浏览", "zh-Hant": "按平台瀏覽", ja: "配信サービスで探す", es: "Explorar por Plataforma", ar: "حسب الشبكة" },
+	"home.tmdb_discover_languages": { en: "按语言浏览", zh: "按语言浏览", "zh-Hant": "按語言瀏覽", ja: "言語で探す", es: "Explorar por Idioma", ar: "حسب اللغة" },
 	"home.tmdb_on_the_air_tv_shows": { en: "正在热播", zh: "正在热播", "zh-Hant": "正在熱播", ja: "放送中", es: "En Emisión", ar: "يعرض الآن" },
 	"home.popular_domestic_anime": { en: "热门国产动漫", zh: "热门国产动漫", "zh-Hant": "熱門國產動漫", ja: "人気の国内アニメ", es: "Anime Doméstico Popular", ar: "أنمي محلي" },
 	"home.bangumi_popular_anime": { en: "今日热门番剧", zh: "今日热门番剧", "zh-Hant": "今日熱門番劇", ja: "今日の人気番組", es: "Bangumi Populares de Hoy", ar: "بانغومي شائع" },
@@ -175,6 +185,8 @@ const TMDB_LIST_ROUTE_PARAMS: Partial<Record<string, TmdbListRouteParams>> = {
 	"tmdb_popular_movies": { category: "trending", type: "movie" },
 };
 
+const DECADES_COLLECTION_ID = "col-9e37cdc1f13d";
+
 function resolveLocale(language: string): Locale {
 	const normalized = (language || "").toLowerCase();
 	if (normalized.startsWith("zh-hant") || normalized.includes("tw") || normalized.includes("hk")) return "zh-Hant";
@@ -182,7 +194,7 @@ function resolveLocale(language: string): Locale {
 	if (normalized.startsWith("ja")) return "ja";
 	if (normalized.startsWith("es")) return "es";
 	if (normalized.startsWith("ar")) return "ar";
-	return "zh";
+	return "zh"; // 兜底中文
 }
 
 function resolveTitle(titleKey: string, language: string): string {
@@ -197,9 +209,13 @@ function createTmdbListRoute(title: string, params: TmdbListRouteParams): TmdbLi
 	return { type: "tmdb-list", title, params };
 }
 
-function createDefaultBlockTemplates(language: string, timezone: string): HomeBlockTemplate[] {
+function isDecadesCollectionSlot(section: SectionTemplate): section is DecadesCollectionSlot {
+	return "type" in section && section.type === "decades-collection";
+}
+
+function createDefaultBlockTemplates(language: string, timezone: string): SectionTemplate[] {
 	return [
-		// 🌟 1. 顶部普通列表，作为轮播卡片
+		// 🌟 第 0 个固定放官方电视列表，配合 carouselSourceId 给轮播图解析
 		{
 			id: "tmdb-popular-tv-shows",
 			mediaType: "tv",
@@ -214,12 +230,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 			},
 		},
 
-		// 🌟 2. 六大追剧周更表（preset 必须使用 "collection-list"！）
+		// 🌟 第 1 个起：六大追剧周更表合集
 		{
 			id: "weekly_drama_collection",
 			title: "国产追剧周更表",
 			mediaType: "tv",
-			preset: "collection-list", // 👈 改为标准名字 collection-list
+			preset: COLLECTION_PRESET, // 使用标准的 collection-list 预设
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -231,12 +247,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		},
+		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_guoman_collection",
 			title: "国漫追番周历表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -248,12 +264,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		},
+		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_anime_collection",
 			title: "动漫新番周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -265,12 +281,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		},
+		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_korean_drama_collection",
 			title: "韩剧追剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -282,12 +298,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		},
+		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_japanese_drama_collection",
 			title: "日剧追剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -299,12 +315,12 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		},
+		} as unknown as HomeBlockTemplate,
 		{
 			id: "weekly_sea_drama_collection",
 			title: "东南亚剧周更表",
 			mediaType: "tv",
-			preset: "collection-list",
+			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
@@ -316,15 +332,16 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" },
 			})),
-		},
+		} as unknown as HomeBlockTemplate,
 
-		// 🌟 3. 探索组件
+		// 🌟 探索组件
 		{
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
 			preset: "genres-list",
 			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
 		},
+		{ type: "decades-collection" },
 		{
 			id: "tmdb-discover-networks",
 			titleKey: "home.tmdb_discover_networks",
@@ -338,7 +355,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-language/v2", query: { language }, itemEnvelope: "data" },
 		},
 
-		// 🌟 4. 你的自建大盘列表
+		// 🌟 R2 大盘分类
 		{
 			id: "tmdb_popular_movies",
 			mediaType: "movie",
@@ -672,7 +689,7 @@ function createDefaultBlockTemplates(language: string, timezone: string): HomeBl
 	];
 }
 
-function resolveBlockTitle(
+function resolveMediaBlock(
 	block: HomeBlockTemplate,
 	language: string,
 ): HomeConfigBlock {
@@ -688,20 +705,71 @@ function resolveBlockTitle(
 	} as HomeConfigBlock;
 }
 
-// 🌟 纯同步函数！返回版本号为 2，客户端 100% 认可！
-export function createDefaultHomeConfig(
-	options: DefaultHomeConfigOptions,
-): DefaultHomeConfig {
+function parseDecadesCollection(
+	blockId: string,
+	blockJson: string,
+	language: string,
+): CollectionBlock | null {
+	try {
+		const parsed = JSON.parse(blockJson) as CollectionBlock;
+		if (parsed.preset !== COLLECTION_PRESET) return null;
+		if (!Array.isArray(parsed.children) || parsed.children.length < 2) {
+			return null;
+		}
+		return {
+			...parsed,
+			id: parsed.id || blockId,
+			title: resolveTitle("home.classic_decades", language),
+			style: "image-landscape",
+		};
+	} catch {
+		return null;
+	}
+}
+
+async function resolveDecadesCollection(
+	db: D1Database | undefined,
+	language: string,
+): Promise<CollectionBlock | null> {
+	if (!db) return null;
+
+	try {
+		const rows = await getCommunityBlocksByIds(db, [DECADES_COLLECTION_ID]);
+		const row = rows.get(DECADES_COLLECTION_ID);
+		if (!row) return null;
+		return parseDecadesCollection(DECADES_COLLECTION_ID, row.block_json, language);
+	} catch {
+		return null;
+	}
+}
+
+// 🌟 输出你定制的配置
+export async function createDefaultHomeConfig(
+	options: HomeConfigOptions,
+): Promise<HomeConfig> {
+	const decades = await resolveDecadesCollection(options.db, options.language);
+	const blocks: HomeConfigBlock[] = [];
+
+	for (const section of createDefaultBlockTemplates(
+		options.language,
+		options.timezone,
+	)) {
+		if (isDecadesCollectionSlot(section)) {
+			if (decades) blocks.push(decades);
+			continue;
+		}
+		blocks.push(resolveMediaBlock(section as HomeBlockTemplate, options.language));
+	}
+
 	return {
-		version: 2, // 👈 必须写 2！客户端新版协议强校验！
+		version: 2, // 让这套自定义配置直接输出为客户端合规的 V2 格式！
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
-		carouselSourceId: "tmdb-popular-tv-shows",
-		blocks: createDefaultBlockTemplates(options.language, options.timezone).map(
-			(block) => resolveBlockTitle(block, options.language),
-		),
+		carouselSourceId: "tmdb-popular-tv-shows", // 与 blocks[0] 的 ID 严格对齐
+		blocks,
 	};
 }
 
 export const createHomeConfig = createDefaultHomeConfig;
+export const createHomeConfigV2 = createDefaultHomeConfig;
 export default createDefaultHomeConfig;
