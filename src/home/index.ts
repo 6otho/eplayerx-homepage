@@ -1,7 +1,6 @@
 import { type Context, Hono } from "hono";
 import type { BlocksBindings } from "../blocks/types.js";
 import { createDefaultHomeConfig } from "./config.js";
-import { createHomeConfigV2 } from "./config-v2.js";
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const DEFAULT_TIMEZONE = "UTC";
@@ -9,7 +8,7 @@ const DEFAULT_TIMEZONE = "UTC";
 const app = new Hono<{ Bindings: BlocksBindings }>();
 
 function resolveRequestLanguage(c: Context): string {
-	return c.req.query("language") || "en-US";
+	return c.req.query("language") || "zh-CN";
 }
 
 function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
@@ -31,23 +30,29 @@ function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
 function cacheHomeConfig(c: Context) {
 	c.header(
 		"Cache-Control",
-		"public, max-age=300, s-maxage=300, stale-while-revalidate=3600",
+		"no-cache, no-store, must-revalidate", // 🌟 改为不缓存，确保你后台一推，客户端刷新立即看到最新大盘！
 	);
 }
 
-app.get("/config", (c) => {
+// 🌟 1. 自定义接口 (/home/config)
+app.get("/config", async (c) => {
 	cacheHomeConfig(c);
-	return c.json(createDefaultHomeConfig(resolveConfigRequest(c)));
+	const config = await createDefaultHomeConfig({
+		...resolveConfigRequest(c),
+		db: c.env?.DB,
+	});
+	return c.json({ ...config, version: 1 });
 });
 
+// 🌟 2. 默认接口 (/home/config/v2)
+// 客户端默认敲这个门！我们直接把你的自定义大盘数据返回给它，版本伪装成 2
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
-	return c.json(
-		await createHomeConfigV2({
-			...resolveConfigRequest(c),
-			db: c.env?.DB,
-		}),
-	);
+	const config = await createDefaultHomeConfig({
+		...resolveConfigRequest(c),
+		db: c.env?.DB,
+	});
+	return c.json({ ...config, version: 2 });
 });
 
 export default app;
