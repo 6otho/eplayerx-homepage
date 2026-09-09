@@ -1,9 +1,10 @@
 import { type Context, Hono } from "hono";
 import type { BlocksBindings } from "../blocks/types.js";
 import { createDefaultHomeConfig } from "./config.js";
+import { createHomeConfigV2 } from "./config-v2.js";
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-const DEFAULT_TIMEZONE = "UTC";
+const DEFAULT_TIMEZONE = "Asia/Shanghai";
 
 const app = new Hono<{ Bindings: BlocksBindings }>();
 
@@ -34,7 +35,7 @@ function cacheHomeConfig(c: Context) {
 	);
 }
 
-// 客户端填了自定义 API 之后，调用的接口在这里：
+// 🌟 1. 自定义接口 (/home/config) -> 里面全是你的自定义周更表与大盘！
 app.get("/config", async (c) => {
 	cacheHomeConfig(c);
 	const config = await createDefaultHomeConfig({
@@ -44,9 +45,10 @@ app.get("/config", async (c) => {
 	return c.json(config);
 });
 
+// 🌟 2. 官方默认 V2 接口 (/home/config/v2) -> 纯粹原版官方推荐！
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
-	const config = await createDefaultHomeConfig({
+	const config = await createHomeConfigV2({
 		...resolveConfigRequest(c),
 		db: c.env?.DB,
 	});
