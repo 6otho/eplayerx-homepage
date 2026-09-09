@@ -1,6 +1,6 @@
 import { type Context, Hono } from "hono";
 import type { BlocksBindings } from "../blocks/types.js";
-import { createDefaultHomeConfig } from "./config.js";
+import { createDefaultHomeConfig } from "./config.js"; // 只引用你自定义的 config.js
 
 const DEFAULT_IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
 const DEFAULT_TIMEZONE = "UTC";
@@ -28,13 +28,14 @@ function resolveConfigRequest(c: Context<{ Bindings: BlocksBindings }>) {
 }
 
 function cacheHomeConfig(c: Context) {
+	// 🌟 彻底禁用 CDN 缓存，防止改了文件后浏览器还读取旧缓存
 	c.header(
 		"Cache-Control",
-		"no-cache, no-store, must-revalidate", // 🌟 改为不缓存，确保你后台一推，客户端刷新立即看到最新大盘！
+		"no-cache, no-store, must-revalidate, max-age=0",
 	);
 }
 
-// 🌟 1. 自定义接口 (/home/config)
+// 1. /home/config 返回自定义
 app.get("/config", async (c) => {
 	cacheHomeConfig(c);
 	const config = await createDefaultHomeConfig({
@@ -44,8 +45,7 @@ app.get("/config", async (c) => {
 	return c.json({ ...config, version: 1 });
 });
 
-// 🌟 2. 默认接口 (/home/config/v2)
-// 客户端默认敲这个门！我们直接把你的自定义大盘数据返回给它，版本伪装成 2
+// 2. /home/config/v2 也返回你自定义的配置（版本号写 2，客户端开心，你也开心！）
 app.get("/config/v2", async (c) => {
 	cacheHomeConfig(c);
 	const config = await createDefaultHomeConfig({
