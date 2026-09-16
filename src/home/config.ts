@@ -250,7 +250,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			id: "douban_tv_custom",
 			mediaType: "tv",
 			titleKey: "home.popular_tv_shows",
-			preset: "poster-list",
+			preset: "hero-list",
 			showRank: false,
 			showOverview: false,
 			sort: "year",
