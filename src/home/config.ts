@@ -700,7 +700,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			id: "netflix_movie_minor",
 			mediaType: "movie",
 			titleKey: "home.netflix_minor_movies",
-			preset: "hero-list", // 👈 改为官方横剧照大图预设，彻底解决横海报不生效问题！
+			preset: "backdrop-list", // 👈 改为官方横剧照大图预设，彻底解决横海报不生效问题！
 			showRank: true,
 			showOverview: false,
 			sort: "year",
