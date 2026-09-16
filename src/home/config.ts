@@ -147,7 +147,7 @@ const TITLE_TRANSLATIONS: Record<string, Record<Locale, string>> = {
 	"home.popular_japanese_tv_shows": { en: "Healing Japanese Dramas", zh: "专治精神内耗的日剧", "zh-Hant": "專治精神內耗的日劇", ja: "最近人気の日本ドラマ", es: "Dramas Japoneses en Tendencia", ar: "دراما يابانية رائجة" },
 	"home.popular_spanish_tv_shows": { en: "Thrilling Spanish Series", zh: "反转停不下来的西语爽剧", "zh-Hant": "反轉停不下來的西語爽劇", ja: "話題のスペイン語シリーズ", es: "Series en Español en Tendencia", ar: "مسلسلات إspania رائجة" },
 	"home.popular_taiwanese_tv_shows": { en: "Bold Taiwanese Dramas", zh: "现在台剧都这么敢拍？", "zh-Hant": "現在台劇都這麼敢拍？", ja: "人気の台湾ドラマ", es: "Dramas Taiwaneses Populares", ar: "دراما تايوانية شائعة" },
-	"home.popular_taiwanese_movies": { en: "Authentic Taiwanese Movies", zh: "台味正浓的宝藏台片", "zh-Hant": "台味正濃的寶藏台片", ja: "人気の台湾映画", es: "Películas Taiwanesas Populares", ar: "أفلام تايوانية شهيرة" },
+	"home.popular_taiwanese_movies": { en: "Authentic Taiwanese Movies", zh: "台味正浓的宝藏台片", "zh-Hant": "台味濃濃的寶藏台片", ja: "人気の台湾映画", es: "Películas Taiwanesas Populares", ar: "أفلام تايوانية شهيرة" },
 	"home.popular_variety_shows": { en: "Today's Popular Variety Shows", zh: "实时热门综艺", "zh-Hant": "實時熱門綜藝", ja: "今日の人気バラエティ", es: "Programas de Variedades Populares de Hoy", ar: "برامج منوعة" },
 	"home.tmdb_top_rated_movies": { en: "Top Rated Movies", zh: "高分电影", "zh-Hant": "高分電影", ja: "高評価映画", es: "Películas Mejor Valoradas", ar: "الأعلى تقييماً" },
 	"home.tmdb_top_rated_tv_shows": { en: "Top Rated TV Shows", zh: "高分电视剧", "zh-Hant": "高分電視劇", ja: "高評価テレビ番組", es: "Series Mejor Valoradas", ar: "المسلسلات الأعلى تقييماً" },
@@ -212,18 +212,18 @@ function isDecadesCollectionSlot(section: V2Section): section is DecadesCollecti
 
 function createV2BlockTemplates(language: string, timezone: string): V2Section[] {
 	return [
-		// 1. 今日热门电视剧
+		// 1. 今日热门电视剧 [标准竖版]
 		{
 			id: "tmdb_popular_tv",
 			mediaType: "tv",
 			titleKey: "home.tmdb_popular_tv_shows",
-			preset: "hero-list",
+			preset: "poster-list",
 			showRank: true,
 			showOverview: false,
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-tv.json?sort=year", itemEnvelope: "data" }
 		},
-		// 2. 今日热门电影
+		// 2. 今日热门电影 [标准竖版]
 		{
 			id: "tmdb_popular_movies",
 			mediaType: "movie",
@@ -234,7 +234,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-movies.json?sort=year", itemEnvelope: "data" }
 		},
-		// 3. 今日热门番剧
+		// 3. 今日热门番剧 [标准竖版]
 		{
 			id: "bangumi_airing",
 			mediaType: "tv",
@@ -245,18 +245,18 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/bangumi-airing.json?sort=year", itemEnvelope: "data" }
 		},
-		// 4. 时下热门国产剧
+		// 4. 时下热门国产剧 [标准竖版] [无排名]
 		{
 			id: "douban_tv_custom",
 			mediaType: "tv",
 			titleKey: "home.popular_tv_shows",
 			preset: "poster-list",
-			showRank: true,
+			showRank: false,
 			showOverview: false,
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom.json?sort=year", itemEnvelope: "data" }
 		},
-		// 5. 实时热门电影
+		// 5. 实时热门电影 [标准竖版]
 		{
 			id: "douban_movies",
 			mediaType: "movie",
@@ -267,7 +267,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json?sort=year", itemEnvelope: "data" }
 		},
-		// 6. 热门国产动漫
+		// 6. 热门国产动漫 [标准竖版]
 		{
 			id: "tmdb_anime_cn",
 			mediaType: "tv",
@@ -278,7 +278,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json?sort=year", itemEnvelope: "data" }
 		},
-		// 7. 热门国产综艺
+		// 7. 热门国产综艺 [标准竖版]
 		{
 			id: "variety_cn",
 			mediaType: "tv",
@@ -289,7 +289,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json?sort=year", itemEnvelope: "data" }
 		},
-		// 8. 爆款韩国综艺
+		// 8. 爆款韩国综艺 [标准竖版]
 		{
 			id: "variety_kr",
 			mediaType: "tv",
@@ -300,7 +300,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json?sort=year", itemEnvelope: "data" }
 		},
-		// 9. 全球流媒体新热综艺
+		// 9. 全球流媒体新热综艺 [标准竖版]
 		{
 			id: "variety_global",
 			mediaType: "tv",
@@ -365,7 +365,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
-		// 13. Netflix 全球热播好剧
+		// 13. Netflix 全球热播好剧 [标准竖版]
 		{
 			id: "tmdb_tv_netflix",
 			mediaType: "tv",
@@ -376,7 +376,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-netflix.json?sort=year", itemEnvelope: "data" }
 		},
-		// 14. HBO 高分神剧
+		// 14. HBO 高分神剧 [标准竖版]
 		{
 			id: "tmdb_tv_hbo",
 			mediaType: "tv",
@@ -387,7 +387,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-hbo.json?sort=year", itemEnvelope: "data" }
 		},
-		// 15. Apple TV+ 原创精品
+		// 15. Apple TV+ 原创精品 [标准竖版]
 		{
 			id: "tmdb_tv_apple",
 			mediaType: "tv",
@@ -398,7 +398,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-apple.json?sort=year", itemEnvelope: "data" }
 		},
-		// 16. 时下热播欧美剧集
+		// 16. 时下热播欧美剧集 [标准竖版]
 		{
 			id: "trakt_shows",
 			mediaType: "tv",
@@ -409,18 +409,18 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/trakt-shows.json?sort=year", itemEnvelope: "data" }
 		},
-		// 17. 视效轰炸欧美大片
+		// 17. 视效轰炸欧美大片 [标准竖版] [无排名]
 		{
 			id: "trakt_movies",
 			mediaType: "movie",
 			titleKey: "home.trakt_movies",
 			preset: "poster-list",
-			showRank: true,
+			showRank: false,
 			showOverview: false,
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/trakt-movies.json?sort=year", itemEnvelope: "data" }
 		},
-		// 18. 热门韩剧安利
+		// 18. 热门韩剧安利 [标准竖版]
 		{
 			id: "douban_korean_tv",
 			mediaType: "tv",
@@ -431,19 +431,19 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/douban-korean-tv.json?sort=year", itemEnvelope: "data" }
 		},
-		// 19. 按分类浏览
+		// 19. 按分类浏览（修复全路径防止404）
 		{
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
 			preset: "genres-list",
-			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
+			source: { path: "https://api.eplayerx.com/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
 		},
-		// 20. 按平台浏览
+		// 20. 按平台浏览（修复绝对路径+语言参数，彻底解决没数据问题）
 		{
 			id: "tmdb-discover-networks",
 			titleKey: "home.tmdb_discover_networks",
 			preset: "networks-list",
-			source: { path: "/crawler/discover/tv-by-network", itemEnvelope: "data" },
+			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-network", query: { language }, itemEnvelope: "data" },
 		},
 		// 21. 按语言浏览
 		{
@@ -506,7 +506,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
-		// 25. 近期热门日本动漫
+		// 25. 近期热门日本动漫 [标准竖版]
 		{
 			id: "tmdb_anime_jp",
 			mediaType: "tv",
@@ -517,7 +517,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-jp.json?sort=year", itemEnvelope: "data" }
 		},
-		// 26. IMDb 史诗动漫神作
+		// 26. IMDb 史诗动漫神作 [标准竖版]
 		{
 			id: "imdb_top_anime",
 			mediaType: "tv",
@@ -528,7 +528,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/imdb-top-anime.json?sort=year", itemEnvelope: "data" }
 		},
-		// 27. Prime Video 热门日漫
+		// 27. Prime Video 热门日漫 [标准竖版]
 		{
 			id: "prime_hot_anime",
 			mediaType: "tv",
@@ -539,7 +539,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/prime-hot-anime.json?sort=year", itemEnvelope: "data" }
 		},
-		// 28. Filmarks 高分剧场版
+		// 28. Filmarks 高分剧场版 [标准竖版]
 		{
 			id: "filmarks_anime_movie",
 			mediaType: "movie",
@@ -550,7 +550,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/filmarks-anime-movie.json?sort=year", itemEnvelope: "data" }
 		},
-		// 29. Netflix 独播霸榜日漫
+		// 29. Netflix 独播霸榜日漫 [标准竖版]
 		{
 			id: "netflix_hot_anime",
 			mediaType: "tv",
@@ -561,7 +561,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/netflix-hot-anime.json?sort=year", itemEnvelope: "data" }
 		},
-		// 30. TMDB 高分神作日漫
+		// 30. TMDB 高分神作日漫 [标准竖版]
 		{
 			id: "tmdb_anime_top_ja",
 			mediaType: "tv",
@@ -572,7 +572,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-top-ja.json?sort=year", itemEnvelope: "data" }
 		},
-		// 31. 美到想截屏的动画电影
+		// 31. 美到想截屏的动画电影 [标准竖版]
 		{
 			id: "tmdb_anime_movie_ja",
 			mediaType: "movie",
@@ -585,7 +585,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		},
 		// 32. 年代经典
 		{ type: "decades-collection" },
-		// 33. 现在台剧都这么敢拍？
+		// 33. 现在台剧都这么敢拍？ [标准竖版]
 		{
 			id: "tmdb_tv_tw",
 			mediaType: "tv",
@@ -596,7 +596,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-tw.json?sort=year", itemEnvelope: "data" }
 		},
-		// 34. 台味正浓的宝藏台片
+		// 34. 台味正浓的宝藏台片 [标准竖版]
 		{
 			id: "tmdb_movie_tw",
 			mediaType: "movie",
@@ -607,7 +607,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-tw.json?sort=year", itemEnvelope: "data" }
 		},
-		// 35. 荷尔蒙溢出的东南亚
+		// 35. 荷尔蒙溢出的东南亚 [标准竖版]
 		{
 			id: "tmdb_movie_sea",
 			mediaType: "movie",
@@ -618,7 +618,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-sea.json?sort=year", itemEnvelope: "data" }
 		},
-		// 36. 尽皆癫狂的港产喜剧
+		// 36. 尽皆癫狂的港产喜剧 [标准竖版]
 		{
 			id: "tmdb_movie_hk_erotic_comedy",
 			mediaType: "movie",
@@ -627,9 +627,9 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-hk-erotic_comedy.json?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-hk-erotic-comedy.json?sort=year", itemEnvelope: "data" }
 		},
-		// 37. 专治精神内耗的日剧
+		// 37. 专治精神内耗的日剧 [标准竖版]
 		{
 			id: "tmdb_tv_ja",
 			mediaType: "tv",
@@ -640,7 +640,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-ja.json?sort=year", itemEnvelope: "data" }
 		},
-		// 38. 越狗血越上头的爆款泰剧
+		// 38. 越狗血越上头的爆款泰剧 [标准竖版]
 		{
 			id: "tmdb_tv_th",
 			mediaType: "tv",
@@ -651,7 +651,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-th.json?sort=year", itemEnvelope: "data" }
 		},
-		// 39. 别只看鬼片的泰国电影
+		// 39. 别只看鬼片的泰国电影 [标准竖版]
 		{
 			id: "tmdb_movie_th",
 			mediaType: "movie",
@@ -662,7 +662,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-th.json?sort=year", itemEnvelope: "data" }
 		},
-		// 40. 眼神狂拉丝的亚洲耽美神作
+		// 40. 眼神狂拉丝的亚洲耽美神作 [标准竖版]
 		{
 			id: "tmdb_tv_bl",
 			mediaType: "tv",
@@ -673,7 +673,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-bl.json?sort=year", itemEnvelope: "data" }
 		},
-		// 41. 反转停不下来的西语爽剧
+		// 41. 反转停不下来的西语爽剧 [标准竖版]
 		{
 			id: "tmdb_tv_es",
 			mediaType: "tv",
@@ -684,7 +684,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-es.json?sort=year", itemEnvelope: "data" }
 		},
-		// 42. 别被语言劝退的网飞神剧
+		// 42. 别被语言劝退的网飞神剧 [标准竖版]
 		{
 			id: "netflix_tv_minor",
 			mediaType: "tv",
@@ -695,12 +695,13 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/netflix-tv-minor.json?sort=year", itemEnvelope: "data" }
 		},
-		// 43. 冷门却惊艳的宝藏外国片
+		// 43. 冷门却惊艳的宝藏外国片 [C. 宽幅横版] [带排名]
 		{
 			id: "netflix_movie_minor",
 			mediaType: "movie",
 			titleKey: "home.netflix_minor_movies",
 			preset: "poster-list",
+			style: "image-landscape",
 			showRank: true,
 			showOverview: false,
 			sort: "year",
