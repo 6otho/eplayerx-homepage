@@ -250,68 +250,13 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			id: "douban_tv_custom",
 			mediaType: "tv",
 			titleKey: "home.popular_tv_shows",
-			preset: "hero-list",
+			preset: "poster-list",
 			showRank: false,
 			showOverview: false,
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom.json?sort=year", itemEnvelope: "data" }
 		},
-		// 5. 实时热门电影 [标准竖版]
-		{
-			id: "douban_movies",
-			mediaType: "movie",
-			titleKey: "home.popular_movies",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: false,
-			sort: "year",
-			source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json?sort=year", itemEnvelope: "data" }
-		},
-		// 6. 热门国产动漫 [标准竖版]
-		{
-			id: "tmdb_anime_cn",
-			mediaType: "tv",
-			titleKey: "home.popular_domestic_anime",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: false,
-			sort: "year",
-			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json?sort=year", itemEnvelope: "data" }
-		},
-		// 7. 热门国产综艺 [标准竖版]
-		{
-			id: "variety_cn",
-			mediaType: "tv",
-			titleKey: "home.variety_cn",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: false,
-			sort: "year",
-			source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json?sort=year", itemEnvelope: "data" }
-		},
-		// 8. 爆款韩国综艺 [标准竖版]
-		{
-			id: "variety_kr",
-			mediaType: "tv",
-			titleKey: "home.variety_kr",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: false,
-			sort: "year",
-			source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json?sort=year", itemEnvelope: "data" }
-		},
-		// 9. 全球流媒体新热综艺 [标准竖版]
-		{
-			id: "variety_global",
-			mediaType: "tv",
-			titleKey: "home.variety_global",
-			preset: "poster-list",
-			showRank: true,
-			showOverview: false,
-			sort: "year",
-			source: { path: "https://r2.eplayerx.cc.cd/variety-global.json?sort=year", itemEnvelope: "data" }
-		},
-		// 10. 国产追剧周更表
+		// 5. 国产追剧周更表（已移至时下国产剧下方）
 		{
 			id: "weekly_drama_collection",
 			title: "国产追剧周更表",
@@ -329,7 +274,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
-		// 11. 国漫追番周历表
+		// 6. 国漫追番周历表（已移至时下国产剧下方）
 		{
 			id: "weekly_guoman_collection",
 			title: "国漫追番周历表",
@@ -347,7 +292,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
-		// 12. 动漫新番周更表
+		// 7. 动漫新番周更表（已移至时下国产剧下方）
 		{
 			id: "weekly_anime_collection",
 			title: "动漫新番周更表",
@@ -365,6 +310,61 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
+		// 8. 实时热门电影 [标准竖版]
+		{
+			id: "douban_movies",
+			mediaType: "movie",
+			titleKey: "home.popular_movies",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: false,
+			sort: "year",
+			source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json?sort=year", itemEnvelope: "data" }
+		},
+		// 9. 热门国产动漫 [标准竖版]
+		{
+			id: "tmdb_anime_cn",
+			mediaType: "tv",
+			titleKey: "home.popular_domestic_anime",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: false,
+			sort: "year",
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json?sort=year", itemEnvelope: "data" }
+		},
+		// 10. 热门国产综艺 [标准竖版]
+		{
+			id: "variety_cn",
+			mediaType: "tv",
+			titleKey: "home.variety_cn",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: false,
+			sort: "year",
+			source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json?sort=year", itemEnvelope: "data" }
+		},
+		// 11. 爆款韩国综艺 [标准竖版]
+		{
+			id: "variety_kr",
+			mediaType: "tv",
+			titleKey: "home.variety_kr",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: false,
+			sort: "year",
+			source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json?sort=year", itemEnvelope: "data" }
+		},
+		// 12. 全球流媒体新热综艺 [标准竖版]
+		{
+			id: "variety_global",
+			mediaType: "tv",
+			titleKey: "home.variety_global",
+			preset: "poster-list",
+			showRank: true,
+			showOverview: false,
+			sort: "year",
+			source: { path: "https://r2.eplayerx.cc.cd/variety-global.json?sort=year", itemEnvelope: "data" }
+		},
 		// 13. Netflix 全球热播好剧 [标准竖版]
 		{
 			id: "tmdb_tv_netflix",
