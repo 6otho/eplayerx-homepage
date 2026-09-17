@@ -433,11 +433,11 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		},
 		// 19. 按分类浏览
 		{
-			id: "tmdb-discover-genres",
-			titleKey: "home.tmdb_discover_genres",
-			preset: "genres-list",
-			source: { path: "https://r2.eplayerx.cc.cd/crawler/genres", query: { language }, itemEnvelope: "data" },
-		},
+	  id: "tmdb-discover-genres",
+	  titleKey: "home.tmdb_discover_genres",
+	  preset: "genres-list",
+	  source: { path: "https://r2.eplayerx.cc.cd/genres.json", itemEnvelope: "data" },
+  },
 		// 20. 按平台浏览
 		{
 			id: "tmdb-discover-networks",
