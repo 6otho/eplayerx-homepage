@@ -431,21 +431,19 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			sort: "year",
 			source: { path: "https://r2.eplayerx.cc.cd/douban-korean-tv.json?sort=year", itemEnvelope: "data" }
 		},
-		// 19. 按分类浏览
 		{
-	  id: "tmdb-discover-genres",
-	  titleKey: "home.tmdb_discover_genres",
-	  preset: "genres-list",
-	  source: { path: "https://r2.eplayerx.cc.cd/genres.json", itemEnvelope: "data" },
-  },
-		// 20. 按平台浏览
+			id: "tmdb-discover-genres",
+			titleKey: "home.tmdb_discover_genres",
+			preset: "genres-list",
+			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
+		},
+		{ type: "decades-collection" },
 		{
 			id: "tmdb-discover-networks",
 			titleKey: "home.tmdb_discover_networks",
 			preset: "networks-list",
-			source: { path: "https://api.eplayerx.com/crawler/discover/tv-by-network", query: { language }, itemEnvelope: "data" },
+			source: { path: "/crawler/discover/tv-by-network", itemEnvelope: "data" },
 		},
-		// 21. 按语言浏览
 		{
 			id: "tmdb-discover-tv-by-language",
 			titleKey: "home.tmdb_discover_languages",
