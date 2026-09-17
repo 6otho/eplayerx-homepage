@@ -436,7 +436,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
 			preset: "genres-list",
-			source: { path: "https://api.eplayerx.com/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
+			source: { path: "https://r2.eplayerx.cc.cd/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
 		},
 		// 20. 按平台浏览
 		{
