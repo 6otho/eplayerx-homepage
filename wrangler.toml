@@ -25,7 +25,7 @@ enabled = true
 
 # 👇 【新增】环境变量配置（用于解决之前的 API 密码报错问题）
 [vars]
-# 🔴 请将下方的 "你的密码填在这里" 替换为你实际想要的管理员密码
+# 🔴 请将下方的 "你的密码填在这里" 
 BLOCKS_ADMIN_PASSWORD = "080808"
 
 # D1 database configuration
