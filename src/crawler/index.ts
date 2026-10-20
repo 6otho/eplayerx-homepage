@@ -14,7 +14,7 @@ import {
 } from "./crawlers.js";
 import type { ContentItem, ContentItemTranslation } from "./service.js";
 
-const R2_CUSTOM_DOMAIN = process.env.R2_CUSTOM_DOMAIN || "assets.eplayerx.com";
+const R2_CUSTOM_DOMAIN = process.env.R2_CUSTOM_DOMAIN || "r2.eplayerx.cc.cd";
 
 /** Cron-refreshed charts — long edge TTL is safe. */
 const STATIC_JSON_CACHE_CONTROL =
