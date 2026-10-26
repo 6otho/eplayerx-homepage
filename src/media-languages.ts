@@ -1,7 +1,7 @@
 import { cachedRatings, getRatingsCache } from "./ratings/cache.js";
 import { resolveTrailerCandidates, videoLanguages, type Details as TrailerDetails } from "./tmdb/trailer-candidates.js";
 import type { Context } from "hono";
-import { originLanguage, pickPreferredLogo } from "./crawler/tmdb-enrich.js";
+import { originLanguage, pickPreferredLogo, resolveArtworkImages } from "./crawler/tmdb-enrich.js";
 import { tmdb } from "./tmdb/client.js";
 
 const languageTag = /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/;
@@ -125,9 +125,10 @@ export async function enrichWithImages(
     if (type !== "movie" && type !== "tv") return item;
 
     const id = item.id as number;
-    // Appended metadata replaces the old images call; it does not add an upstream request.
+    // Known languages share one metadata/images/videos request; null always includes textless art.
     const query = { language, append_to_response: "images,videos",
-      include_image_language: preferences ? undefined : [...new Set([languageCode, originLanguage(
+      include_image_language: [...new Set([languageCode, ...(preferences ? [language, preferences.posterLanguage, preferences.logoLanguage]
+        .map(tag => tag?.split("-")[0]).filter(tag => tag && tag !== "original") : []), originLanguage(
         item.original_language as string | undefined, item.origin_country as string[] | undefined,
       ) ?? "en", "en", "null"])].join(","),
       include_video_language: videoLanguages(language, item.original_language as string | undefined) };
@@ -145,17 +146,18 @@ export async function enrichWithImages(
       if (imagesResult.response.status !== 200) return withRatings;
 
       const details = imagesResult.data as (TrailerDetails & { images?: { logos?: ImageEntry[]; posters?: ImageEntry[]; backdrops?: ImageEntry[] } }) | undefined;
-      const images = details?.images;
+      const originDetails = details as Record<string, any> | undefined;
+      const original = originLanguage(originDetails?.original_language ?? item.original_language as string | undefined,
+        [...(originDetails?.origin_country ?? item.origin_country as string[] ?? []),
+          ...(originDetails?.production_countries ?? []).map((country: { iso_3166_1?: string }) => country.iso_3166_1).filter(Boolean)]);
+      const images = await resolveArtworkImages(details?.images, type, id, original, query.include_image_language);
 
       const logos = (images?.logos ?? []) as ImageEntry[];
       const logo = pickPreferredLogo(
         logos,
         languageCode,
         preferredRegion,
-        originLanguage(
-          item.original_language as string | undefined,
-          item.origin_country as string[] | undefined,
-        ),
+        original,
       )?.file_path;
 
       const posters = (images?.posters ?? []) as ImageEntry[];
@@ -171,9 +173,7 @@ export async function enrichWithImages(
         (item.poster_path as string | undefined);
 
       const trailer = details?.videos ? await resolveTrailerCandidates(details, language, type, query.include_video_language).catch(() => undefined) : undefined;
-      const next: Record<string, unknown> = { ...withRatings, logo, noLogoPoster, thumb, ...(trailer ? { trailer } : {}) };
-      const original = originLanguage((details as Record<string, any> | undefined)?.original_language ?? item.original_language as string | undefined,
-        item.origin_country as string[] | undefined);
+      const next: Record<string, unknown> = { ...withRatings, logo, noLogoPoster: noLogoPoster ?? item.noLogoPoster, thumb, ...(trailer ? { trailer } : {}) };
       const resolve = (value?: string) => value === "original" ? original || artworkLanguage : value || artworkLanguage;
       const region = (tag: string) => /^zh/i.test(tag) ? (/hant|tw|hk|mo/i.test(tag) ? "TW" : "CN") : undefined;
       if (preferences?.metadataLanguage && details) {
@@ -185,7 +185,7 @@ export async function enrichWithImages(
         }
         if (localized.overview) next.overview = localized.overview;
       }
-      if (preferences?.posterLanguage) {
+      if (preferences) {
         const tag = resolve(preferences.posterLanguage);
         const portrait = posters.filter(image => (image.aspect_ratio || (image.width ?? 0) / (image.height ?? 1)) <= 1);
         const path = pickPreferredLogo(portrait, tag, region(tag), original)?.file_path;

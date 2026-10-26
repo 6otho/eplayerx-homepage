@@ -38,7 +38,7 @@ const CACHE = {
   /** find, external_ids, genre lists */
   immutable: cacheHeader(2_592_000, 604_800),
   /** poster/backdrop/logo lists */
-  artwork: cacheHeader(2_592_000, 604_800),
+  artwork: cacheHeader(21_600, 3_600),
   /** movie/tv/collection/person details */
   details: cacheHeader(604_800, 86_400),
   /** cast & crew */
@@ -170,13 +170,15 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
 
   const cache = defaultCache();
   const path = tmdbApiPath(c.req.path);
-  const epoch = path === "/trending/tv" || path === "/trending/movie"
+  const epoch = cacheControl === CACHE.artwork
+    ? "20261019-artwork-6h"
+    : path === "/trending/tv" || path === "/trending/movie"
     ? `${TMDB_CACHE_EPOCH}-ratings-v2`
     : path === "/search/scrape"
     ? "20260930-scrape-localized-matching-v2"
     : path === "/tv/season/details" ? "20260826-season-aggregate-credits" : TMDB_CACHE_EPOCH;
   const cacheUrl = new URL(c.req.url);
-  cacheUrl.searchParams.set("_cache_version", epoch);
+  cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? `${epoch}-media-languages-v3-textless` : epoch);
   cacheUrl.searchParams.sort();
   const cacheKey = new Request(cacheUrl, {
     method: "GET",

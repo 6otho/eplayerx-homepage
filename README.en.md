@@ -73,4 +73,6 @@ Cloudflare Cron refreshes ratings for the first 20 trending movies and TV shows 
 
 Home configuration and media-list endpoints accept optional `metadataLanguage`, `posterLanguage`, and `logoLanguage` parameters. Existing `language` behavior is preserved: it selects home headings and supplies the legacy defaults when independent preferences are absent. Metadata uses TMDB language tags such as `zh-CN`; posters and logos also accept `original`.
 
+Default posters and logos follow the App's `language`, independently of `metadataLanguage`. Empty preferences restore these defaults; `original` selects the work's original language. Missing preferred artwork falls back to the original language, then textless artwork.
+
 For example, `language=en-US&metadataLanguage=zh-CN&posterLanguage=zh-TW&logoLanguage=ja-JP` selects English headings, Simplified Chinese media text, Traditional Chinese posters, and Japanese logos. Browse categories retain the App language. Response caches include all preferences; published snapshots and existing scraped data are never rewritten. Legacy requests add no upstream work, and existing chart translations are reused when available.

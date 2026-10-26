@@ -280,13 +280,14 @@ test("enrichment embeds trailer identities in the existing details request", asy
         calls.push(url);
         assert.equal(url.pathname, "/3/movie/693134");
         assert.equal(url.searchParams.get("append_to_response"), "external_ids,images,videos");
-        assert.equal(url.searchParams.get("include_video_language"), "zh");
+        assert.equal(url.searchParams.get("include_video_language"), "zh,ja");
+        assert.equal(url.searchParams.get("include_image_language"), "zh,ja,null");
         return Response.json({ id: 693134, original_language: "ja", images: { logos: [] }, videos: {
             results: [{ key: "_YUzQa_1RCE", site: "YouTube", type: "Trailer", official: true, size: 1080, iso_639_1: "zh" }]
         }});
     };
     try {
-        const result = await fetchDetailsWithEnrichment(693134, "movie", "zh-CN", createTmdbClient("test-token"));
+        const result = await fetchDetailsWithEnrichment(693134, "movie", "zh-CN", createTmdbClient("test-token"), "ja");
         assert.deepEqual(result?.tmdbData.trailer, { youtube: ["_YUzQa_1RCE"], language: "zh" });
         assert.equal(calls.length, 1);
     } finally { globalThis.fetch = originalFetch; }

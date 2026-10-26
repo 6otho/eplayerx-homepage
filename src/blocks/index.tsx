@@ -159,7 +159,7 @@ async function publicCachedGet(
 		return render();
 	}
 	const cacheUrl = new URL(c.req.url);
-	cacheUrl.searchParams.set("_cache_version", "20261014-preview-escaping");
+	cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? "20261014-preview-escaping-media-languages-v3-textless" : "20261014-preview-escaping");
 	const cacheKey = new Request(cacheUrl, { method: "GET" });
 	const cached = await cache.match(cacheKey);
 	if (cached) return cached;

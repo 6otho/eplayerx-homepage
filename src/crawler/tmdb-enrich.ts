@@ -72,6 +72,25 @@ interface TmdbImagesPayload {
 	posters?: ImageEntry[];
 }
 
+/** Details can reveal an original language excluded from the first image query. */
+export async function resolveArtworkImages(images: TmdbImagesPayload | undefined, mediaType: "movie" | "tv", id: number,
+	original: string | undefined, queriedLanguages: string, client: TmdbClient = tmdb): Promise<TmdbImagesPayload | undefined> {
+	if (!images || (!images.posters && !images.logos) || !original || queriedLanguages.split(",").includes(original)
+		|| [...(images.posters ?? []), ...(images.logos ?? [])].some(image => image.iso_639_1 === original)) return images;
+	try {
+		const result = mediaType === "movie"
+			? await client.GET(`/3/movie/${id}/images`, { params: { path: { movie_id: id } } })
+			: await client.GET(`/3/tv/${id}/images`, { params: { path: { series_id: id } } });
+		if (!result.response.ok || !result.data) return images;
+		const recovered = result.data as TmdbImagesPayload;
+		return {
+			posters: [...(images.posters ?? []), ...(recovered.posters ?? [])],
+			logos: [...(images.logos ?? []), ...(recovered.logos ?? [])],
+			backdrops: [...(images.backdrops ?? []), ...(recovered.backdrops ?? [])],
+		};
+	} catch { return images; }
+}
+
 interface TmdbDetailsPayload extends TmdbSearchResult {
 	videos?: { results?: Video[] };
 	genres?: { id: number }[];
@@ -441,10 +460,7 @@ export async function fetchDetailsWithEnrichment(
 	const langCode = lang.split("-")[0] || "zh";
 	const origin = originLanguage(originalLanguage);
 	try {
-		// include_image_language is valid with append_to_response=images but
-		// missing from the generated details OpenAPI query types. If origin
-		// is unknown, omit the filter so the same details response still
-		// contains origin-language logos.
+		// Appended images inherit the metadata language filter; null keeps textless art.
 		const query: {
 			language: string;
 			append_to_response: string;
@@ -453,13 +469,9 @@ export async function fetchDetailsWithEnrichment(
 		} = {
 			language: lang,
 			append_to_response: "external_ids,images,videos",
+			include_image_language: [...new Set([langCode, ...(origin ? [origin] : []), "null"])].join(","),
 			include_video_language: videoLanguages(lang, originalLanguage),
 		};
-		if (origin) {
-			query.include_image_language = [
-				...new Set([langCode, origin, "null"]),
-			].join(",");
-		}
 		const result =
 			mediaType === "movie"
 				? await client.GET(`/3/movie/${tmdbId}`, {
@@ -471,6 +483,10 @@ export async function fetchDetailsWithEnrichment(
 		checkTmdbResponse(result.response);
 		const data = result.data as TmdbDetailsPayload | undefined;
 		if (!data?.id) return null;
+		data.images = await resolveArtworkImages(data.images, mediaType, tmdbId,
+			originLanguage(data.original_language ?? originalLanguage,
+				[...(data.origin_country ?? []), ...(data.production_countries?.map(country => country.iso_3166_1 ?? "") ?? [])]),
+			query.include_image_language ?? "", client);
 
 		return {
 			tmdbData: {

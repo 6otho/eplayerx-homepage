@@ -1,4 +1,4 @@
-import { languagePreference, localizeMediaPayload } from "../media-languages.js";
+import { hasMediaLanguages, languagePreference, localizeMediaPayload } from "../media-languages.js";
 /// <reference types="@cloudflare/workers-types" />
 import { type Context, Hono } from "hono";
 import { isAdminBearer } from "../blocks/admin.js";
@@ -154,7 +154,7 @@ async function staticJsonCacheMiddleware(
     return next();
   }
   const cacheUrl = new URL(c.req.url);
-  cacheUrl.searchParams.set("_cache_version", STATIC_JSON_CACHE_EPOCH);
+  cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? `${STATIC_JSON_CACHE_EPOCH}-media-languages-v3-textless` : STATIC_JSON_CACHE_EPOCH);
   const cacheKey = new Request(cacheUrl, {
     method: "GET",
   });

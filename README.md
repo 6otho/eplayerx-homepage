@@ -168,4 +168,6 @@ MIT License
 
 `/home/config`、`/home/config/v2` 和媒体列表接口支持可选的 `metadataLanguage`、`posterLanguage`、`logoLanguage`。`language` 保留旧语义和默认行为：用于首页栏目文案；未指定独立偏好时也用于媒体内容。元数据使用 TMDB 语言标签（例如 `zh-CN`），海报和 Logo 还支持 `original`。
 
+海报和 Logo 的默认语言均跟随 App 的 `language`，不会跟随独立的 `metadataLanguage`。空值表示恢复默认；`original` 按作品原始语言选择，缺少目标语言图片时依次回退原语言和无文字图片。
+
 例如 `language=en-US&metadataLanguage=zh-CN&posterLanguage=zh-TW&logoLanguage=ja-JP` 返回英文栏目、简中影片内容、繁中海报、日文 Logo。分类和语言浏览入口仍使用 App 语言。响应缓存按完整参数区分；已发布快照和已有刮削数据不会被重写。没有独立偏好的旧请求不增加上游查询，榜单已有中英文译文优先复用。
