@@ -1,7 +1,5 @@
-import { hasMediaLanguages, languagePreference, localizeMediaPayload } from "../media-languages.js";
 /// <reference types="@cloudflare/workers-types" />
 import { type Context, Hono } from "hono";
-import { isAdminBearer } from "../blocks/admin.js";
 import {
   crawlBangumiAnimation,
   crawlDoubanAnimation,
@@ -29,14 +27,6 @@ type CrawlerBindings = {
 type CrawlerContext = Context<{ Bindings: CrawlerBindings }>;
 
 const app = new Hono<{ Bindings: CrawlerBindings }>();
-
-for (const path of ["/crawl/*", "/cron/*"]) {
-  app.use(path, async (c, next) => {
-    c.header("Cache-Control", "no-store");
-    if (!isAdminBearer(c)) return c.json({ error: "unauthorized" }, 401);
-    await next();
-  });
-}
 
 function defaultCache(): Cache | null {
   if (typeof caches === "undefined") return null;
@@ -153,9 +143,7 @@ async function staticJsonCacheMiddleware(
   if (!cache) {
     return next();
   }
-  const cacheUrl = new URL(c.req.url);
-  cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? `${STATIC_JSON_CACHE_EPOCH}-media-languages-v3-textless` : STATIC_JSON_CACHE_EPOCH);
-  const cacheKey = new Request(cacheUrl, {
+  const cacheKey = new Request(`${c.req.url}#${STATIC_JSON_CACHE_EPOCH}`, {
     method: "GET",
   });
   const hit = await cache.match(cacheKey);
@@ -181,7 +169,7 @@ async function staticJsonCacheMiddleware(
 app.use("/popular/*", staticJsonCacheMiddleware);
 app.use("/discover/*", staticJsonCacheMiddleware);
 
-type Locale = "en" | "zh" | "zh-Hant" | "ja" | "es" | "fr" | "de" | "ar" | "vi";
+type Locale = "en" | "zh" | "zh-Hant" | "ja" | "es" | "fr" | "de" | "ar";
 
 interface TmdbListRoute {
   type: "tmdb-list";
@@ -289,7 +277,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Anglais",
     de: "Englisch",
     ar: "الإنجليزية",
-    vi: "Tiếng Anh",
   },
   zh: {
     en: "Chinese",
@@ -300,7 +287,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Chinois",
     de: "Chinesisch",
     ar: "الصينية",
-    vi: "Tiếng Trung",
   },
   ja: {
     en: "Japanese",
@@ -311,7 +297,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Japonais",
     de: "Japanisch",
     ar: "اليابانية",
-    vi: "Tiếng Nhật",
   },
   ko: {
     en: "Korean",
@@ -322,7 +307,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Coréen",
     de: "Koreanisch",
     ar: "الكورية",
-    vi: "Tiếng Hàn",
   },
   es: {
     en: "Spanish",
@@ -333,7 +317,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Espagnol",
     de: "Spanisch",
     ar: "الإسبانية",
-    vi: "Tiếng Tây Ban Nha",
   },
   th: {
     en: "Thai",
@@ -344,7 +327,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Thaï",
     de: "Thailändisch",
     ar: "التايلاندية",
-    vi: "Tiếng Thái",
   },
   hi: {
     en: "Hindi",
@@ -355,7 +337,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Hindi",
     de: "Hindi",
     ar: "الهندية",
-    vi: "Tiếng Hindi",
   },
   tr: {
     en: "Turkish",
@@ -366,7 +347,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Turc",
     de: "Türkisch",
     ar: "التركية",
-    vi: "Tiếng Thổ Nhĩ Kỳ",
   },
   ar: {
     en: "Arabic",
@@ -377,7 +357,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Arabe",
     de: "Arabisch",
     ar: "العربية",
-    vi: "Tiếng Ả Rập",
   },
   fr: {
     en: "French",
@@ -388,7 +367,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Français",
     de: "Französisch",
     ar: "الفرنسية",
-    vi: "Tiếng Pháp",
   },
   it: {
     en: "Italian",
@@ -399,7 +377,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Italien",
     de: "Italienisch",
     ar: "الإيطالية",
-    vi: "Tiếng Ý",
   },
   de: {
     en: "German",
@@ -410,7 +387,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Allemand",
     de: "Deutsch",
     ar: "الألمانية",
-    vi: "Tiếng Đức",
   },
   nl: {
     en: "Dutch",
@@ -421,7 +397,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Néerlandais",
     de: "Niederländisch",
     ar: "الهولندية",
-    vi: "Tiếng Hà Lan",
   },
   ru: {
     en: "Russian",
@@ -432,7 +407,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Russe",
     de: "Russisch",
     ar: "الروسية",
-    vi: "Tiếng Nga",
   },
   pt: {
     en: "Portuguese",
@@ -443,7 +417,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Portugais",
     de: "Portugiesisch",
     ar: "البرتغالية",
-    vi: "Tiếng Bồ Đào Nha",
   },
   vi: {
     en: "Vietnamese",
@@ -454,7 +427,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Vietnamien",
     de: "Vietnamesisch",
     ar: "الفيتنامية",
-    vi: "Tiếng Việt",
   },
   id: {
     en: "Indonesian",
@@ -465,7 +437,6 @@ const LANGUAGE_NAME_TRANSLATIONS: Record<string, Record<Locale, string>> = {
     fr: "Indonésien",
     de: "Indonesisch",
     ar: "الإندونيسية",
-    vi: "Tiếng Indonesia",
   },
 };
 
@@ -479,7 +450,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Drame",
     de: "Drama",
     ar: "دراما",
-    vi: "Chính kịch",
   },
   comedy: {
     en: "Comedy",
@@ -490,7 +460,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Comédie",
     de: "Komödie",
     ar: "كوميديا",
-    vi: "Hài",
   },
   thriller: {
     en: "Thriller&Mystery",
@@ -501,7 +470,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Thriller et mystère",
     de: "Thriller & Mystery",
     ar: "إثارة وغموض",
-    vi: "Giật gân và bí ẩn",
   },
   action: {
     en: "Action",
@@ -512,7 +480,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Action",
     de: "Action",
     ar: "أكشن",
-    vi: "Hành động",
   },
   animation: {
     en: "Animation",
@@ -523,7 +490,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Animation",
     de: "Animation",
     ar: "أنميشن",
-    vi: "Hoạt hình",
   },
   crime: {
     en: "Crime",
@@ -534,7 +500,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Crime",
     de: "Krimi",
     ar: "جريمة",
-    vi: "Tội phạm",
   },
   documentary: {
     en: "Documentary",
@@ -545,7 +510,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Documentaire",
     de: "Dokumentarfilm",
     ar: "وثائقي",
-    vi: "Phim tài liệu",
   },
   kids: {
     en: "Kids&Family",
@@ -556,7 +520,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Enfants et famille",
     de: "Kinder & Familie",
     ar: "أطفال وعائلة",
-    vi: "Thiếu nhi và gia đình",
   },
   scifi: {
     en: "Sci-Fi",
@@ -567,7 +530,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Science-fiction",
     de: "Science-Fiction",
     ar: "خيال علمي",
-    vi: "Khoa học viễn tưởng",
   },
   romance: {
     en: "Romance",
@@ -578,7 +540,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Romance",
     de: "Romance",
     ar: "رومانسية",
-    vi: "Lãng mạn",
   },
   war: {
     en: "War",
@@ -589,7 +550,6 @@ const GENRE_TRANSLATIONS: Record<GenreKey, Record<Locale, string>> = {
     fr: "Guerre",
     de: "Krieg",
     ar: "حرب",
-    vi: "Chiến tranh",
   },
 };
 
@@ -614,19 +574,18 @@ const LANGUAGE_ITEMS = [
 ] as const;
 
 const GENRE_ITEMS: { id: string; key: GenreKey; imageName: string }[] = [
-  { id: "18", key: "drama", imageName: "Drama-1.webp" },
-  { id: "35", key: "comedy", imageName: "Comedy-1.webp" },
-  { id: "9648,53", key: "thriller", imageName: "Thriller-1.webp" },
-  { id: "28", key: "action", imageName: "Action-1.webp" },
-  { id: "878", key: "scifi", imageName: "Sci-fi-1.webp" },
-  { id: "16", key: "animation", imageName: "Animation-1.webp" },
-  { id: "80", key: "crime", imageName: "Crime-1.webp" },
-  { id: "10749", key: "romance", imageName: "Romance-1.webp" },
-  { id: "10752", key: "war", imageName: "War-1.webp" },
-  { id: "99", key: "documentary", imageName: "Documentary-1.webp" },
-  { id: "10751", key: "kids", imageName: "Kid-1.webp" },
+  { id: "18", key: "drama", imageName: "DRAMA-2.png" },
+  { id: "35", key: "comedy", imageName: "COMEDY-3.png" },
+  { id: "9648,53", key: "thriller", imageName: "THRILLER-2.png" },
+  { id: "28", key: "action", imageName: "ACTION-2.png" },
+  { id: "878", key: "scifi", imageName: "SCI-FI-2.png" },
+  { id: "16", key: "animation", imageName: "ANIMATION-2.png" },
+  { id: "80", key: "crime", imageName: "CRIME-2.png" },
+  { id: "10749", key: "romance", imageName: "ROMANCE-2.png" },
+  { id: "10752", key: "war", imageName: "WAR-2.png" },
+  { id: "99", key: "documentary", imageName: "DOCUMENTARY-2.png" },
+  { id: "10751", key: "kids", imageName: "KID-2.png" },
 ];
-
 function createTmdbListRoute(
   title: string,
   params: TmdbListRoute["params"]
@@ -653,7 +612,6 @@ function resolveLocale(language: string): Locale {
   if (normalized.startsWith("fr")) return "fr";
   if (normalized.startsWith("de")) return "de";
   if (normalized.startsWith("ar")) return "ar";
-  if (normalized.startsWith("vi")) return "vi";
   return "en";
 }
 
@@ -729,22 +687,7 @@ async function servePopularJson(
   const result = await readStaticR2Json(c, key);
   if (!result.ok) return result.response;
   const payload = result.data as PopularBlobPayload;
-  let localized = localizePopularPayload(payload, locale);
-  const selected = languagePreference(c.req.query("metadataLanguage"))?.toLowerCase();
-  // Reuse published translations for common text-only switches; never re-scrape the snapshot.
-  const savedLocale = selected === "zh-cn" || selected === "zh" || selected === "zh-hans" ? "zh"
-    : selected?.startsWith("en") && payload.data?.every(item => item.translations?.en) ? "en"
-    : selected?.startsWith("ar") && payload.data?.every(item => item.translations?.ar) ? "ar" : undefined;
-  if (savedLocale && !c.req.query("posterLanguage") && !c.req.query("logoLanguage")) {
-    const translated = localizePopularPayload(payload, savedLocale);
-    localized.data = localized.data?.map((item, index) => ({ ...item,
-      title: translated.data?.[index]?.title || item.title,
-      overview: translated.data?.[index]?.overview ?? item.overview,
-    }));
-  } else {
-    localized = await localizeMediaPayload(localized, c);
-  }
-  return c.json(localized, 200, {
+  return c.json(localizePopularPayload(payload, locale), 200, {
     "Cache-Control": STATIC_JSON_CACHE_CONTROL,
   });
 }
