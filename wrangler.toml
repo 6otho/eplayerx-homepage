@@ -23,7 +23,7 @@ mode = "smart"
 [observability]
 enabled = true
 
-# 👇 【新增】环境变量配置（用于解决之前的 API 密码报错）
+# 👇 【新增】环境变量配置（用于解决之前的 API 密码报错问题）
 [vars]
 
 BLOCKS_ADMIN_PASSWORD = "080808"
