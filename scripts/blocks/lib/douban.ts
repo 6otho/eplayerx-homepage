@@ -72,6 +72,30 @@ interface CollectionResponse {
 	subject_collection_items?: DoubanRowBase[];
 }
 
+/** The submitted explore/tv pages use recent_hot, with the default first 20. */
+export async function fetchRecentHotItems(
+	kind: "movie" | "tv",
+): Promise<PublishItem[]> {
+	const params = new URLSearchParams({
+		start: "0",
+		limit: "20",
+		category: kind === "movie" ? "热门" : "tv",
+		type: kind === "movie" ? "全部" : "tv",
+	});
+	const res = await fetch(
+		`${REXXAR_BASE}/subject/recent_hot/${kind}?${params}`,
+		{
+			headers: HEADERS,
+		},
+	);
+	if (!res.ok) throw new Error(`Douban recent_hot error: ${res.status}`);
+	const data = (await res.json()) as { items?: DoubanRowBase[] };
+	return (data.items ?? [])
+		.filter((row) => row.type === kind)
+		.map(toPublishItem)
+		.filter((item): item is PublishItem => item !== null);
+}
+
 /** Items of a subject collection (e.g. movie_top250), in rank order. */
 export async function fetchSubjectCollectionItems(
 	collectionId: string,

@@ -33,6 +33,8 @@ export interface DiscoverFilter {
 	voteCountGte?: number;
 	voteAverageGte?: number;
 	withOriginalLanguage?: string;
+	withOriginCountry?: string;
+	primaryReleaseDateGte?: string;
 	firstAirDateGte?: string;
 	firstAirDateLte?: string;
 	/** US-style certs such as `TV-PG|TV-14|TV-MA`. */
@@ -78,6 +80,8 @@ export async function fetchTmdbDiscoverItems(
 			"vote_count.gte": filter.voteCountGte,
 			"vote_average.gte": filter.voteAverageGte,
 			with_original_language: filter.withOriginalLanguage,
+			with_origin_country: filter.withOriginCountry,
+			"primary_release_date.gte": filter.primaryReleaseDateGte,
 			"first_air_date.gte": filter.firstAirDateGte,
 			"first_air_date.lte": filter.firstAirDateLte,
 			certification_country: filter.certificationCountry,
