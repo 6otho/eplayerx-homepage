@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 # Keep the default *.workers.dev address alive.
 workers_dev = true
 
-# 👇 【你的专属域名配置，已完美替换为 epx 前缀】
+# 👇 【专属域名配置，已完美替换为 epx 前缀】
 routes = [
 	# 拦截所有子域名 (完美覆盖 epx, tmdb, 以及未来你随便乱造的任何前缀)
 	{ pattern = "*.ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
