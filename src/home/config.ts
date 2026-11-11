@@ -202,6 +202,20 @@ function resolveTitle(titleKey: string, language: string): string {
 	return trans[resolveLocale(language)] || trans["zh"] || trans["en"] || titleKey;
 }
 
+const WEEKDAY_LABELS: Record<Locale, string[]> = {
+	en: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+	zh: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+	"zh-Hant": ["週一", "週二", "週三", "週四", "週五", "週六", "週日"],
+	ja: ["月曜", "火曜", "水曜", "木曜", "金曜", "土曜", "日曜"],
+	es: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
+	ar: ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"],
+};
+
+function resolveWeekdayLabel(weekday: number, language: string): string {
+	const labels = WEEKDAY_LABELS[resolveLocale(language)] || WEEKDAY_LABELS.zh;
+	return labels[weekday - 1] || "";
+}
+
 function createTmdbListRoute(title: string, params: TmdbListRouteParams): TmdbListRoute {
 	return { type: "tmdb-list", title, params };
 }
@@ -259,16 +273,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 5. 国产追剧周更表（CollectionBlock，外层原生支持 style: "image-landscape"）
 		{
 			id: "weekly_drama_collection",
-			title: "国产追剧周更表",
+			title: resolveTitle("home.weekly_drama", language),
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
 				id: `weekly_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				label: resolveWeekdayLabel(d, language),
 				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
@@ -277,16 +291,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 6. 国漫追番周历表
 		{
 			id: "weekly_guoman_collection",
-			title: "国漫追番周历表",
+			title: resolveTitle("home.weekly_guoman", language),
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
 				id: `weekly_guoman_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				label: resolveWeekdayLabel(d, language),
 				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
@@ -295,16 +309,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 7. 动漫新番周更表
 		{
 			id: "weekly_anime_collection",
-			title: "动漫新番周更表",
+			title: resolveTitle("home.weekly_anime", language),
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
 				id: `weekly_anime_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				label: resolveWeekdayLabel(d, language),
 				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
@@ -453,16 +467,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 22. 韩剧追剧周更表
 		{
 			id: "weekly_korean_drama_collection",
-			title: "韩剧追剧周更表",
+			title: resolveTitle("home.weekly_korean_drama", language),
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
 				id: `weekly_korean_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				label: resolveWeekdayLabel(d, language),
 				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
@@ -471,16 +485,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 23. 日剧追剧周更表
 		{
 			id: "weekly_japanese_drama_collection",
-			title: "日剧追剧周更表",
+			title: resolveTitle("home.weekly_japanese_drama", language),
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
 				id: `weekly_japanese_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				label: resolveWeekdayLabel(d, language),
 				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
@@ -489,16 +503,16 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 		// 24. 东南亚剧周更表
 		{
 			id: "weekly_sea_drama_collection",
-			title: "东南亚剧周更表",
+			title: resolveTitle("home.weekly_sea_drama", language),
 			mediaType: "tv",
 			preset: COLLECTION_PRESET,
 			style: "image-landscape",
 			groupMode: "weekday",
 			children: [1, 2, 3, 4, 5, 6, 7].map(d => ({
 				id: `weekly_sea_drama_collection-${d}`,
-				label: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				label: resolveWeekdayLabel(d, language),
 				weekday: d,
-				title: `周${["一", "二", "三", "四", "五", "六", "日"][d - 1]}`,
+				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
 				source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
