@@ -200,41 +200,44 @@ async function main(): Promise<void> {
 					if (enriched.tmdbData?.vote_average && !it.vote_average) it.vote_average = enriched.tmdbData.vote_average;
 				}
 
-				const ratings = await fetchItemRatings(tmdbId as number, mt as "movie" | "tv");
-				const prev = (it.ratings || {}) as Record<string, number>;
-				const merged: Record<string, number> = { ...prev };
-				for (const [k, v] of Object.entries(ratings)) {
-					if (typeof v === "number" && Number.isFinite(v) && v > 0) merged[k] = v;
-				}
-				// 别名：tomatoes / letterboxd 与 worker 端保持兼容
-				if (merged.tomatoes && !merged.rotten_tomatoes) merged.rotten_tomatoes = merged.tomatoes;
-
-				const before = missingSources(prev).length;
-				const after = missingSources(merged).length;
-				// ⚠️ 只写 ratings 字段。绝不触碰 logo / poster / thumb / pinned / 排序，
-				//    这些由 Cloudflare 面板（人工调整）负责，两套系统互不干扰。
-				it.ratings = merged;
-				if (after < before) {
-					filled++;
-					delete it.ratings_missing;
-					changed = true;
+				if (quotaHit) {
+					// MDBList 额度已用完：图片（走 TMDB）照常补，只跳过评分
+					// 这样即使额度耗尽，Logo / 无字海报依然能全部抓完
 				} else {
-					it.ratings_missing = (it.ratings_missing || 0) + 1;
-					changed = true;
+					try {
+						const ratings = await fetchItemRatings(tmdbId as number, mt as "movie" | "tv");
+						const prev = (it.ratings || {}) as Record<string, number>;
+						const merged: Record<string, number> = { ...prev };
+						for (const [k, v] of Object.entries(ratings)) {
+							if (typeof v === "number" && Number.isFinite(v) && v > 0) merged[k] = v;
+						}
+						// 别名：tomatoes 与 worker 端保持兼容
+						if (merged.tomatoes && !merged.rotten_tomatoes) merged.rotten_tomatoes = merged.tomatoes;
+
+						const before = missingSources(prev).length;
+						const after = missingSources(merged).length;
+						it.ratings = merged;
+						if (after < before) {
+							filled++;
+							delete it.ratings_missing;
+							changed = true;
+						} else {
+							it.ratings_missing = (it.ratings_missing || 0) + 1;
+							changed = true;
+						}
+						if (isComplete(merged)) delete it.ratings_missing;
+					} catch (error) {
+						if (error instanceof MdblistRateLimitError) {
+							quotaHit = true;
+							console.warn("  ⚠️ MDBList 额度耗尽 → 继续补图片（TMDB 不占额度）");
+						} else {
+							console.warn(`  ⚠️ ${key} #${idx} (${it.name || it.title || tmdbId}) 评分失败: ${(error as Error)?.message || error}`);
+							it.ratings_missing = (it.ratings_missing || 0) + 1;
+							failed++;
+							changed = true;
+						}
+					}
 				}
-				if (isComplete(merged)) delete it.ratings_missing;
-			} catch (error) {
-				if (error instanceof MdblistRateLimitError) {
-					quotaHit = true;
-					console.warn("  ⚠️ MDBList 额度耗尽，保存进度后退出");
-					break;
-				}
-				// 打印真实原因，便于排查（原先静默吞掉导致"只补了2处"无从判断）
-				console.warn(`  ⚠️ ${key} #${idx} (${it.name || it.title || tmdbId}) 失败: ${(error as Error)?.message || error}`);
-				it.ratings_missing = (it.ratings_missing || 0) + 1;
-				failed++;
-				changed = true;
-			}
 			await sleep(120);
 		}
 
@@ -246,9 +249,9 @@ async function main(): Promise<void> {
 		}
 		grandFilled += filled;
 		grandFailed += failed;
+		// ⚠️ 额度耗尽后不再提前退出：图片（TMDB）继续补完，只有评分停下
 		if (quotaHit) {
-			console.warn("\n⚠️ 今日 MDBList 额度已用完，明天会自动继续（进度已保存）");
-			break;
+			console.warn("  ℹ️ 本文件评分因额度耗尽跳过，图片已尽力补全");
 		}
 	}
 
