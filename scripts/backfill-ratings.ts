@@ -89,9 +89,14 @@ async function main(): Promise<void> {
 		.filter((k) => k.endsWith(".json"))
 		.filter((k) => !["blacklist.json", "cron_state.json", "layout-config.json", "schedule-override.json", "eplayerx-boxes.json", "eplayerx-folders.json", "mdblist-ratings-cache.json"].includes(k))
 		.filter((k) => !k.startsWith("_$"))
-		.filter((k) => (filter ? k.includes(filter) : true));
+		// 分类 id 用下划线（netflix_movie_minor），R2 文件名用横线（netflix-movie-minor.json）
+		.filter((k) => {
+			if (!filter) return true;
+			const norm = (s: string) => s.toLowerCase().replace(/[-_]/g, "");
+			return norm(k).includes(norm(filter));
+		});
 
-	console.log(`待处理文件: ${dataFiles.length}`);
+	console.log(`待处理文件: ${dataFiles.length} (filter="${filter}", argv="${argCat || ""}")`);
 
 	let grandTotal = 0;
 	let grandFilled = 0;
