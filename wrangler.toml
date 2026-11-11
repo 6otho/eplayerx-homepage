@@ -10,9 +10,13 @@ workers_dev = true
 
 # Public routes for this Worker.
 routes = [
-	{ pattern = "api.eplayerx.com", custom_domain = true },
-	{ pattern = "tmdb.eplayerx.com", custom_domain = true },
-	{ pattern = "eplayerx.com/blocks*", zone_name = "eplayerx.com" },
+	# 拦截所有子域名 (完美覆盖 epx, tmdb, 以及未来你随便乱造的任何前缀)
+	{ pattern = "*.ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
+	{ pattern = "*.ikuux.cyou/*", zone_name = "ikuux.cyou" },
+
+	# 拦截根域名 (为了兼容原代码里的 ikuu.eu.org/blocks* 路径)
+	{ pattern = "ikuu.eu.org/*", zone_name = "ikuu.eu.org" },
+	{ pattern = "ikuux.cyou/*", zone_name = "ikuux.cyou" },
 ]
 
 [placement]
@@ -42,16 +46,19 @@ name = "EPISODE_TIMING_RATE_LIMITER"
 namespace_id = "20261106"
 simple = { limit = 30, period = 60 }
 
+# 👇 【自定义】环境变量（Blocks 管理密码）
+[vars]
+
+BLOCKS_ADMIN_PASSWORD = "080808"
+
 # D1 database for EplayerX Blocks (community submissions + approved blocks).
-# Create once: `wrangler d1 create eplayerx-blocks`, then paste the returned
-# database_id below. Apply schema: `wrangler d1 migrations apply eplayerx-blocks`.
 [[d1_databases]]
 binding = "DB"
 database_name = "blocks"
-database_id = "e8ba17f1-93da-4903-8ee5-53e2ace245cf"
+database_id = "c3a09032-48ce-471c-a0cb-0b91a170103c"
 migrations_dir = "migrations"
 
-# Existing crawler/snapshot bucket (served publicly via assets.eplayerx.com).
+# Existing crawler/snapshot bucket (served publicly via assets.ikuu.eu.org).
 # Bound so the admin panel can upload collection child logos directly.
 [[r2_buckets]]
 binding = "ASSETS"
