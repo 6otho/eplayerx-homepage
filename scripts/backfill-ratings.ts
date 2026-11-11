@@ -18,6 +18,7 @@ import {
 	MdblistRateLimitError,
 	parseMdblistApiKeys,
 } from "../src/ratings/mdblist.js";
+import { fetchDetailsWithEnrichment } from "../src/crawler/tmdb-enrich.js";
 
 const REQUIRED = ["tmdb", "imdb", "trakt", "letterboxd"] as const;
 const MAX_ITEM_RETRIES = 2;
@@ -116,10 +117,17 @@ async function main(): Promise<void> {
 		const pending: number[] = [];
 		items.forEach((it, i) => {
 			const r = (it.ratings || {}) as Record<string, number>;
-			if (isComplete(r)) return;
-			// 前 20 条强制补；之后最多重试 2 次
+			const needRating = !isComplete(r);
+			// 缺图判定（手动指定的不算缺）
+			const hasLogo = !!it.logo && !String(it.logo).includes("text_logo.svg");
+			const needLogo = !hasLogo && it.logo_source !== "manual";
+			const needClean = !it.noLogoPoster && it.no_logo_poster_source !== "manual";
+			const needAsset = needLogo || needClean;
+
+			if (!needRating && !needAsset) return;
+			// 前 20 条强制；之后评分最多重试 2 次，图片缺就补
 			if (i < 20) pending.push(i);
-			else if ((it.ratings_missing || 0) < MAX_ITEM_RETRIES) pending.push(i);
+			else if (needAsset || (it.ratings_missing || 0) < MAX_ITEM_RETRIES) pending.push(i);
 		});
 
 		if (pending.length === 0) {
@@ -132,6 +140,7 @@ async function main(): Promise<void> {
 
 		let changed = false;
 		let filled = 0;
+		let assetFilled = 0;
 		let failed = 0;
 		let quotaHit = false;
 
@@ -142,6 +151,55 @@ async function main(): Promise<void> {
 			const mt = String(it.media_type || "tv").toLowerCase().includes("movie") ? "movie" : "tv";
 
 			try {
+				// 一次 TMDB 请求拿到：详情 + IMDb ID + Logo + 无字海报 + 剧照
+				const lang = String(it.original_language || "").toLowerCase().startsWith("zh") ? "zh-CN" : "en-US";
+				const enriched = await fetchDetailsWithEnrichment(
+					tmdbId as number,
+					mt as "movie" | "tv",
+					lang,
+					undefined,
+					String(it.original_language || ""),
+				);
+
+				if (enriched) {
+					const meta = enriched.imageMeta;
+					const abs = (p?: string | null) =>
+						!p ? null : p.startsWith("http") ? p : `https://image.tmdb.org/t/p/original${p}`;
+
+					// 🖼️ Logo：仅在没手动指定时写入
+					if (meta.logo && it.logo_source !== "manual") {
+						const v = abs(meta.logo);
+						if (v && it.logo !== v) {
+							it.logo = v;
+							it.logo_source = "auto";
+							changed = true;
+							assetFilled++;
+						}
+					}
+					// 🎴 无字竖图：仅在没手动指定时写入
+					if (meta.noLogoPoster && it.no_logo_poster_source !== "manual") {
+						const v = abs(meta.noLogoPoster);
+						if (v && it.noLogoPoster !== v) {
+							it.noLogoPoster = v;
+							it.no_logo_poster_source = "auto";
+							changed = true;
+							assetFilled++;
+						}
+					}
+					// 🎬 横版剧照
+					if (meta.thumb && it.thumb_source !== "manual") {
+						const v = abs(meta.thumb);
+						if (v && it.thumb !== v) {
+							it.thumb = v;
+							it.thumb_source = "auto";
+							changed = true;
+						}
+					}
+					// imdbId 回填（供评分查询用）
+					if (enriched.externalIds?.imdbId && !it.imdbId) it.imdbId = enriched.externalIds.imdbId;
+					if (enriched.tmdbData?.vote_average && !it.vote_average) it.vote_average = enriched.tmdbData.vote_average;
+				}
+
 				const ratings = await fetchItemRatings(tmdbId as number, mt as "movie" | "tv");
 				const prev = (it.ratings || {}) as Record<string, number>;
 				const merged: Record<string, number> = { ...prev };
@@ -182,7 +240,7 @@ async function main(): Promise<void> {
 			json.count = items.length;
 			json.lastUpdated = new Date().toISOString();
 			await putRawJson(key, json);
-			console.log(`  💾 已写入: 补全 ${filled} 条，失败 ${failed} 条`);
+			console.log(`  💾 已写入: 评分 ${filled} 条 | 图片 ${assetFilled} 处 | 失败 ${failed} 条`);
 		}
 		grandFilled += filled;
 		grandFailed += failed;
