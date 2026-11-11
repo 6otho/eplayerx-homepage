@@ -1,0 +1,63 @@
+name: Backfill ratings & assets
+
+# 全量补全 评分 / Logo / 无字竖图
+# 相比 Cloudflare Worker：无 48 次子请求限制，可以跑 6 小时，覆盖所有分类
+on:
+  schedule:
+    # 每天 UTC 19:00（北京 03:00），避开爬虫(02:17)和 blocks(03:23)
+    - cron: "0 19 * * *"
+  workflow_dispatch:
+    inputs:
+      category:
+        description: "只跑某个分类（留空=全部，例如 netflix_tv_minor）"
+        required: false
+        default: ""
+      force:
+        description: "强制重试已放弃的条目（1=是）"
+        required: false
+        default: ""
+
+concurrency:
+  group: backfill-ratings
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
+      MDBLIST_API_KEY: ${{ secrets.MDBLIST_API_KEY }}
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+      R2_CUSTOM_DOMAIN: ${{ vars.R2_CUSTOM_DOMAIN }}
+      CATEGORY_FILTER: ${{ github.event.inputs.category }}
+      FORCE_RETRY: ${{ github.event.inputs.force }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Bun cache key
+        id: bun-cache-key
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-cache-${{ runner.os }}-${{ steps.bun-cache-key.outputs.date }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-cache-${{ runner.os }}-
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --no-progress
+
+      - name: Backfill ratings
+        run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category }}
