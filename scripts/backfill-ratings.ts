@@ -244,6 +244,11 @@ async function main(): Promise<void> {
 						}
 					}
 				}
+			} catch (error) {
+				// 外层：TMDB 图片获取失败
+				console.warn(`  ⚠️ ${key} #${idx} (${it.name || it.title || tmdbId}) 图片失败: ${(error as Error)?.message || error}`);
+				failed++;
+			}
 			await sleep(120);
 		}
 
