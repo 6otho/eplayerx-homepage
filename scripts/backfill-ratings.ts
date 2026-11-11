@@ -78,7 +78,13 @@ async function main(): Promise<void> {
 	}
 
 	// 列出所有 JSON 数据文件
+	console.log(`R2 bucket: ${process.env.R2_BUCKET_NAME || "(未设置)"}, account: ${process.env.R2_ACCOUNT_ID ? "已设置" : "(未设置)"}`);
 	const allKeys = await listR2Keys("");
+	console.log(`R2 文件总数: ${allKeys.length}`);
+	if (allKeys.length === 0) {
+		console.error("❌ R2 未列出任何文件，检查 R2_* secrets 是否正确");
+		process.exit(1);
+	}
 	const dataFiles = allKeys
 		.filter((k) => k.endsWith(".json"))
 		.filter((k) => !["blacklist.json", "cron_state.json", "layout-config.json", "schedule-override.json", "eplayerx-boxes.json", "eplayerx-folders.json", "mdblist-ratings-cache.json"].includes(k))
