@@ -153,6 +153,8 @@ async function main(): Promise<void> {
 
 				const before = missingSources(prev).length;
 				const after = missingSources(merged).length;
+				// ⚠️ 只写 ratings 字段。绝不触碰 logo / poster / thumb / pinned / 排序，
+				//    这些由 Cloudflare 面板（人工调整）负责，两套系统互不干扰。
 				it.ratings = merged;
 				if (after < before) {
 					filled++;
