@@ -161,8 +161,14 @@ async function main(): Promise<void> {
 					String(it.original_language || ""),
 				);
 
+				if (!enriched) {
+					console.warn(`  ⚠️ ${it.name || it.title} (${tmdbId}) TMDB 详情返回 null`);
+				}
 				if (enriched) {
 					const meta = enriched.imageMeta;
+					if (!meta.logo && !meta.noLogoPoster) {
+						console.warn(`  ⚠️ ${it.name || it.title} (${tmdbId}) 无 logo/无字海报: logo=${meta.logo} poster=${meta.noLogoPoster}`);
+					}
 					const abs = (p?: string | null) =>
 						!p ? null : p.startsWith("http") ? p : `https://image.tmdb.org/t/p/original${p}`;
 
