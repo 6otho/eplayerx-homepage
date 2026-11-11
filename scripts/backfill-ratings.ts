@@ -229,6 +229,8 @@ async function main(): Promise<void> {
 					console.warn("  ⚠️ MDBList 额度耗尽，保存进度后退出");
 					break;
 				}
+				// 打印真实原因，便于排查（原先静默吞掉导致"只补了2处"无从判断）
+				console.warn(`  ⚠️ ${key} #${idx} (${it.name || it.title || tmdbId}) 失败: ${(error as Error)?.message || error}`);
 				it.ratings_missing = (it.ratings_missing || 0) + 1;
 				failed++;
 				changed = true;
