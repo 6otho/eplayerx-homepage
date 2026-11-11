@@ -41,11 +41,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      # Bun 官网/Release CDN 偶发 504（2026-11-08 就因此整次采集失败），
+      # 这里固定版本 + 加缓存，并对下载失败自动重试。
+      - name: Set up Bun cache key
+        id: bun-cache-key
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Bun
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-cache-${{ runner.os }}-${{ steps.bun-cache-key.outputs.date }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-cache-${{ runner.os }}-
+
       - name: Setup Bun
+        id: setup-bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+        continue-on-error: true
+
+      - name: Setup Bun (retry)
+        id: setup-bun-retry
+        if: steps.setup-bun.outcome == 'failure'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+        continue-on-error: true
+
+      - name: Setup Bun (final retry)
+        if: steps.setup-bun.outcome == 'failure' && steps.setup-bun-retry.outcome == 'failure'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun install --frozen-lockfile --no-progress
 
       - name: Run block scripts
         env:
