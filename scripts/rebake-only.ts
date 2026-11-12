@@ -107,7 +107,11 @@ async function main(): Promise<void> {
 				changed = true;
 				itemsUpdated++;
 			}
-			// 🔑 客户端按 crawledAt 判断条目是否更新
+			// 🔑 vote_average 与 ratings.tmdb 保持同步（客户端显示 + 刷新信号）
+			if (c && merged.tmdb && Number(it.vote_average || 0) !== merged.tmdb) {
+				(it as Record<string, unknown>).vote_average = merged.tmdb;
+				changed = true;
+			}
 			if (c) {
 				(it as Record<string, unknown>).crawledAt = new Date().toISOString();
 				changed = true;

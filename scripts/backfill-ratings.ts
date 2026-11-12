@@ -208,16 +208,16 @@ async function main(): Promise<void> {
 				changed = true;
 				itemsUpdated++;
 			}
-			// 🔑 客户端按 crawledAt 判断条目是否更新：
-			//    只要本轮处理过（有缓存命中），就刷新时间戳，强制客户端重新渲染
+			// 🔑 客户端同步 vote_average 与 ratings.tmdb（实测：这既是显示字段也是刷新信号）
+			//    之前提取后客户端能显示，就是因为 vote_average 被更新了
+			if (c && merged.tmdb && Number(it.vote_average || 0) !== merged.tmdb) {
+				(it as Record<string, unknown>).vote_average = merged.tmdb;
+				changed = true;
+			}
+			// crawledAt 同步刷新（辅助信号）
 			if (c) {
-				const prev = String((it as Record<string, unknown>).crawledAt || "");
-				const next = new Date().toISOString();
-				// 至少间隔 1 分钟才更新，避免无意义的频繁写入
-				if (!prev || Math.abs(Date.now() - Date.parse(prev)) > 60 * 1000) {
-					(it as Record<string, unknown>).crawledAt = next;
-					changed = true;
-				}
+				(it as Record<string, unknown>).crawledAt = new Date().toISOString();
+				changed = true;
 			}
 		}
 		if (changed) {
