@@ -97,8 +97,13 @@ async function main(): Promise<void> {
 	console.log(`文件: ${files.length} | 待重查条目: ${targets.size}${topOnly ? " (仅前20)" : " (全量)"}`);
 	if (targets.size === 0) { console.log("无条目"); return; }
 
-	// 2) 强制重查每一条
-	const cache: Cache = {};
+	// 2) 强制重查每一条（⚠️ 必须基于已有缓存合并，不能清空，否则额度中断会丢数据）
+	let cache: Cache = {};
+	try {
+		const raw = (await getRawJson(CACHE_KEY)) as Cache;
+		if (raw && typeof raw === "object" && !Array.isArray(raw)) cache = raw;
+	} catch { cache = {}; }
+	console.log(`已有缓存: ${Object.keys(cache).length} 条`);
 	let done = 0, got = 0, empty = 0, failed = 0, quotaHit = false;
 	const list = [...targets.entries()];
 
