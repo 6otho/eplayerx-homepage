@@ -181,9 +181,26 @@ async function main(): Promise<void> {
 				if (c.rogerebert) fill("rogerebert", bake("rogerebert", c.rogerebert));
 			}
 
-			// 顶层字段同步（只补缺失，不覆盖已有）
-			if (!it.trakt_rating && merged.trakt) { it.trakt_rating = merged.trakt; it.traktRating = merged.trakt; }
-			if (!it.imdb_rating && merged.imdb) { it.imdb_rating = merged.imdb; it.imdbRating = merged.imdb; }
+			// 🔑 顶层冗余字段：客户端读的是这些，不是 ratings 里的
+			//    （手动提取会写全套，GitHub Actions 之前漏了，导致客户端显示不出来）
+			const setIfMissing = (k: string, v: number | undefined) => {
+				if (v === undefined) return;
+				if (it[k] === undefined || it[k] === null) (it as Record<string, unknown>)[k] = v;
+			};
+			if (merged.trakt) { setIfMissing("trakt_rating", merged.trakt); setIfMissing("traktRating", merged.trakt); }
+			if (merged.imdb) { setIfMissing("imdb_rating", merged.imdb); setIfMissing("imdbRating", merged.imdb); }
+			if (merged.letterboxd) {
+				setIfMissing("letterboxd_rating", merged.letterboxd);
+				setIfMissing("letterboxdRating", merged.letterboxd);
+				setIfMissing("letterboxd", merged.letterboxd);
+			}
+			if (merged.rotten_tomatoes) {
+				const rt = merged.rotten_tomatoes;
+				for (const k of ["rotten_tomatoes", "rottenTomatoes", "tomato_rating", "tomatoRating", "tomatoMeter", "tomatoes", "rt"]) {
+					setIfMissing(k, rt);
+				}
+			}
+			if (merged.metacritic) setIfMissing("metacritic", merged.metacritic);
 
 			// 只有真正变化才写
 			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(merged)) {
