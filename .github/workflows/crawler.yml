@@ -5,6 +5,11 @@ on:
     # Off-peak UTC (~10:17 CST); avoid top-of-hour + US afternoon runner contention
     - cron: "17 2 * * *"
   workflow_dispatch:
+    inputs:
+      crawl_only:
+        description: "只跑指定爬虫（如 douban_variety），留空跑全部"
+        required: false
+        default: ""
 
 concurrency:
   group: crawler-run
@@ -15,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      CRAWL_ONLY: ${{ github.event.inputs.crawl_only }}
       TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
       PUBLIC_TMDB_API_BASE_URL: ${{ vars.PUBLIC_TMDB_API_BASE_URL }}
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}

@@ -423,17 +423,31 @@ export async function crawlBangumiAnimation() {
 /**
  * Run all crawlers
  */
-async function runAllCrawlers() {
-	console.log("🚀 Starting crawlers...\n");
+const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
+	douban_movies: crawlDoubanMovies,
+	douban_tv: crawlDoubanTVSeries,
+	douban_korean_tv: crawlDoubanKoreanTVSeries,
+	douban_japanese_tv: crawlDoubanJapaneseTVSeries,
+	hami_taiwanese_tv: crawlHamiTaiwaneseTVSeries,
+	douban_animation: crawlDoubanAnimation,
+	douban_variety: crawlDoubanHotVarietyShows,
+	bangumi_animation: crawlBangumiAnimation,
+};
 
-	await crawlDoubanMovies();
-	await crawlDoubanTVSeries();
-	await crawlDoubanKoreanTVSeries();
-	await crawlDoubanJapaneseTVSeries();
-	await crawlHamiTaiwaneseTVSeries();
-	await crawlDoubanAnimation();
-	await crawlDoubanHotVarietyShows();
-	await crawlBangumiAnimation();
+async function runAllCrawlers() {
+	// CRAWL_ONLY=xxx,yyy 时只跑指定爬虫（用于单分类验证）
+	const only = (process.env.CRAWL_ONLY || "").split(",").map((x) => x.trim()).filter(Boolean);
+	const names = only.length ? only : Object.keys(ALL_CRAWLERS);
+	console.log(`🚀 Starting crawlers: ${names.join(", ")}\n`);
+
+	for (const name of names) {
+		const fn = ALL_CRAWLERS[name];
+		if (!fn) {
+			console.warn(`⚠️ 未知爬虫: ${name}`);
+			continue;
+		}
+		await fn();
+	}
 
 	console.log("✅ Done!");
 }
