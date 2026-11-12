@@ -38,7 +38,7 @@ function bake(src: string, v: number): number | undefined {
 		case "trakt":
 		case "tmdb":
 		case "metacritic":
-			return Number((n / 10).toFixed(1));
+			return Math.round(n);          // 0-100 原样（上游同样不转换）
 		case "tomatoes":
 		case "tomatoesAudience":
 			return Math.round(n);
