@@ -24,6 +24,10 @@ on:
         description: "只用现有缓存重刷数据文件，不查 API（1=是）"
         required: false
         default: ""
+      no_extract:
+        description: "跳过自动提取（1=跳过）"
+        required: false
+        default: ""
 
 concurrency:
   group: backfill-ratings
@@ -71,6 +75,16 @@ jobs:
       - name: Rebake from cache only (不消耗额度)
         if: github.event.inputs.rebake_only == '1'
         run: bun run scripts/rebake-only.ts
+
+      # 🎯 关键：只有走「提取」接口客户端才会更新（实测验证）
+      - name: Auto extract (触发客户端更新)
+        if: github.event.inputs.no_extract != '1'
+        env:
+          MOVIE_API_BASE: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+          TOP_N: "20"
+          CATEGORY_FILTER: ${{ github.event.inputs.category }}
+        run: bun run scripts/auto-extract.ts
 
       - name: Sync ratings (重查 MDBList + 写缓存 + 烘焙数据文件)
         if: github.event.inputs.rebake_only != '1'
