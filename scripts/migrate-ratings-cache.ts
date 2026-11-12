@@ -30,6 +30,27 @@ function toHundred(v: unknown): number | undefined {
 	return n <= 10 ? Math.round(n * 10) : Math.round(n);
 }
 
+/** 各源独立处理，避免 letterboxd(0-5) / imdb(0-10) 被误放大 */
+function convertScale(src: string, v: unknown): number | undefined {
+	const n = Number(v);
+	if (!Number.isFinite(n) || n <= 0) return undefined;
+	switch (src) {
+		case "imdb":
+			return Number(n.toFixed(1));          // 0-10 原样
+		case "letterboxd":
+			return Number(n.toFixed(1));          // 0-5 原样
+		case "trakt":
+		case "tmdb":
+		case "metacritic":
+			return n <= 10 ? Math.round(n * 10) : Math.round(n);  // 统一成 0-100
+		case "tomatoes":
+		case "rotten_tomatoes":
+			return Math.round(n <= 10 ? n * 10 : n);              // 0-100 整数
+		default:
+			return n;
+	}
+}
+
 async function main(): Promise<void> {
 	// 读现有缓存
 	let cache: Record<string, Record<string, number>> = {};
@@ -75,7 +96,7 @@ async function main(): Promise<void> {
 				metacritic: "metacritic",
 			};
 			for (const [src, dst] of Object.entries(map)) {
-				const v = toHundred(r[src]);
+				const v = convertScale(src, r[src]);
 				if (v !== undefined && !next[dst]) next[dst] = v;
 			}
 			if (Object.keys(next).length > Object.keys(cache[ck] || {}).length) {
