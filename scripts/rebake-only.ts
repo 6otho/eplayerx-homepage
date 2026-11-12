@@ -90,6 +90,7 @@ async function main(): Promise<void> {
 			if (c.metacritic) { const v = bake("metacritic", c.metacritic); if (v) out.metacritic = v; }
 			if (c.mal) { const v = bake("mal", c.mal); if (v) out.mal = v; }
 			if (c.rogerebert) { const v = bake("rogerebert", c.rogerebert); if (v) out.rogerebert = v; }
+			if (c.metacriticUser || c.metacriticuser) { const v = Number(Number(c.metacriticUser || c.metacriticuser).toFixed(1)); if (v>0) out.metacriticUser = v; }
 
 			// 🔒 文件里已有的来源，缓存没有的保留（不删用户手动提取的评分）
 			// 🔒 只增不减：文件里已有的来源【永不覆盖】，只补充缺失的

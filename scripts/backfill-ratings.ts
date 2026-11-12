@@ -177,6 +177,7 @@ async function main(): Promise<void> {
 				if (c.tomatoes) fill("rotten_tomatoes", bake("tomatoes", c.tomatoes));
 				if (c.tomatoesAudience) fill("tomatoesAudience", bake("tomatoesAudience", c.tomatoesAudience));
 				if (c.metacritic) fill("metacritic", bake("metacritic", c.metacritic));
+				if (c.metacriticUser || c.metacriticuser) fill("metacriticUser", Number(Number(c.metacriticUser || c.metacriticuser).toFixed(1)));
 				if (c.mal) fill("mal", bake("mal", c.mal));
 				if (c.rogerebert) fill("rogerebert", bake("rogerebert", c.rogerebert));
 			}
