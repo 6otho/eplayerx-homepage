@@ -5,6 +5,14 @@
  */
 
 import { tmdb } from "../tmdb/client.js";
+
+const TMDB_IMG_BASE = "https://image.tmdb.org/t/p/original";
+const absImg = (p: string | null | undefined): string | null => {
+	if (!p) return null;
+	if (p.startsWith("http")) return p;
+	return TMDB_IMG_BASE + (p.startsWith("/") ? p : "/" + p);
+};
+
 import {
   type DiscoverTVByLanguageItem,
   saveDiscoverTVByLanguage,
@@ -59,8 +67,8 @@ async function fetchTVByLanguage(
         name: tv.name || "",
         original_name: tv.original_name || "",
         overview: tv.overview || null,
-        poster_path: tv.poster_path || null,
-        backdrop_path: tv.backdrop_path || null,
+        poster_path: absImg(tv.poster_path),
+        backdrop_path: absImg(tv.backdrop_path),
         first_air_date: tv.first_air_date || null,
         vote_average: tv.vote_average || 0,
         vote_count: tv.vote_count || 0,

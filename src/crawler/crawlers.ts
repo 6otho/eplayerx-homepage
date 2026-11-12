@@ -30,6 +30,8 @@ import {
 	fetchDetailsWithEnrichment,
 	searchTMDB,
 	TMDB_TV_GENRE_ANIMATION,
+	TMDB_TV_GENRE_REALITY,
+	TMDB_TV_GENRE_TALK,
 	type TmdbSearchResult,
 } from "./tmdb-enrich.js";
 
@@ -50,6 +52,15 @@ function resolveAnimationTitle(title: string): string {
 	}
 	return title;
 }
+
+// 🔑 统一图片格式：TMDB 返回相对路径 /xxx.jpg，客户端会二次拼接导致裂图，
+//    这里统一转成完整 URL，与 movie-api 提取接口保持一致
+const TMDB_IMG_BASE = "https://image.tmdb.org/t/p/original";
+const absImg = (p: string | null | undefined): string | null => {
+	if (!p) return null;
+	if (p.startsWith("http")) return p;
+	return TMDB_IMG_BASE + (p.startsWith("/") ? p : "/" + p);
+};
 
 /**
  * Deduplicate content items by tmdbId, keeping the latest one
@@ -76,12 +87,12 @@ function translationFromEnrichment(
 		title,
 		overview: data.overview ?? null,
 		tagline: data.tagline?.trim() || null,
-		thumb: enriched.imageMeta.thumb,
-		logo: enriched.imageMeta.logo,
-		noLogoPoster: enriched.imageMeta.noLogoPoster,
-		poster_path: data.poster_path ?? null,
+		thumb: absImg(enriched.imageMeta.thumb),
+		logo: absImg(enriched.imageMeta.logo),
+		noLogoPoster: absImg(enriched.imageMeta.noLogoPoster),
+		poster_path: absImg(data.poster_path),
 		...(data.trailer ? { trailer: data.trailer } : {}),
-		backdrop_path: data.backdrop_path ?? null,
+		backdrop_path: absImg(data.backdrop_path),
 	};
 }
 
@@ -103,9 +114,9 @@ async function buildContentItem(
 	const data = enriched?.tmdbData ?? tmdbData;
 	const externalIds = enriched?.externalIds ?? { imdbId: null, tvdbId: null };
 	const imageMeta = enriched?.imageMeta ?? {
-		thumb: data.backdrop_path || data.poster_path || null,
+		thumb: absImg(data.backdrop_path || data.poster_path),
 		logo: null,
-		noLogoPoster: data.poster_path ?? null,
+		noLogoPoster: absImg(data.poster_path),
 	};
 
 	const translations: NonNullable<ContentItem["translations"]> = {};
@@ -142,17 +153,17 @@ async function buildContentItem(
 		vote_average: data.vote_average ?? null,
 		...(data.trailer ? { trailer: data.trailer } : {}),
 		...(ratings ? { ratings } : {}),
-		poster_path: data.poster_path,
-		backdrop_path: data.backdrop_path,
+		poster_path: absImg(data.poster_path) as string,
+		backdrop_path: absImg(data.backdrop_path),
 		genre_ids: data.genre_ids || [],
 		media_type: mediaType,
 		release_date: data.release_date || null,
 		first_air_date: data.first_air_date,
 		overview: data.overview,
 		tagline: data.tagline?.trim() || null,
-		thumb: imageMeta.thumb,
-		logo: imageMeta.logo,
-		noLogoPoster: imageMeta.noLogoPoster,
+		thumb: absImg(imageMeta.thumb),
+		logo: absImg(imageMeta.logo),
+		noLogoPoster: absImg(imageMeta.noLogoPoster),
 		...(Object.keys(translations).length > 0 ? { translations } : {}),
 		crawledAt: new Date().toISOString(),
 	};
@@ -333,7 +344,10 @@ export async function crawlDoubanHotVarietyShows() {
 	for (const item of items) {
 		console.log(`🔍 Searching: ${item.title}`);
 
-		const tmdbData = await searchTMDB(item.title, "tv");
+		// 🎯 只接受真人秀/脱口秀类型，避免错配成普通剧集
+		const tmdbData = await searchTMDB(item.title, "tv", {
+			requireAnyTvGenreIds: [TMDB_TV_GENRE_REALITY, TMDB_TV_GENRE_TALK],
+		});
 
 		if (tmdbData) {
 			const content = await buildContentItem(item.title, tmdbData, "tv");

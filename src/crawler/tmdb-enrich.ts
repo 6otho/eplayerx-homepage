@@ -9,6 +9,9 @@ import { type createTmdbClient, tmdb } from "../tmdb/client.js";
 
 /** TMDB TV genre id for Animation (see /3/genre/tv/list). */
 export const TMDB_TV_GENRE_ANIMATION = 16;
+/** 真人秀（Reality）与脱口秀（Talk Show）：综艺必须属于其中之一 */
+export const TMDB_TV_GENRE_REALITY = 10764;
+export const TMDB_TV_GENRE_TALK = 10767;
 
 /**
  * Defaults to the env-token client; pass a per-user client (createTmdbClient)
@@ -30,6 +33,8 @@ export interface SearchTmdbOptions {
 	 * TV search: use first result that includes all of these genre ids (e.g. Animation only).
 	 */
 	requireTvGenreIds?: number[];
+	/** 只要命中其中之一即可（综艺用：真人秀 或 脱口秀） */
+	requireAnyTvGenreIds?: number[];
 	/** Match at least one ISO 3166-1 origin country; missing country data is rejected. */
 	requireOriginCountries?: string[];
 	/**
@@ -347,6 +352,12 @@ export async function searchTMDB(
 			const need = options.requireTvGenreIds;
 			results = results.filter((r) =>
 				need.every((id) => r.genre_ids?.includes(id)),
+			);
+		}
+		if (type === "tv" && options.requireAnyTvGenreIds?.length) {
+			const any = options.requireAnyTvGenreIds;
+			results = results.filter((r) =>
+				any.some((id) => r.genre_ids?.includes(id)),
 			);
 		}
 

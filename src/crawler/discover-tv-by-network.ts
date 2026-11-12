@@ -4,6 +4,14 @@
  */
 
 import { tmdb } from "../tmdb/client.js";
+
+const TMDB_IMG_BASE = "https://image.tmdb.org/t/p/original";
+const absImg = (p: string | null | undefined): string | null => {
+	if (!p) return null;
+	if (p.startsWith("http")) return p;
+	return TMDB_IMG_BASE + (p.startsWith("/") ? p : "/" + p);
+};
+
 import {
   type DiscoverTVByNetworkItem,
   saveDiscoverTVByNetwork,
@@ -143,8 +151,8 @@ async function fetchTVByNetwork(
         name: tv.name || "",
         original_name: tv.original_name || "",
         overview: tv.overview || null,
-        poster_path: imageMeta.noLogoPoster,
-        backdrop_path: tv.backdrop_path || null,
+        poster_path: absImg(imageMeta.noLogoPoster),
+        backdrop_path: absImg(tv.backdrop_path),
         first_air_date: tv.first_air_date || null,
         vote_average: tv.vote_average || 0,
         vote_count: tv.vote_count || 0,
