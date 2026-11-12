@@ -3,7 +3,7 @@ name: Run crawler
 on:
   schedule:
     # Off-peak UTC (~10:17 CST); avoid top-of-hour + US afternoon runner contention
-    - cron: "17 2 * * *"
+    - cron: "10 9 * * *"
   workflow_dispatch:
     inputs:
       crawl_only:
