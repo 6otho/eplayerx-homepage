@@ -202,11 +202,22 @@ async function main(): Promise<void> {
 			}
 			if (merged.metacritic) setIfMissing("metacritic", merged.metacritic);
 
-			// 只有真正变化才写
+			// 评分内容变化 → 写回 + 刷新时间戳
 			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(merged)) {
 				it.ratings = merged;
 				changed = true;
 				itemsUpdated++;
+			}
+			// 🔑 客户端按 crawledAt 判断条目是否更新：
+			//    只要本轮处理过（有缓存命中），就刷新时间戳，强制客户端重新渲染
+			if (c) {
+				const prev = String((it as Record<string, unknown>).crawledAt || "");
+				const next = new Date().toISOString();
+				// 至少间隔 1 分钟才更新，避免无意义的频繁写入
+				if (!prev || Math.abs(Date.now() - Date.parse(prev)) > 60 * 1000) {
+					(it as Record<string, unknown>).crawledAt = next;
+					changed = true;
+				}
 			}
 		}
 		if (changed) {
