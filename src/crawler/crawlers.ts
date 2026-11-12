@@ -66,16 +66,31 @@ const absImg = (p: string | null | undefined): string | null => {
  * Deduplicate content items by tmdbId, keeping the latest one
  */
 function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
-	const map = new Map<number, ContentItem>();
-
+	const byTmdb = new Map<number, ContentItem>();
 	for (const item of items) {
-		const existing = map.get(item.tmdbId);
+		const existing = byTmdb.get(item.tmdbId);
 		if (!existing || item.crawledAt > existing.crawledAt) {
-			map.set(item.tmdbId, item);
+			byTmdb.set(item.tmdbId, item);
 		}
 	}
 
-	return Array.from(map.values());
+	// Second pass: TMDB sometimes has duplicate entries for the same show
+	// (same title/year, different origin_country). Merge them by title+year.
+	const norm = (v: string) => (v || "").toLowerCase().replace(/[\s\-_:,.　·、，。]/g, "");
+	const byTitle = new Map<string, ContentItem>();
+	const score = (x: ContentItem) =>
+		(x.poster_path ? 4 : 0) + (x.imdbId ? 2 : 0) + (x.vote_average ?? 0) / 10;
+
+	for (const item of byTmdb.values()) {
+		const year = (item.first_air_date || item.release_date || "").slice(0, 4);
+		const key = norm(item.title || "") + "|" + year;
+		const existing = byTitle.get(key);
+		if (!existing || score(item) > score(existing)) {
+			byTitle.set(key, item);
+		}
+	}
+
+	return Array.from(byTitle.values());
 }
 
 function translationFromEnrichment(
