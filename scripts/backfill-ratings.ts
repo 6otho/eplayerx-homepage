@@ -164,11 +164,9 @@ async function main(): Promise<void> {
 			// 🔒 核心原则：文件里已有的评分【永不覆盖】，缓存只用来补空白
 			//    原因：用户手动提取的结果（含全部 10 个评分源）比缓存更完整，
 			//          之前用缓存重建导致 metacritic / letterboxd 被反复砍掉
-			const merged: Record<string, number> = {};
-			for (const [k, v] of Object.entries(it.ratings || {})) {
-				if (typeof v === "number" && v > 0) merged[k] = v;
-			}
-			const fill = (k, v) => { if (v !== undefined && merged[k] === undefined) merged[k] = v; };
+			// ✅ 缓存优先：以 MDBList 为准，保证与上游完全一致
+			const merged: Record<string, number> = { ...(it.ratings || {}) };
+			const fill = (k, v) => { if (v !== undefined) merged[k] = v; };
 			if (c) {
 				if (c.tmdb) fill("tmdb", bake("tmdb", c.tmdb));
 				if (c.imdb) fill("imdb", bake("imdb", c.imdb));

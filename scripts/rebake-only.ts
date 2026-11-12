@@ -93,12 +93,9 @@ async function main(): Promise<void> {
 			if (c.metacriticUser || c.metacriticuser) { const v = Number(Number(c.metacriticUser || c.metacriticuser).toFixed(1)); if (v>0) out.metacriticUser = v; }
 
 			// 🔒 文件里已有的来源，缓存没有的保留（不删用户手动提取的评分）
-			// 🔒 只增不减：文件里已有的来源【永不覆盖】，只补充缺失的
-			//    原因：用户会手动提取（含烂番茄/Letterboxd/Metacritic），那些结果是权威的
-			const merged: Record<string, number> = { ...(it.ratings || {}) };
-			for (const [k, v] of Object.entries(out)) {
-				if (merged[k] === undefined && typeof v === "number" && v > 0) merged[k] = v;
-			}
+			// ✅ 缓存优先：以 MDBList 为准覆盖文件值，保证与上游完全一致
+			//    （手动提取本质上也是查 MDBList，只是时间点不同，无需保护）
+			const merged: Record<string, number> = { ...(it.ratings || {}), ...out };
 
 			if (it.trakt_rating) { merged.trakt = it.trakt_rating; }
 			else if (out.trakt) { it.trakt_rating = out.trakt; it.traktRating = out.trakt; }
