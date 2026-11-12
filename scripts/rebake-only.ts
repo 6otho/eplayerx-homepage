@@ -107,6 +107,11 @@ async function main(): Promise<void> {
 				changed = true;
 				itemsUpdated++;
 			}
+			// 🔑 客户端按 crawledAt 判断条目是否更新
+			if (c) {
+				(it as Record<string, unknown>).crawledAt = new Date().toISOString();
+				changed = true;
+			}
 		}
 		if (changed) {
 			json.count = items.length;
