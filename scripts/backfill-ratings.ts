@@ -116,9 +116,15 @@ async function main(): Promise<void> {
 			for (const [src, v] of Object.entries(r)) {
 				if (typeof v === "number" && Number.isFinite(v) && v > 0) clean[src] = v;
 			}
-			// MDBList 空值也要写入（清除历史残留）
-			cache[ck] = clean;
-			if (Object.keys(clean).length) got++; else empty++;
+			// ⛔ 拿到空值时不覆盖：保留已有缓存，避免查询失败把好数据抹掉
+			//    （之前 `cache[ck] = clean` 无条件覆盖，遇到额度/网络波动就会清空）
+			if (Object.keys(clean).length > 0) {
+				cache[ck] = { ...(cache[ck] || {}), ...clean };
+				got++;
+			} else {
+				if (!cache[ck]) cache[ck] = {};
+				empty++;
+			}
 		} catch (e) {
 			if (e instanceof MdblistRateLimitError) {
 				quotaHit = true;
@@ -166,8 +172,15 @@ async function main(): Promise<void> {
 			if (c.mal) { const v = bake("mal", c.mal); if (v) out.mal = v; }
 			if (c.rogerebert) { const v = bake("rogerebert", c.rogerebert); if (v) out.rogerebert = v; }
 
-			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(out)) {
-				it.ratings = out;
+			// 🔒 保护：文件里已有的来源，缓存没有的就保留（不删用户的评分）
+			const merged: Record<string, number> = { ...out };
+			for (const [k, v] of Object.entries(it.ratings || {})) {
+				if (merged[k] === undefined && typeof v === "number" && v > 0) merged[k] = v;
+			}
+
+			// 只有真正变化才写
+			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(merged)) {
+				it.ratings = merged;
 				changed = true;
 				itemsUpdated++;
 			}

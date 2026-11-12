@@ -76,16 +76,9 @@ async function main(): Promise<void> {
 			const c = cache[`${mt}:${tmdbId}`];
 
 			// 缓存没有 → 清空文件里的评分（避免保留污染值）
-			if (!c) {
-				if (it.ratings && Object.keys(it.ratings).length) {
-					it.ratings = {};
-					delete it.trakt_rating; delete it.traktRating;
-					delete it.imdb_rating; delete it.imdbRating;
-					delete it.tomatoes; delete it.rt;
-					changed = true; cleared++;
-				}
-				continue;
-			}
+			// ⛔ 缓存里没有 → 完全跳过，绝不改动文件里已有的评分
+			//    （手动提取的结果不经过缓存，之前这里清空导致用户成果被抹掉 3 次）
+			if (!c) continue;
 
 			const out: Record<string, number> = {};
 			if (c.tmdb) { const v = bake("tmdb", c.tmdb); if (v) out.tmdb = v; }
@@ -98,14 +91,19 @@ async function main(): Promise<void> {
 			if (c.mal) { const v = bake("mal", c.mal); if (v) out.mal = v; }
 			if (c.rogerebert) { const v = bake("rogerebert", c.rogerebert); if (v) out.rogerebert = v; }
 
-			// 同步修正顶层字段（避免 trakt_rating=8.1 这类污染残留）
-			if (out.trakt) { it.trakt_rating = out.trakt; it.traktRating = out.trakt; }
-			else { delete it.trakt_rating; delete it.traktRating; }
-			if (out.imdb) { it.imdb_rating = out.imdb; it.imdbRating = out.imdb; }
-			else { delete it.imdb_rating; delete it.imdbRating; }
+			// 🔒 文件里已有的来源，缓存没有的保留（不删用户手动提取的评分）
+			// 🔒 只增不减：文件里已有的来源【永不覆盖】，只补充缺失的
+			//    原因：用户会手动提取（含烂番茄/Letterboxd/Metacritic），那些结果是权威的
+			const merged: Record<string, number> = { ...(it.ratings || {}) };
+			for (const [k, v] of Object.entries(out)) {
+				if (merged[k] === undefined && typeof v === "number" && v > 0) merged[k] = v;
+			}
 
-			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(out)) {
-				it.ratings = out;
+			if (it.trakt_rating) { merged.trakt = it.trakt_rating; }
+			else if (out.trakt) { it.trakt_rating = out.trakt; it.traktRating = out.trakt; }
+
+			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(merged)) {
+				it.ratings = merged;
 				changed = true;
 				itemsUpdated++;
 			}
