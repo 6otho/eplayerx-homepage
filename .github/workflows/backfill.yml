@@ -20,6 +20,10 @@ on:
         description: "只补每个分类的前 20 条（1=是，其余交给每日任务）"
         required: false
         default: ""
+      rebake_only:
+        description: "只用现有缓存重刷数据文件，不查 API（1=是）"
+        required: false
+        default: ""
 
 concurrency:
   group: backfill-ratings
@@ -64,5 +68,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --no-progress
 
+      - name: Rebake from cache only (不消耗额度)
+        if: github.event.inputs.rebake_only == '1'
+        run: bun run scripts/rebake-only.ts
+
       - name: Sync ratings (重查 MDBList + 写缓存 + 烘焙数据文件)
+        if: github.event.inputs.rebake_only != '1'
         run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category }}
