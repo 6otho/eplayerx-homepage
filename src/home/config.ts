@@ -235,7 +235,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_tv?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-tv.json?sort=year", itemEnvelope: "data" }
 		},
 		// 2. 今日热门电影 [竖版海报]
 		{
@@ -246,7 +246,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_popular_movies?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-popular-movies.json?sort=year", itemEnvelope: "data" }
 		},
 		// 3. 今日热门番剧 [竖版海报]
 		{
@@ -257,7 +257,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/bangumi_airing?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/bangumi-airing.json?sort=year", itemEnvelope: "data" }
 		},
 		// 4. 时下热门国产剧 [大屏横版] [无排名]
 		{
@@ -268,7 +268,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: false,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/douban_tv_custom?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/douban-tv-custom.json?sort=year", itemEnvelope: "data" }
 		},
 		// 5. 国产追剧周更表（CollectionBlock，外层原生支持 style: "image-landscape"）
 		{
@@ -285,7 +285,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `https://movie-api.l3okuu.workers.dev/api/weekly_drama_collection-${d}`, itemEnvelope: "data" }
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		// 6. 国漫追番周历表
@@ -303,7 +303,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `https://movie-api.l3okuu.workers.dev/api/weekly_guoman_collection-${d}`, itemEnvelope: "data" }
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_guoman_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		// 7. 动漫新番周更表
@@ -321,7 +321,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `https://movie-api.l3okuu.workers.dev/api/weekly_anime_collection-${d}`, itemEnvelope: "data" }
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_anime_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		// 8. 实时热门电影 [竖版海报]
@@ -333,7 +333,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/douban_movies?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/douban-movies.json?sort=year", itemEnvelope: "data" }
 		},
 		// 9. 热门国产动漫 [竖版海报]
 		{
@@ -344,7 +344,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_cn?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-cn.json?sort=year", itemEnvelope: "data" }
 		},
 		// 10. 热门国产综艺 [竖版海报]
 		{
@@ -355,7 +355,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/variety_cn?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/variety-cn.json?sort=year", itemEnvelope: "data" }
 		},
 		// 11. 爆款韩国综艺 [竖版海报]
 		{
@@ -366,7 +366,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/variety_kr?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/variety-kr.json?sort=year", itemEnvelope: "data" }
 		},
 		// 12. 全球流媒体新热综艺 [竖版海报]
 		{
@@ -377,7 +377,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/variety_global?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/variety-global.json?sort=year", itemEnvelope: "data" }
 		},
 		// 13. Netflix 全球热播好剧 [竖版海报]
 		{
@@ -388,7 +388,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_netflix?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-netflix.json?sort=year", itemEnvelope: "data" }
 		},
 		// 14. HBO 高分神剧 [竖版海报]
 		{
@@ -399,7 +399,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_hbo?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-hbo.json?sort=year", itemEnvelope: "data" }
 		},
 		// 15. Apple TV+ 原创精品 [竖版海报]
 		{
@@ -410,7 +410,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_apple?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-apple.json?sort=year", itemEnvelope: "data" }
 		},
 		// 16. 时下热播欧美剧集 [竖版海报]
 		{
@@ -421,7 +421,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/trakt_shows?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/trakt-shows.json?sort=year", itemEnvelope: "data" }
 		},
 		// 17. 视效轰炸欧美大片 [竖版海报] [无排名]
 		{
@@ -432,7 +432,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: false,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/trakt_movies?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/trakt-movies.json?sort=year", itemEnvelope: "data" }
 		},
 		// 18. 热门韩剧安利 [竖版海报]
 		{
@@ -443,7 +443,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/douban_korean_tv?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/douban-korean-tv.json?sort=year", itemEnvelope: "data" }
 		},
 		{
 			id: "tmdb-discover-genres",
@@ -479,7 +479,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `https://movie-api.l3okuu.workers.dev/api/weekly_korean_drama_collection-${d}`, itemEnvelope: "data" }
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_korean_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		// 23. 日剧追剧周更表
@@ -497,7 +497,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `https://movie-api.l3okuu.workers.dev/api/weekly_japanese_drama_collection-${d}`, itemEnvelope: "data" }
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_japanese_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		// 24. 东南亚剧周更表
@@ -515,7 +515,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 				title: resolveWeekdayLabel(d, language),
 				mediaType: "tv",
 				preset: "poster-list",
-				source: { path: `https://movie-api.l3okuu.workers.dev/api/weekly_sea_drama_collection-${d}`, itemEnvelope: "data" }
+				source: { path: `https://r2.eplayerx.cc.cd/weekly_sea_drama_collection-${d}.json`, itemEnvelope: "data" }
 			}))
 		} as unknown as HomeBlockTemplate,
 		// 25. 近期热门日本动漫 [竖版海报]
@@ -527,7 +527,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_jp?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-jp.json?sort=year", itemEnvelope: "data" }
 		},
 		// 26. IMDb 史诗动漫神作 [竖版海报]
 		{
@@ -538,7 +538,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/imdb_top_anime?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/imdb-top-anime.json?sort=year", itemEnvelope: "data" }
 		},
 		// 27. Prime Video 热门日漫 [竖版海报]
 		{
@@ -549,7 +549,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/prime_hot_anime?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/prime-hot-anime.json?sort=year", itemEnvelope: "data" }
 		},
 		// 28. Filmarks 高分剧场版 [竖版海报]
 		{
@@ -560,7 +560,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/filmarks_anime_movie?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/filmarks-anime-movie.json?sort=year", itemEnvelope: "data" }
 		},
 		// 29. Netflix 独播霸榜日漫 [竖版海报]
 		{
@@ -571,7 +571,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/netflix_hot_anime?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/netflix-hot-anime.json?sort=year", itemEnvelope: "data" }
 		},
 		// 30. TMDB 高分神作日漫 [竖版海报]
 		{
@@ -582,7 +582,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_top_ja?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-top-ja.json?sort=year", itemEnvelope: "data" }
 		},
 		// 31. 美到想截屏的动画电影 [竖版海报]
 		{
@@ -593,7 +593,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_anime_movie_ja?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-anime-movie-ja.json?sort=year", itemEnvelope: "data" }
 		},
 		// 32. 年代经典
 		{ type: "decades-collection" },
@@ -606,7 +606,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_tw?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-tw.json?sort=year", itemEnvelope: "data" }
 		},
 		// 34. 台味正浓的宝藏台片 [竖版海报]
 		{
@@ -617,7 +617,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_tw?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-tw.json?sort=year", itemEnvelope: "data" }
 		},
 		// 35. 荷尔蒙溢出的东南亚 [竖版海报]
 		{
@@ -628,7 +628,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_sea?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-sea.json?sort=year", itemEnvelope: "data" }
 		},
 		// 36. 尽皆癫狂的港产喜剧 [竖版海报]
 		{
@@ -639,7 +639,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_hk_erotic_comedy?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-hk-erotic-comedy.json?sort=year", itemEnvelope: "data" }
 		},
 		// 37. 专治精神内耗的日剧 [竖版海报]
 		{
@@ -650,7 +650,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_ja?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-ja.json?sort=year", itemEnvelope: "data" }
 		},
 		// 38. 越狗血越上头的爆款泰剧 [竖版海报]
 		{
@@ -661,7 +661,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_th?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-th.json?sort=year", itemEnvelope: "data" }
 		},
 		// 39. 别只看鬼片的泰国电影 [竖版海报]
 		{
@@ -672,7 +672,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_movie_th?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-movie-th.json?sort=year", itemEnvelope: "data" }
 		},
 		// 40. 眼神狂拉丝的亚洲耽美神作 [竖版海报]
 		{
@@ -683,7 +683,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_bl?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-bl.json?sort=year", itemEnvelope: "data" }
 		},
 		// 41. 反转停不下来的西语爽剧 [竖版海报]
 		{
@@ -694,7 +694,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/tmdb_tv_es?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/tmdb-tv-es.json?sort=year", itemEnvelope: "data" }
 		},
 		// 42. 别被语言劝退的网飞神剧 [竖版海报]
 		{
@@ -705,7 +705,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/netflix_tv_minor?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/netflix-tv-minor.json?sort=year", itemEnvelope: "data" }
 		},
 		// 43. 冷门却惊艳的宝藏外国片 [真正官方横版剧照大图：hero-list]
 		{
@@ -716,7 +716,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			showRank: true,
 			showOverview: false,
 			sort: "year",
-			source: { path: "https://movie-api.l3okuu.workers.dev/api/netflix_movie_minor?sort=year", itemEnvelope: "data" }
+			source: { path: "https://r2.eplayerx.cc.cd/netflix-movie-minor.json?sort=year", itemEnvelope: "data" }
 		}
 	];
 }
