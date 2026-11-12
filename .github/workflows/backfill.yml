@@ -64,8 +64,5 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --no-progress
 
-      - name: Backfill ratings (写入缓存)
+      - name: Sync ratings (重查 MDBList + 写缓存 + 烘焙数据文件)
         run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category }}
-
-      - name: Bake ratings into data files
-        run: bun run scripts/bake-ratings.ts

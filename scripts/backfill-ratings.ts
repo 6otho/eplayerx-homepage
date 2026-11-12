@@ -1,15 +1,17 @@
 /**
- * 🎯 评分补全（写入独立缓存，与上游架构一致）
+ * 🎯 全量评分同步（与 MDBList 完全一致，不允许 0.1 的差）
  *
- * 设计（对照上游 refreshTrendingRatings）：
- *   - 只维护 mdblist-ratings-cache.json 一个文件
- *   - 不修改任何分类数据文件
- *   - 缓存存 MDBList 原样值（0-100 刻度）
- *   - 遍历数据文件找出缺失评分的 tmdbId，逐个补进缓存
+ * 逻辑（严格按需求）：
+ *   1. 遍历所有分类数据文件，收集全部 (mediaType, tmdbId)
+ *   2. 每个条目都【强制重查 MDBList】（不看缓存是否完整）
+ *   3. 用最新值覆盖缓存
+ *   4. 再把缓存按正确刻度烘焙回数据文件
  *
- * 用法：
- *   bun run scripts/backfill-ratings.ts                # 全部
- *   bun run scripts/backfill-ratings.ts tmdb_tv_th     # 单个分类
+ * 刻度（客户端直接显示）：
+ *   imdb/mal   0-10  原样
+ *   letterboxd 0-5   原样
+ *   trakt/tmdb 0-100 ÷10
+ *   tomatoes/metacritic 0-100 原样
  */
 
 import { listR2Keys, getRawJson, putRawJson } from "../src/blocks/storage.js";
@@ -20,7 +22,6 @@ import {
 } from "../src/ratings/mdblist.js";
 
 const CACHE_KEY = "mdblist-ratings-cache.json";
-const REQUIRED = ["tmdb", "imdb", "trakt", "letterboxd"] as const;
 const SKIP = new Set([
 	"blacklist.json", "cron_state.json", "layout-config.json", "schedule-override.json",
 	"eplayerx-boxes.json", "eplayerx-folders.json", CACHE_KEY,
@@ -39,106 +40,141 @@ type Cache = Record<string, Record<string, number>>;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function missing(r: Record<string, number> | undefined): string[] {
-	if (!r || !Object.keys(r).length) return [...REQUIRED];
-	return REQUIRED.filter((k) => !r[k]);
+/** 缓存值（MDBList 原样）→ 客户端显示值 */
+function bake(src: string, v: number): number | undefined {
+	const n = Number(v);
+	if (!Number.isFinite(n) || n <= 0) return undefined;
+	switch (src) {
+		case "imdb":
+		case "mal":
+			return Number(n.toFixed(1));
+		case "letterboxd":
+			return Number((n > 5 ? n / 10 : n).toFixed(1));
+		case "trakt":
+		case "tmdb":
+		case "metacritic":
+			return Number((n / 10).toFixed(1));
+		case "tomatoes":
+		case "tomatoesAudience":
+			return Math.round(n);
+		case "rogerebert":
+			return Number(n.toFixed(1));
+		default:
+			return undefined;
+	}
 }
 
 async function main(): Promise<void> {
-	const arg = process.argv[2] || process.env.CATEGORY_FILTER || "";
 	const keys = parseMdblistApiKeys();
 	console.log(`MDBList keys: ${keys.length}`);
 	if (keys.length === 0) { console.error("❌ MDBLIST_API_KEY 未配置"); process.exit(1); }
 
-	let cache: Cache = {};
-	try {
-		const raw = (await getRawJson(CACHE_KEY)) as Cache;
-		if (raw && typeof raw === "object" && !Array.isArray(raw)) cache = raw;
-	} catch { cache = {}; }
-	console.log(`缓存现有条目: ${Object.keys(cache).length}`);
+	const topOnly = process.env.TOP_ONLY === "1";
+	const TOP_N = 20;
+	const arg = process.argv[2] || process.env.CATEGORY_FILTER || "";
 
-	// 收集所有需要补的 (mediaType, tmdbId)
+	// 1) 收集所有条目
 	const norm = (s: string) => s.toLowerCase().replace(/[-_]/g, "");
 	const files = (await listR2Keys(""))
 		.filter((k) => !SKIP.has(k) && !k.startsWith("_$"))
 		.filter((k) => (arg ? norm(k).includes(norm(arg)) : true));
-	console.log(`扫描文件: ${files.length}`);
 
-	// 🎯 优先级：每个文件前 TOP_N 条视为"必补"，其余按常规
-	const TOP_N = 20;
-	const priority = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
-	const normal = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
-	let totalItems = 0;
-
+	const targets = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
 	for (const key of files) {
 		let json: { data?: Item[] };
 		try { json = (await getRawJson(key)) as { data?: Item[] }; } catch { continue; }
 		const items = json?.data;
 		if (!Array.isArray(items)) continue;
-		items.forEach((it, idx) => {
+		items.forEach((it, i) => {
 			const tmdbId = it.tmdbId || it.id;
 			if (!tmdbId) return;
-			totalItems++;
+			if (topOnly && i >= TOP_N) return;
 			const mt = (String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv") as "movie" | "tv";
 			const ck = `${mt}:${tmdbId}`;
-			if (missing(cache[ck]).length === 0) return;
-			const entry = { mt, tmdbId, label: it.name || it.title || String(tmdbId) };
-			if (idx < TOP_N) { if (!priority.has(ck)) priority.set(ck, entry); }
-			else if (!priority.has(ck) && !normal.has(ck)) normal.set(ck, entry);
+			if (!targets.has(ck)) targets.set(ck, { mt, tmdbId, label: it.name || it.title || String(tmdbId) });
 		});
 	}
+	console.log(`文件: ${files.length} | 待重查条目: ${targets.size}${topOnly ? " (仅前20)" : " (全量)"}`);
+	if (targets.size === 0) { console.log("无条目"); return; }
 
-	// 前 20 的条目优先，且不被后 60 条覆盖
-	const need = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
-	for (const [k, v] of priority) need.set(k, v);
-	// TOP_ONLY=1 时只补前 20，其余交给每日自动任务
-	const topOnly = process.env.TOP_ONLY === "1";
-	if (!topOnly) for (const [k, v] of normal) if (!need.has(k)) need.set(k, v);
-	console.log(`优先(前${TOP_N}): ${priority.size} | 其余: ${normal.size}${topOnly ? " (本轮只补优先)" : ""}`);
+	// 2) 强制重查每一条
+	const cache: Cache = {};
+	let done = 0, got = 0, empty = 0, failed = 0, quotaHit = false;
+	const list = [...targets.entries()];
 
-	console.log(`条目总数: ${totalItems} | 待补: ${need.size}`);
-	if (need.size === 0) { console.log("✅ 全部完整"); return; }
-
-	let filled = 0, stillMissing = 0, failed = 0, quotaHit = false;
-	const list = [...need.entries()];
-
-	for (let i = 0; i < list.length; i++) {
-		const [ck, info] = list[i];
+	for (const [ck, info] of list) {
 		if (quotaHit) break;
+		done++;
 		try {
-			const ratings = await fetchItemRatings(info.tmdbId, info.mt);
-			const prev = cache[ck] || {};
-			const merged: Record<string, number> = { ...prev };
-			for (const [src, v] of Object.entries(ratings)) {
-				if (typeof v === "number" && Number.isFinite(v) && v > 0) merged[src] = v;
+			const r = await fetchItemRatings(info.tmdbId, info.mt);
+			const clean: Record<string, number> = {};
+			for (const [src, v] of Object.entries(r)) {
+				if (typeof v === "number" && Number.isFinite(v) && v > 0) clean[src] = v;
 			}
-			if (Object.keys(merged).length > Object.keys(prev).length) {
-				cache[ck] = merged;
-				filled++;
-			} else if (missing(merged).length > 0) {
-				stillMissing++;
-			}
-			if ((i + 1) % 100 === 0) {
-				await putRawJson(CACHE_KEY, cache);
-				console.log(`  进度 ${i + 1}/${list.length} | 新增 ${filled}`);
-			}
+			// MDBList 空值也要写入（清除历史残留）
+			cache[ck] = clean;
+			if (Object.keys(clean).length) got++; else empty++;
 		} catch (e) {
 			if (e instanceof MdblistRateLimitError) {
 				quotaHit = true;
-				console.warn(`  ⚠️ 额度耗尽，已保存进度（${i}/${list.length}）`);
+				console.warn(`  ⚠️ 额度耗尽于 ${done}/${list.length}`);
 			} else {
 				failed++;
 			}
 		}
-		await sleep(100);
+		if (done % 100 === 0) {
+			console.log(`  进度 ${done}/${list.length} | 有值 ${got} | 空 ${empty}`);
+			await sleep(150);
+		}
+		await sleep(90);
 	}
 
+	console.log(`\n重查完成: ${done} 条 | 有值 ${got} | 空 ${empty} | 失败 ${failed}`);
 	await putRawJson(CACHE_KEY, cache);
-	console.log(`\n═══════════════════════`);
-	console.log(`新增评分: ${filled}`);
-	console.log(`数据源无: ${stillMissing}`);
-	console.log(`失败: ${failed}`);
-	console.log(`缓存总条目: ${Object.keys(cache).length}`);
+	console.log(`缓存已写入: ${Object.keys(cache).length} 条`);
+
+	// 3) 烘焙回数据文件
+	console.log("\n开始烘焙到数据文件...");
+	let filesChanged = 0, itemsUpdated = 0;
+	for (const key of files) {
+		let json: { data?: Item[]; count?: number; lastUpdated?: string };
+		try { json = (await getRawJson(key)) as { data?: Item[] }; } catch { continue; }
+		const items = json?.data;
+		if (!Array.isArray(items) || !items.length) continue;
+
+		let changed = false;
+		for (const it of items) {
+			const tmdbId = it.tmdbId || it.id;
+			if (!tmdbId) continue;
+			const mt = String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv";
+			const c = cache[`${mt}:${tmdbId}`];
+			if (!c) continue;
+
+			const out: Record<string, number> = {};
+			if (c.tmdb) { const v = bake("tmdb", c.tmdb); if (v) out.tmdb = v; }
+			if (c.imdb) { const v = bake("imdb", c.imdb); if (v) out.imdb = v; }
+			if (c.trakt) { const v = bake("trakt", c.trakt); if (v) out.trakt = v; }
+			if (c.letterboxd) { const v = bake("letterboxd", c.letterboxd); if (v) out.letterboxd = v; }
+			if (c.tomatoes) { const v = bake("tomatoes", c.tomatoes); if (v) out.rotten_tomatoes = v; }
+			if (c.tomatoesAudience) { const v = bake("tomatoesAudience", c.tomatoesAudience); if (v) out.tomatoesAudience = v; }
+			if (c.metacritic) { const v = bake("metacritic", c.metacritic); if (v) out.metacritic = v; }
+			if (c.mal) { const v = bake("mal", c.mal); if (v) out.mal = v; }
+			if (c.rogerebert) { const v = bake("rogerebert", c.rogerebert); if (v) out.rogerebert = v; }
+
+			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(out)) {
+				it.ratings = out;
+				changed = true;
+				itemsUpdated++;
+			}
+		}
+		if (changed) {
+			json.count = items.length;
+			json.lastUpdated = new Date().toISOString();
+			await putRawJson(key, json);
+			filesChanged++;
+		}
+	}
+	console.log(`烘焙完成: ${filesChanged} 个文件, ${itemsUpdated} 条更新`);
 }
 
-main().catch((e) => { console.error("❌", e); process.exit(1); });
+main().catch((e) => { console.error(e); process.exit(1); });
