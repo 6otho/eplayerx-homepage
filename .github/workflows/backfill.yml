@@ -36,7 +36,7 @@ concurrency:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 300
     env:
       TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
       MDBLIST_API_KEY: ${{ secrets.MDBLIST_API_KEY }}
@@ -82,7 +82,7 @@ jobs:
         env:
           MOVIE_API_BASE: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
-          TOP_N: "20"
+          TOP_N: "0"
           CATEGORY_FILTER: ${{ github.event.inputs.category }}
         run: bun run scripts/auto-extract.ts
 

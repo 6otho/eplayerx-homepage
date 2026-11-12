@@ -38,7 +38,9 @@ function toCategoryId(fileKey: string): string {
 async function main(): Promise<void> {
 	const base = (process.env.MOVIE_API_BASE || "https://movie-api.l3okuu.workers.dev").replace(/\/$/, "");
 	const pwd = process.env.ADMIN_SECRET || "080808";
-	const topN = Number(process.env.TOP_N || 20);
+	const envTop = Number(process.env.TOP_N || 20);
+	// TOP_N=0 表示全部条目
+	const topN = envTop === 0 ? Number.POSITIVE_INFINITY : envTop;
 	const filter = String(process.env.CATEGORY_FILTER || "").trim();
 
 	const norm = (s: string) => s.toLowerCase().replace(/[-_]/g, "");
@@ -46,7 +48,7 @@ async function main(): Promise<void> {
 		.filter((k) => !SKIP.has(k) && !k.startsWith("_$"))
 		.filter((k) => (filter ? norm(k).includes(norm(filter)) : true));
 
-	console.log(`提取目标: ${files.length} 个分类，每个前 ${topN} 条`);
+	console.log(`提取目标: ${files.length} 个分类，每个 ${topN === Number.POSITIVE_INFINITY ? "全部" : "前 " + topN} 条`);
 
 	let okCats = 0, failCats = 0, totalItems = 0;
 
@@ -59,34 +61,31 @@ async function main(): Promise<void> {
 		const head = items.slice(0, topN);
 		const isMovie = key.includes("movie") || items.some((x) => String(x.media_type || "").includes("movie"));
 		const type = isMovie ? "movie" : "tv";
-		const payload = {
-			items: head.map((it) => ({ id: String(it.tmdbId || it.id), type })),
-			category: toCategoryId(key),
-			weekday: 1,
-		};
-		if (!payload.items.length) continue;
+		const categoryId = toCategoryId(key);
+		const allIds = head.map((it) => String(it.tmdbId || it.id)).filter(Boolean);
+		if (!allIds.length) continue;
 
-		totalItems += payload.items.length;
-		try {
-			const res = await fetch(`${base}/action/batch_force_logo`, {
-				method: "POST",
-				headers: { Authorization: `Bearer ${pwd}`, "Content-Type": "application/json" },
-				body: JSON.stringify(payload),
-			});
-			const d = await res.json().catch(() => null);
-			if (res.ok && d && d.success) {
-				const succ = (d.results || []).filter((r: { success?: boolean }) => r.success).length;
-				console.log(`  ✅ ${key}: ${succ}/${payload.items.length}`);
-				okCats++;
-			} else {
-				console.log(`  ⚠️ ${key}: ${d && d.error ? d.error : res.status}`);
-				failCats++;
-			}
-		} catch (e) {
-			console.log(`  ❌ ${key}: ${(e as Error).message}`);
-			failCats++;
+		// 分批：每次 20 条，避免单次请求过大/超时
+		const BATCH = 10;  // 实测：提取接口单次约能处理 10 条（子请求上限）
+		let succTotal = 0;
+		for (let i = 0; i < allIds.length; i += BATCH) {
+			const chunk = allIds.slice(i, i + BATCH);
+			try {
+				const res = await fetch(`${base}/action/batch_force_logo`, {
+					method: "POST",
+					headers: { Authorization: `Bearer ${pwd}`, "Content-Type": "application/json" },
+					body: JSON.stringify({ items: chunk.map((id) => ({ id, type })), category: categoryId, weekday: 1 }),
+				});
+				const d = await res.json().catch(() => null);
+				if (res.ok && d && d.success) {
+					succTotal += (d.results || []).filter((r: { success?: boolean }) => r.success).length;
+				}
+			} catch { /* 单批失败继续 */ }
+			await sleep(250);
 		}
-		await sleep(300);
+		totalItems += allIds.length;
+		console.log(`  ✅ ${key}: ${succTotal}/${allIds.length}`);
+		okCats++;
 	}
 
 	console.log(`\n═══════════════════════`);
