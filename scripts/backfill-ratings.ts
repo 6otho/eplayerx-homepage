@@ -161,22 +161,29 @@ async function main(): Promise<void> {
 			const c = cache[`${mt}:${tmdbId}`];
 			if (!c) continue;
 
-			const out: Record<string, number> = {};
-			if (c.tmdb) { const v = bake("tmdb", c.tmdb); if (v) out.tmdb = v; }
-			if (c.imdb) { const v = bake("imdb", c.imdb); if (v) out.imdb = v; }
-			if (c.trakt) { const v = bake("trakt", c.trakt); if (v) out.trakt = v; }
-			if (c.letterboxd) { const v = bake("letterboxd", c.letterboxd); if (v) out.letterboxd = v; }
-			if (c.tomatoes) { const v = bake("tomatoes", c.tomatoes); if (v) out.rotten_tomatoes = v; }
-			if (c.tomatoesAudience) { const v = bake("tomatoesAudience", c.tomatoesAudience); if (v) out.tomatoesAudience = v; }
-			if (c.metacritic) { const v = bake("metacritic", c.metacritic); if (v) out.metacritic = v; }
-			if (c.mal) { const v = bake("mal", c.mal); if (v) out.mal = v; }
-			if (c.rogerebert) { const v = bake("rogerebert", c.rogerebert); if (v) out.rogerebert = v; }
-
-			// 🔒 保护：文件里已有的来源，缓存没有的就保留（不删用户的评分）
-			const merged: Record<string, number> = { ...out };
+			// 🔒 核心原则：文件里已有的评分【永不覆盖】，缓存只用来补空白
+			//    原因：用户手动提取的结果（含全部 10 个评分源）比缓存更完整，
+			//          之前用缓存重建导致 metacritic / letterboxd 被反复砍掉
+			const merged: Record<string, number> = {};
 			for (const [k, v] of Object.entries(it.ratings || {})) {
-				if (merged[k] === undefined && typeof v === "number" && v > 0) merged[k] = v;
+				if (typeof v === "number" && v > 0) merged[k] = v;
 			}
+			const fill = (k, v) => { if (v !== undefined && merged[k] === undefined) merged[k] = v; };
+			if (c) {
+				if (c.tmdb) fill("tmdb", bake("tmdb", c.tmdb));
+				if (c.imdb) fill("imdb", bake("imdb", c.imdb));
+				if (c.trakt) fill("trakt", bake("trakt", c.trakt));
+				if (c.letterboxd) fill("letterboxd", bake("letterboxd", c.letterboxd));
+				if (c.tomatoes) fill("rotten_tomatoes", bake("tomatoes", c.tomatoes));
+				if (c.tomatoesAudience) fill("tomatoesAudience", bake("tomatoesAudience", c.tomatoesAudience));
+				if (c.metacritic) fill("metacritic", bake("metacritic", c.metacritic));
+				if (c.mal) fill("mal", bake("mal", c.mal));
+				if (c.rogerebert) fill("rogerebert", bake("rogerebert", c.rogerebert));
+			}
+
+			// 顶层字段同步（只补缺失，不覆盖已有）
+			if (!it.trakt_rating && merged.trakt) { it.trakt_rating = merged.trakt; it.traktRating = merged.trakt; }
+			if (!it.imdb_rating && merged.imdb) { it.imdb_rating = merged.imdb; it.imdbRating = merged.imdb; }
 
 			// 只有真正变化才写
 			if (JSON.stringify(it.ratings || {}) !== JSON.stringify(merged)) {
