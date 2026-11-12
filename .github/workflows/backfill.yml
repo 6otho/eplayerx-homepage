@@ -16,6 +16,10 @@ on:
         description: "强制重试已放弃的条目（1=是）"
         required: false
         default: ""
+      top_only:
+        description: "只补每个分类的前 20 条（1=是，其余交给每日任务）"
+        required: false
+        default: ""
 
 concurrency:
   group: backfill-ratings
@@ -35,6 +39,7 @@ jobs:
       R2_CUSTOM_DOMAIN: ${{ vars.R2_CUSTOM_DOMAIN }}
       CATEGORY_FILTER: ${{ github.event.inputs.category }}
       FORCE_RETRY: ${{ github.event.inputs.force }}
+      TOP_ONLY: ${{ github.event.inputs.top_only }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5

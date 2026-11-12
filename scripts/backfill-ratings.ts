@@ -64,23 +64,37 @@ async function main(): Promise<void> {
 		.filter((k) => (arg ? norm(k).includes(norm(arg)) : true));
 	console.log(`扫描文件: ${files.length}`);
 
-	const need = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
+	// 🎯 优先级：每个文件前 TOP_N 条视为"必补"，其余按常规
+	const TOP_N = 20;
+	const priority = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
+	const normal = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
 	let totalItems = 0;
+
 	for (const key of files) {
 		let json: { data?: Item[] };
 		try { json = (await getRawJson(key)) as { data?: Item[] }; } catch { continue; }
 		const items = json?.data;
 		if (!Array.isArray(items)) continue;
-		for (const it of items) {
+		items.forEach((it, idx) => {
 			const tmdbId = it.tmdbId || it.id;
-			if (!tmdbId) continue;
+			if (!tmdbId) return;
 			totalItems++;
-			const mt = String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv";
+			const mt = (String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv") as "movie" | "tv";
 			const ck = `${mt}:${tmdbId}`;
-			if (missing(cache[ck]).length === 0) continue;
-			if (!need.has(ck)) need.set(ck, { mt, tmdbId, label: it.name || it.title || String(tmdbId) });
-		}
+			if (missing(cache[ck]).length === 0) return;
+			const entry = { mt, tmdbId, label: it.name || it.title || String(tmdbId) };
+			if (idx < TOP_N) { if (!priority.has(ck)) priority.set(ck, entry); }
+			else if (!priority.has(ck) && !normal.has(ck)) normal.set(ck, entry);
+		});
 	}
+
+	// 前 20 的条目优先，且不被后 60 条覆盖
+	const need = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
+	for (const [k, v] of priority) need.set(k, v);
+	// TOP_ONLY=1 时只补前 20，其余交给每日自动任务
+	const topOnly = process.env.TOP_ONLY === "1";
+	if (!topOnly) for (const [k, v] of normal) if (!need.has(k)) need.set(k, v);
+	console.log(`优先(前${TOP_N}): ${priority.size} | 其余: ${normal.size}${topOnly ? " (本轮只补优先)" : ""}`);
 
 	console.log(`条目总数: ${totalItems} | 待补: ${need.size}`);
 	if (need.size === 0) { console.log("✅ 全部完整"); return; }
