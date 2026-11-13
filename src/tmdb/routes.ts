@@ -1,6 +1,8 @@
 import { metadataLanguage, hasMediaLanguages, localizeMediaPayload, enrichWithImages } from "../media-languages.js";
 import { Hono, type Context } from "hono";
 import { tmdb } from "./client.js";
+import { getExtraReviews, reviewStorage } from "../reviews/cache.js";
+import { sortReviews } from "../reviews/sort.js";
 
 import trailerRoutes from "./trailers.js";
 import trailerPlayback from "./trailer-playback.js";
@@ -47,6 +49,9 @@ const CACHE = {
   similar: cacheHeader(86_400, 21_600),
   /** trailers/clips occasionally added */
   videos: cacheHeader(259_200, 43_200),
+  /** user reviews trickle in */
+  reviews: cacheHeader(86_400, 21_600),
+  combinedReviews: cacheHeader(300, 60),
   /** episode lists for airing shows */
   season: cacheHeader(43_200, 10_800),
   /** filmography pages */
@@ -120,6 +125,10 @@ function cacheControlForRequest(c: Context): string | null {
     return CACHE.videos;
   }
 
+  if (/^\/(movie|tv)\/reviews$/.test(path)) {
+    return c.req.query("sources") === "all" ? CACHE.combinedReviews : CACHE.reviews;
+  }
+
   if (path === "/tv/season/details" || path === "/tv/episode_groups" || path === "/tv/episode_group") {
     return CACHE.season;
   }
@@ -172,6 +181,8 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
   const path = tmdbApiPath(c.req.path);
   const epoch = cacheControl === CACHE.artwork
     ? "20261019-artwork-6h"
+    : /^\/(movie|tv)\/reviews$/.test(path)
+    ? "20261113-reviews-newest-v4"
     : path === "/trending/tv" || path === "/trending/movie"
     ? `${TMDB_CACHE_EPOCH}-ratings-v2`
     : path === "/search/scrape"
@@ -644,6 +655,48 @@ function preferClientLanguageVideos<T extends { iso_639_1?: string }>(
     }
   }
   return matched.length === 0 ? results : [...matched, ...rest];
+}
+
+/** Most TMDB reviews are English; fall back when the client language has none. */
+for (const type of ["movie", "tv"] as const) {
+  tmdbApp.get(`/${type}/reviews`, async (c) => {
+    const id = Number(c.req.query("id") || "");
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return c.json({ error: "invalid id" }, 400);
+    }
+    const language = metadataLanguage(c, "en-US");
+    const allSources = c.req.query("sources") === "all";
+    const deadline = allSources ? AbortSignal.timeout(10_000) : undefined;
+    const fetchReviews = (lang: string) =>
+      type === "movie"
+        ? tmdb.GET(`/3/movie/${id}/reviews`, { params: { query: { language: lang }, path: { movie_id: id } }, signal: deadline })
+        : tmdb.GET(`/3/tv/${id}/reviews`, { params: { query: { language: lang }, path: { series_id: id } }, signal: deadline });
+    const tmdbReviews = (async () => {
+      let result = await fetchReviews(language);
+      if (result.response.status === 200 && !result.data?.results?.length && !language.startsWith("en")) {
+        result = await fetchReviews("en-US");
+      }
+      return result;
+    })().catch(() => null);
+    const extraReviews = allSources ? getExtraReviews(type, id, reviewStorage((c.env as { ASSETS?: R2Bucket })?.ASSETS), job => {
+      try { c.executionCtx.waitUntil(job); } catch { void job; }
+    }, 10_000) : Promise.resolve([]);
+    const [result, extra] = await Promise.all([tmdbReviews, extraReviews]);
+    if (!result || result.response.status !== 200) {
+      if (extra.length) {
+        c.header("Cache-Control", cacheHeader(30, 60));
+        return c.json({ id, page: 1, total_pages: 1, total_results: extra.length, results: sortReviews(extra) });
+      }
+      return c.json({ error: result?.error ?? "Reviews temporarily unavailable" }, deadline?.aborted ? 504 : 500);
+    }
+    if (allSources) {
+      const results = sortReviews([...(result.data?.results ?? []), ...extra]);
+      // Cold snapshots retry soon; never cache the initial empty add-on for a day.
+      c.header("Cache-Control", cacheHeader(extra.length ? 300 : 30, 60));
+      return c.json({ ...result.data, results, total_results: (result.data?.total_results ?? 0) + extra.length });
+    }
+    return c.json({ ...result.data, results: sortReviews(result.data?.results ?? []) });
+  });
 }
 
 tmdbApp.get("/movie/videos", async (c) => {
