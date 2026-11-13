@@ -137,10 +137,64 @@ async function loadBlobContent(pathname: string): Promise<BlobData | null> {
 /**
  * Save movies to R2
  */
+/**
+ * 🔑 增量合并：豆瓣/TMDB 接口每次只返回有限条数（20 条左右），
+ *    直接覆盖会把历史累积的数据冲掉。这里读旧数据 → 合并 → 去重 → 保留近 3 年。
+ */
+async function mergeWithExisting(
+  key: string,
+  incoming: ContentItem[],
+): Promise<ContentItem[]> {
+  const map = new Map<string, ContentItem>();
+  const keyOf = (x: ContentItem) => String(x.tmdbId || x.title || "");
+
+  try {
+    const existing = await r2Client.send(
+      new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key })
+    );
+    const body = await existing.Body?.transformToString();
+    if (body) {
+      const old = JSON.parse(body) as BlobData;
+      for (const item of Array.isArray(old.data) ? old.data : []) {
+        map.set(keyOf(item), item);
+      }
+    }
+  } catch (e: any) {
+    if (e?.$metadata?.httpStatusCode !== 404 && e?.name !== "NoSuchKey") {
+      console.warn(`读取旧数据失败(${key})，按新增处理:`, e?.message);
+    }
+  }
+
+  // 新数据覆盖旧的同一条
+  for (const item of incoming) map.set(keyOf(item), item);
+
+  // 去掉过老的（保留近 3 年首播）
+  const minYear = new Date().getFullYear() - 3;
+  const merged = Array.from(map.values()).filter((x) => {
+    const y = Number.parseInt(
+      (x.first_air_date || x.release_date || "").slice(0, 4),
+      10
+    );
+    return !Number.isFinite(y) || y >= minYear;
+  });
+
+  // 按日期倒序
+  merged.sort((a, b) =>
+    String(b.first_air_date || b.release_date || "").localeCompare(
+      String(a.first_air_date || a.release_date || "")
+    )
+  );
+
+  return merged;
+}
+
 export async function saveMovies(movies: ContentItem[]) {
   if (!R2_BUCKET_NAME) {
     throw new Error("R2_BUCKET_NAME is not configured");
   }
+
+  // 🔑 增量合并，避免只抓到 20 条就覆盖历史数据
+  movies = await mergeWithExisting(MOVIES_BLOB_KEY, movies);
 
   const data: BlobData = {
     platform: "douban",
@@ -175,6 +229,9 @@ export async function saveTVSeries(tvSeries: ContentItem[]) {
   if (!R2_BUCKET_NAME) {
     throw new Error("R2_BUCKET_NAME is not configured");
   }
+
+  // 🔑 增量合并，避免只抓到 20 条就覆盖历史数据
+  tvSeries = await mergeWithExisting(TV_BLOB_KEY, tvSeries);
 
   const data: BlobData = {
     platform: "douban",
@@ -211,6 +268,9 @@ async function saveTVSeriesCollection(
   if (!R2_BUCKET_NAME) {
     throw new Error("R2_BUCKET_NAME is not configured");
   }
+
+  // 🔑 增量合并，避免只抓到 20 条就覆盖历史数据
+  tvSeries = await mergeWithExisting(key, tvSeries);
 
   const data: BlobData = {
     platform,
@@ -320,6 +380,9 @@ export async function saveDoubanAnimation(animation: ContentItem[]) {
   if (!R2_BUCKET_NAME) {
     throw new Error("R2_BUCKET_NAME is not configured");
   }
+
+  // 🔑 增量合并，避免只抓到 20 条就覆盖历史数据
+  animation = await mergeWithExisting(DOUBAN_ANIMATION_BLOB_KEY, animation);
 
   const data: BlobData = {
     platform: "douban",
@@ -479,6 +542,9 @@ export async function saveBangumiAnimation(animation: ContentItem[]) {
   if (!R2_BUCKET_NAME) {
     throw new Error("R2_BUCKET_NAME is not configured");
   }
+
+  // 🔑 增量合并，避免只抓到 20 条就覆盖历史数据
+  animation = await mergeWithExisting(BANGUMI_ANIMATION_BLOB_KEY, animation);
 
   const data: BlobData = {
     platform: "bangumi",

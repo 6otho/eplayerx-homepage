@@ -68,36 +68,61 @@ function shanghaiYYYYMMDDMinusDays(daysBack: number): string {
 async function fetchDoubanRecentHot(options: {
   kind: "movie" | "tv";
   query: Record<string, string>;
+  limit?: number;
 }): Promise<DoubanItem[]> {
   const base =
     options.kind === "movie" ? DOUBAN_RECENT_HOT_MOVIE : DOUBAN_RECENT_HOT_TV;
-  try {
-    const params = new URLSearchParams({
-      start: "0",
-      limit: "20",
-      ...options.query,
-    });
-    const url = `${base}?${params.toString()}`;
-    const response = await fetch(url, {
-      headers: {
-        ...HEADERS,
-        Referer: "https://m.douban.com/",
-      },
-    });
+  // 🔑 豆瓣接口单次最多给 20 条，必须翻页才能拿全；
+  //    之前写死 start=0&limit=20，导致每次只抓到 20 条并覆盖掉历史数据
+  const want = options.limit ?? 100;
+  const seen = new Set<string>();
+  const out: DoubanItem[] = [];
+  let start = 0;
 
-    if (!response.ok) {
-      console.error(
-        `Douban recent_hot/${options.kind} error: ${response.status}`
-      );
-      return [];
+  try {
+    while (out.length < want) {
+      const size = Math.min(20, want - out.length);
+      const params = new URLSearchParams({
+        start: String(start),
+        limit: String(size),
+        ...options.query,
+      });
+      const url = `${base}?${params.toString()}`;
+      const response = await fetch(url, {
+        headers: {
+          ...HEADERS,
+          Referer: "https://m.douban.com/",
+        },
+      });
+
+      if (!response.ok) {
+        console.error(
+          `Douban recent_hot/${options.kind} error: ${response.status}`
+        );
+        break;
+      }
+
+      const data = (await response.json()) as RecentHotListResponse;
+      const items = data.items || [];
+      if (items.length === 0) break;
+
+      let added = 0;
+      for (const item of items) {
+        const key = String(item.id ?? item.title);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ title: item.title.split(" ")[0] });
+        added += 1;
+      }
+
+      start += items.length;
+      if (added === 0) break; // 翻到底了
+      if (start >= (data.total ?? 0)) break;
+
+      await new Promise((r) => setTimeout(r, 250)); // 温和限速
     }
 
-    const data = (await response.json()) as RecentHotListResponse;
-    const items = data.items || [];
-
-    return items.map((item) => ({
-      title: item.title.split(" ")[0],
-    }));
+    return out;
   } catch (error) {
     console.error(`Error fetching Douban recent_hot/${options.kind}:`, error);
     return [];
@@ -105,34 +130,53 @@ async function fetchDoubanRecentHot(options: {
 }
 
 async function fetchDoubanSubjectCollection(
-  collectionId: string
+  collectionId: string,
+  want = 100
 ): Promise<DoubanItem[]> {
+  // 🔑 同样需要翻页，否则每个合集只有 20 条
+  const seen = new Set<string>();
+  const out: DoubanItem[] = [];
+  let start = 0;
   try {
-    const params = new URLSearchParams({
-      start: "0",
-      count: "20",
-    });
-    const url = `${DOUBAN_SUBJECT_COLLECTION}/${collectionId}/items?${params.toString()}`;
-    const response = await fetch(url, {
-      headers: {
-        ...HEADERS,
-        Referer: "https://m.douban.com/",
-      },
-    });
+    while (out.length < want) {
+      const size = Math.min(20, want - out.length);
+      const params = new URLSearchParams({
+        start: String(start),
+        count: String(size),
+      });
+      const url = `${DOUBAN_SUBJECT_COLLECTION}/${collectionId}/items?${params.toString()}`;
+      const response = await fetch(url, {
+        headers: {
+          ...HEADERS,
+          Referer: "https://m.douban.com/",
+        },
+      });
 
-    if (!response.ok) {
-      console.error(
-        `Douban subject_collection/${collectionId} error: ${response.status}`
-      );
-      return [];
+      if (!response.ok) {
+        console.error(
+          `Douban subject_collection/${collectionId} error: ${response.status}`
+        );
+        break;
+      }
+
+      const data = (await response.json()) as SubjectCollectionResponse;
+      const items = data.subject_collection_items || data.items || [];
+      if (!items.length) break;
+
+      let added = 0;
+      for (const item of items) {
+        const key = String((item as { id?: string }).id ?? item.title);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ title: item.title.split(" ")[0] });
+        added += 1;
+      }
+      start += items.length;
+      if (added === 0) break;
+      await new Promise((r) => setTimeout(r, 250));
     }
 
-    const data = (await response.json()) as SubjectCollectionResponse;
-    const items = data.subject_collection_items || data.items || [];
-
-    return items.map((item) => ({
-      title: item.title.split(" ")[0],
-    }));
+    return out;
   } catch (error) {
     console.error(`Error fetching Douban subject_collection/${collectionId}:`, error);
     return [];
