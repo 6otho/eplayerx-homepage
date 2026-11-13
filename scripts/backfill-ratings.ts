@@ -79,6 +79,23 @@ async function main(): Promise<void> {
 		.filter((k) => !SKIP.has(k) && !k.startsWith("_$"))
 		.filter((k) => (arg ? norm(k).includes(norm(arg)) : true));
 
+	// 🔑 增量模式：先读缓存，已有完整评分的条目直接跳过，只查新增/缺失的
+	let cache: Cache = {};
+	try {
+		const raw = (await getRawJson(CACHE_KEY)) as Cache;
+		if (raw && typeof raw === "object" && !Array.isArray(raw)) cache = raw;
+	} catch { cache = {}; }
+	console.log(`已有缓存: ${Object.keys(cache).length} 条`);
+
+	// 一条评分"完整"的判定：至少 3 个来源有值
+	const RATING_KEYS = ["imdb", "trakt", "rotten_tomatoes", "letterboxd", "metacritic"];
+	const isComplete = (ck: string) => {
+		const c = cache[ck];
+		if (!c || typeof c !== "object") return false;
+		return RATING_KEYS.filter((k) => typeof (c as Record<string, number>)[k] === "number").length >= 3;
+	};
+
+	let skipped = 0;
 	const targets = new Map<string, { mt: "movie" | "tv"; tmdbId: number; label: string }>();
 	for (const key of files) {
 		let json: { data?: Item[] };
@@ -91,19 +108,16 @@ async function main(): Promise<void> {
 			if (topOnly && i >= TOP_N) return;
 			const mt = (String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv") as "movie" | "tv";
 			const ck = `${mt}:${tmdbId}`;
-			if (!targets.has(ck)) targets.set(ck, { mt, tmdbId, label: it.name || it.title || String(tmdbId) });
+			if (targets.has(ck)) return;
+			// ⏭ 已有完整评分 → 跳过，不消耗 MDBList 额度
+			if (isComplete(ck)) { skipped++; return; }
+			targets.set(ck, { mt, tmdbId, label: it.name || it.title || String(tmdbId) });
 		});
 	}
-	console.log(`文件: ${files.length} | 待重查条目: ${targets.size}${topOnly ? " (仅前20)" : " (全量)"}`);
+	console.log(`文件: ${files.length} | 已有评分跳过: ${skipped} | 待查询: ${targets.size}${topOnly ? " (仅前20)" : ""}`);
 	if (targets.size === 0) { console.log("无条目"); return; }
 
-	// 2) 强制重查每一条（⚠️ 必须基于已有缓存合并，不能清空，否则额度中断会丢数据）
-	let cache: Cache = {};
-	try {
-		const raw = (await getRawJson(CACHE_KEY)) as Cache;
-		if (raw && typeof raw === "object" && !Array.isArray(raw)) cache = raw;
-	} catch { cache = {}; }
-	console.log(`已有缓存: ${Object.keys(cache).length} 条`);
+	// 2) 只查缺失的条目
 	let done = 0, got = 0, empty = 0, failed = 0, quotaHit = false;
 	const list = [...targets.entries()];
 

@@ -315,8 +315,10 @@ export async function crawlDoubanAnimation() {
 		const title = resolveAnimationTitle(item.title);
 		console.log(`🔍 Searching: ${title}`);
 
+		// 🎯 必须是日本的动画，否则会混入国产/欧美动画
 		const tmdbData = await searchTMDB(title, "tv", {
 			requireTvGenreIds: [TMDB_TV_GENRE_ANIMATION],
+			requireOriginCountries: ["JP"],
 		});
 
 		if (tmdbData) {
