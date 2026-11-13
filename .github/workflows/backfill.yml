@@ -5,7 +5,7 @@ name: Backfill ratings & assets
 on:
   schedule:
     # 每天 UTC 19:00（北京 03:00），避开爬虫(02:17)和 blocks(03:23)
-    - cron: "30 10 * * *"
+    - cron: "30 1 * * *"
   workflow_dispatch:
     inputs:
       category:
