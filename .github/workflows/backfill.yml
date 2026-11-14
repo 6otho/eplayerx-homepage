@@ -94,3 +94,10 @@ jobs:
       - name: Sync ratings (重查 MDBList + 写缓存 + 烘焙数据文件)
         if: github.event.inputs.rebake_only != '1'
         run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category || '' }}
+
+      - name: Notify Telegram
+        if: always()
+        env:
+          WORKER_URL: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+        run: node scripts/tg-notify.mjs backfill

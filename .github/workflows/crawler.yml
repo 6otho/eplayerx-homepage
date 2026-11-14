@@ -73,3 +73,10 @@ jobs:
 
       - name: Run crawler
         run: bun run crawler:run
+
+      - name: Notify Telegram
+        if: always()
+        env:
+          WORKER_URL: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
+          ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
+        run: node scripts/tg-notify.mjs crawler
