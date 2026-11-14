@@ -165,17 +165,17 @@ async function main() {
     ? "🕷 <b>爬虫完成</b>"
     : "📊 <b>评分补全完成</b>";
 
-  // 🆕 读取快照对比结果，列出新增条目名称
+  // 🆕 读取快照对比结果：新增条目 + 最近更新的条目
   let addLines = [];
   let addedCount = 0;
   try {
     const raw = await import("node:fs").then((m) => m.default.readFileSync("/tmp/new-items.json", "utf8"));
     const diff = JSON.parse(raw);
     addedCount = (diff.added || []).length;
-    const cats = diff.counts || {};
+
     if (addedCount > 0) {
       addLines.push("");
-      addLines.push(`🆕 <b>新增 ${addedCount} 条</b>`);
+      addLines.push(`🆕 <b>本次新增 ${addedCount} 条</b>`);
       // 按分类分组展示
       const byCat = new Map();
       for (const a of diff.added) {
@@ -184,8 +184,22 @@ async function main() {
       }
       for (const [cat, names] of byCat) {
         addLines.push(`<b>${cat}</b>（${names.length}）`);
-        for (const n of names.slice(0, 10)) addLines.push(`  · ${n}`);
-        if (names.length > 10) addLines.push(`  · …等 ${names.length} 条`);
+        for (const n of names.slice(0, 8)) addLines.push(`  · ${n}`);
+        if (names.length > 8) addLines.push(`  · …等 ${names.length} 条`);
+      }
+    }
+
+    // 🔥 最近更新的新剧/电影/动漫（按上线日期排序，取最近的）
+    const recent = (diff.recent || []).filter((r) => {
+      const y = Number(String(r.date).slice(0, 4));
+      return y >= new Date().getFullYear() - 1; // 只看近两年
+    }).slice(0, 12);
+
+    if (recent.length) {
+      addLines.push("");
+      addLines.push(`🔥 <b>最近上线</b>`);
+      for (const r of recent) {
+        addLines.push(`  <code>${r.date}</code> ${r.name} <i>(${r.cat})</i>`);
       }
     }
   } catch {

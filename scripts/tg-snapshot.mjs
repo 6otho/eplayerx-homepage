@@ -70,6 +70,7 @@ async function collect() {
       .map((x) => ({
         id: String(x.tmdbId || x.id || ""),
         name: String(x.name || x.title || "").trim(),
+        date: String(x.release_date || x.first_air_date || x.air_date || "").slice(0, 10),
       }))
       .filter((x) => x.id);
   }
@@ -162,16 +163,31 @@ async function main() {
     const fresh = items.filter((x) => !oldIds.has(x.id));
     if (fresh.length) {
       counts[key] = fresh.length;
-      for (const it of fresh) added.push({ cat: labelOf(key), name: it.name });
+      for (const it of fresh) added.push({ cat: labelOf(key), name: it.name, date: it.date || "" });
     }
   }
 
-  fs.writeFileSync(OUT, JSON.stringify({ counts, added }, null, 2));
+  // 🆕 另外收集"最近更新"的条目：按 release_date / first_air_date 取最近的
+  const recent = [];
+  for (const [key, items] of Object.entries(current)) {
+    const pool = items
+      .filter((x) => x.date && /^\d{4}-\d{2}-\d{2}/.test(x.date))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 2);
+    for (const it of pool) recent.push({ cat: labelOf(key), name: it.name, date: it.date.slice(0, 10) });
+  }
+  recent.sort((a, b) => b.date.localeCompare(a.date));
+
+  fs.writeFileSync(OUT, JSON.stringify({ counts, added, recent }, null, 2));
   console.log(`📊 新增：${added.length} 条，涉及 ${Object.keys(counts).length} 个分类`);
   for (const [k, v] of Object.entries(counts)) console.log(`   ${labelOf(k)}: +${v}`);
   if (added.length) {
-    console.log("   —— 明细 ——");
+    console.log("   —— 新增明细 ——");
     for (const a of added.slice(0, 30)) console.log(`   · [${a.cat}] ${a.name}`);
+  }
+  if (recent.length) {
+    console.log("   —— 最近更新 TOP ——");
+    for (const r of recent.slice(0, 12)) console.log(`   · ${r.date} [${r.cat}] ${r.name}`);
   }
 }
 
