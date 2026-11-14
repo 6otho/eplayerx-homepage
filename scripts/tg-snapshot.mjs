@@ -76,11 +76,53 @@ async function collect() {
   return data;
 }
 
+const CATEGORY_NAMES = {
+  "bangumi-airing.json": "今日热门番剧",
+  "douban-korean-tv.json": "热门韩剧安利",
+  "douban-movies.json": "实时热门电影",
+  "douban-tv-custom.json": "时下热门国产剧",
+  "filmarks-anime-movie.json": "Filmarks 高分剧场版",
+  "imdb-top-anime.json": "IMDb 史诗动漫神作",
+  "netflix-hot-anime.json": "Netflix 独播霸榜日漫",
+  "netflix-movie-minor.json": "冷门却惊艳的宝藏外国片",
+  "netflix-tv-minor.json": "别被语言劝退的网飞神剧",
+  "prime-hot-anime.json": "Prime Video 热门日漫",
+  "tmdb-anime-cn.json": "热门国产动漫",
+  "tmdb-anime-jp.json": "近期热门日本动漫",
+  "tmdb-anime-movie-ja.json": "美到想截屏的动画电影",
+  "tmdb-anime-top-ja.json": "TMDB 高分神作日漫",
+  "tmdb-movie-hk-erotic-comedy.json": "尽皆癫狂的港产喜剧",
+  "tmdb-movie-sea.json": "荷尔蒙溢出的东南亚",
+  "tmdb-movie-th.json": "别只看鬼片的泰国电影",
+  "tmdb-movie-tw.json": "台味正浓的宝藏台片",
+  "tmdb-popular-movies.json": "今日热门电影",
+  "tmdb-popular-tv.json": "今日热门电视剧",
+  "tmdb-tv-apple.json": "Apple TV+ 原创精品",
+  "tmdb-tv-bl.json": "眼神狂拉丝的亚洲耽美神作",
+  "tmdb-tv-es.json": "反转停不下来的西语爽剧",
+  "tmdb-tv-hbo.json": "HBO 高分神剧",
+  "tmdb-tv-ja.json": "专治精神内耗的日剧",
+  "tmdb-tv-netflix.json": "Netflix 全球热播好剧",
+  "tmdb-tv-th.json": "越狗血越上头的爆款泰剧",
+  "tmdb-tv-tw.json": "现在台剧都这么敢拍？",
+  "trakt-movies.json": "视效轰炸欧美大片",
+  "trakt-shows.json": "时下热播欧美剧集",
+  "variety-cn.json": "热门国产综艺",
+  "variety-global.json": "全球流媒体新热综艺",
+  "variety-kr.json": "爆款韩国综艺",
+  "weekly_anime_collection.json": "巴哈新番周更表",
+  "weekly_drama_collection.json": "国产追剧周更表",
+  "weekly_guoman_collection.json": "国漫追番周历表",
+  "weekly_japanese_drama_collection.json": "日剧追剧周更表",
+  "weekly_korean_drama_collection.json": "韩剧追剧周更表",
+  "weekly_sea_drama_collection.json": "东南亚剧周更表",
+};
+
 function labelOf(key) {
-  return key.replace(/\.json$/, "")
-    .replace(/^weekly_/, "")
-    .replace(/_collection-\d+$/, "周更表")
-    .replace(/_/g, " ");
+  if (CATEGORY_NAMES[key]) return CATEGORY_NAMES[key];
+  const m = key.match(/^(.+)-\d+\.json$/);
+  if (m && CATEGORY_NAMES[m[1] + ".json"]) return CATEGORY_NAMES[m[1] + ".json"];
+  return key.replace(/\.json$/, "").replace(/_/g, " ");
 }
 
 async function main() {
