@@ -110,17 +110,45 @@ async function main() {
     ? "🕷 <b>爬虫完成</b>"
     : "📊 <b>评分补全完成</b>";
 
+  // 🆕 读取快照对比结果，列出新增条目名称
+  let addLines = [];
+  let addedCount = 0;
+  try {
+    const raw = await import("node:fs").then((m) => m.default.readFileSync("/tmp/new-items.json", "utf8"));
+    const diff = JSON.parse(raw);
+    addedCount = (diff.added || []).length;
+    const cats = diff.counts || {};
+    if (addedCount > 0) {
+      addLines.push("");
+      addLines.push(`🆕 <b>新增 ${addedCount} 条</b>`);
+      // 按分类分组展示
+      const byCat = new Map();
+      for (const a of diff.added) {
+        if (!byCat.has(a.cat)) byCat.set(a.cat, []);
+        byCat.get(a.cat).push(a.name);
+      }
+      for (const [cat, names] of byCat) {
+        addLines.push(`<b>${cat}</b>（${names.length}）`);
+        for (const n of names.slice(0, 10)) addLines.push(`  · ${n}`);
+        if (names.length > 10) addLines.push(`  · …等 ${names.length} 条`);
+      }
+    }
+  } catch {
+    // 没有快照文件，跳过
+  }
+
   const text = [
     title,
     "═══════════════════",
     `📁 更新分类：<b>${touched.length}</b> 个`,
     `📦 涉及条目：<b>${totalItems}</b> 条`,
+    ...addLines,
     "",
-    ...lines.slice(0, 25),
-    touched.length > 25 ? `…等 ${touched.length} 个分类` : "",
+    ...lines.slice(0, 20),
+    touched.length > 20 ? `…等 ${touched.length} 个分类` : "",
     "",
     `<i>${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</i>`,
-  ].filter(Boolean).join("\n");
+  ].filter((x) => x !== undefined).join("\n");
 
   const res = await fetch(`${WORKER_URL}/action/tg_notify`, {
     method: "POST",

@@ -71,8 +71,16 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --no-progress
 
+      - name: Snapshot before crawl (记录抓取前的条目清单)
+        continue-on-error: true
+        run: node scripts/tg-snapshot.mjs save
+
       - name: Run crawler
         run: bun run crawler:run
+
+      - name: Diff new items (找出新增条目)
+        continue-on-error: true
+        run: node scripts/tg-snapshot.mjs diff
 
       - name: Notify Telegram
         if: always()

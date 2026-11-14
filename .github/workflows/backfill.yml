@@ -77,6 +77,10 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --no-progress
 
+      - name: Snapshot before backfill
+        continue-on-error: true
+        run: node scripts/tg-snapshot.mjs save
+
       - name: Rebake from cache only (不消耗额度)
         if: github.event.inputs.rebake_only == '1'
         run: bun run scripts/rebake-only.ts
@@ -94,6 +98,10 @@ jobs:
       - name: Sync ratings (重查 MDBList + 写缓存 + 烘焙数据文件)
         if: github.event.inputs.rebake_only != '1'
         run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category || '' }}
+
+      - name: Diff new items (找出新增条目)
+        continue-on-error: true
+        run: node scripts/tg-snapshot.mjs diff
 
       - name: Notify Telegram
         if: always()
