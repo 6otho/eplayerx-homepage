@@ -40,25 +40,27 @@ type Cache = Record<string, Record<string, number>>;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** 缓存值（MDBList 原样）→ 客户端显示值 */
+/**
+ * 缓存值 → 客户端显示值。
+ * 🎯 与上游完全一致：MDBList 给什么就存什么，不做任何 toFixed / 取整 / 除 10。
+ *    （之前这里的舍入/换算正是"和上游差一点点"的原因）
+ */
 function bake(src: string, v: number): number | undefined {
 	const n = Number(v);
 	if (!Number.isFinite(n) || n <= 0) return undefined;
 	switch (src) {
 		case "imdb":
 		case "mal":
-			return Number(n.toFixed(1));
 		case "letterboxd":
-			return Number((n > 5 ? n / 10 : n).toFixed(1));
 		case "trakt":
 		case "tmdb":
 		case "metacritic":
-			return Math.round(n);          // 0-100 原样（上游同样不转换）
 		case "tomatoes":
 		case "tomatoesAudience":
-			return Math.round(n);
 		case "rogerebert":
-			return Number(n.toFixed(1));
+		case "popcorn":
+		case "average":
+			return n;                      // 原样
 		default:
 			return undefined;
 	}
@@ -189,7 +191,7 @@ async function main(): Promise<void> {
 				if (c.tomatoes) fill("rotten_tomatoes", bake("tomatoes", c.tomatoes));
 				if (c.tomatoesAudience) fill("tomatoesAudience", bake("tomatoesAudience", c.tomatoesAudience));
 				if (c.metacritic) fill("metacritic", bake("metacritic", c.metacritic));
-				if (c.metacriticUser || c.metacriticuser) fill("metacriticUser", Number(Number(c.metacriticUser || c.metacriticuser).toFixed(1)));
+				if (c.metacriticUser || c.metacriticuser) fill("metacriticUser", Number(c.metacriticUser || c.metacriticuser));
 				if (c.mal) fill("mal", bake("mal", c.mal));
 				if (c.rogerebert) fill("rogerebert", bake("rogerebert", c.rogerebert));
 			}

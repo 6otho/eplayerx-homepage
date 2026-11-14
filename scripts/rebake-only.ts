@@ -26,24 +26,26 @@ interface Item {
 
 type Cache = Record<string, Record<string, number>>;
 
+/**
+ * 🎯 与上游完全一致：MDBList 给什么就存什么，不做任何 toFixed / 取整 / 除 10。
+ *    （之前这里的换算正是"和上游差一点点"的原因）
+ */
 function bake(src: string, v: number): number | undefined {
 	const n = Number(v);
 	if (!Number.isFinite(n) || n <= 0) return undefined;
 	switch (src) {
 		case "imdb":
 		case "mal":
-			return Number(n.toFixed(1));
 		case "letterboxd":
-			return Number((n > 5 ? n / 10 : n).toFixed(1));
 		case "trakt":
 		case "tmdb":
 		case "metacritic":
-			return Math.round(n);          // 0-100 原样（上游同样不转换）
 		case "tomatoes":
 		case "tomatoesAudience":
-			return Math.round(n);
 		case "rogerebert":
-			return Number(n.toFixed(1));
+		case "popcorn":
+		case "average":
+			return n;                      // 原样
 		default:
 			return undefined;
 	}
@@ -90,7 +92,7 @@ async function main(): Promise<void> {
 			if (c.metacritic) { const v = bake("metacritic", c.metacritic); if (v) out.metacritic = v; }
 			if (c.mal) { const v = bake("mal", c.mal); if (v) out.mal = v; }
 			if (c.rogerebert) { const v = bake("rogerebert", c.rogerebert); if (v) out.rogerebert = v; }
-			if (c.metacriticUser || c.metacriticuser) { const v = Number(Number(c.metacriticUser || c.metacriticuser).toFixed(1)); if (v>0) out.metacriticUser = v; }
+			if (c.metacriticUser || c.metacriticuser) { const v = Number(c.metacriticUser || c.metacriticuser); if (v>0) out.metacriticUser = v; }
 
 			// 🔒 文件里已有的来源，缓存没有的保留（不删用户手动提取的评分）
 			// ✅ 缓存优先：以 MDBList 为准覆盖文件值，保证与上游完全一致
