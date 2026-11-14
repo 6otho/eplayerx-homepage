@@ -4,9 +4,11 @@ import {
 	type ExtraReview,
 	fetchBahamutReviews,
 	fetchDoubanReviews,
+	scopedReviewTitle,
 	type MediaType,
 	type ReviewSource,
 	type ReviewTitle,
+	type ReviewContext,
 	type SourceReviews,
 } from "./providers.js";
 
@@ -15,6 +17,7 @@ interface SourceSnapshot extends SourceReviews {
 }
 interface Snapshot {
 	version: 1;
+	title?: ReviewTitle;
 	sources: Partial<Record<ReviewSource, SourceSnapshot>>;
 }
 export interface ReviewStorage {
@@ -49,7 +52,11 @@ export function reviewStorage(bucket?: R2Bucket): ReviewStorage | null {
 	};
 }
 
-async function resolveTitle(type: MediaType, id: number): Promise<ReviewTitle> {
+export async function resolveTitle(
+	type: MediaType,
+	id: number,
+	season?: number,
+): Promise<ReviewTitle> {
 	const details = await Promise.all(
 		["zh-CN", "zh-TW"].map(async (language) => {
 			const options = {
@@ -70,12 +77,24 @@ async function resolveTitle(type: MediaType, id: number): Promise<ReviewTitle> {
 				release_date?: string;
 				first_air_date?: string;
 				genres?: { id?: number }[];
+				seasons?: {
+					season_number?: number;
+					name?: string;
+					air_date?: string | null;
+				}[];
 			};
 		}),
 	);
+	// Series metadata already contains localized season names and premiere dates.
+	const seasons = details.map((detail) =>
+		detail.seasons?.find((entry) => entry.season_number === season),
+	);
 	const first = details[0];
 	const year = Number(
-		(first.release_date ?? first.first_air_date ?? "").slice(0, 4),
+		(season === undefined
+			? (first.release_date ?? first.first_air_date ?? "")
+			: (seasons[0]?.air_date ?? "")
+		).slice(0, 4),
 	);
 	const titles = [
 		...new Set(
@@ -87,12 +106,18 @@ async function resolveTitle(type: MediaType, id: number): Promise<ReviewTitle> {
 	];
 	if (!titles.length || !year)
 		throw new Error("Review title lacks a title or year");
-	return {
-		type,
-		titles,
-		year,
-		animated: first.genres?.some((genre) => genre.id === 16) ?? false,
-	};
+	return scopedReviewTitle(
+		{
+			type,
+			titles,
+			year,
+			animated: first.genres?.some((genre) => genre.id === 16) ?? false,
+		},
+		season,
+		seasons.flatMap((entry) =>
+			entry?.name?.trim() ? [entry.name.trim()] : [],
+		),
+	);
 }
 
 const DAY = 86_400_000;
@@ -153,6 +178,8 @@ export function createReviewCache(
 		id: number,
 		storage: ReviewStorage,
 		snapshot: Snapshot,
+		season?: number,
+		context?: ReviewContext,
 	): Promise<void> {
 		const existing = refreshes.get(key);
 		if (existing) return existing;
@@ -163,17 +190,49 @@ export function createReviewCache(
 		);
 		if (!due.length) return Promise.resolve();
 		const job = (async () => {
-			const next: Snapshot = { version: 1, sources: { ...snapshot.sources } };
+			const next: Snapshot = {
+				version: 1,
+				title: snapshot.title,
+				sources: { ...snapshot.sources },
+			};
+			let titleJob: Promise<ReviewTitle> | undefined;
+			const verifiedTitle = () =>
+				(titleJob ??= (
+					snapshot.title
+						? Promise.resolve(snapshot.title)
+						: dependencies.resolveTitle(type, id, season)
+				).then((title) => {
+					next.title = title;
+					return title;
+				}));
 			try {
-				const title = await dependencies.resolveTitle(type, id);
 				await Promise.all(
 					due.map(async (source) => {
 						const previous = snapshot.sources[source];
 						try {
-							const result = await dependencies.fetchers[source](
+							const language = context?.language.toLowerCase() ?? "";
+							const useContext =
+								context &&
+								(previous?.sourceId ||
+									(source === "bahamut" && !context.title.animated) ||
+									(source === "douban"
+										? /^zh(?:-cn|-hans)?$/.test(language)
+										: /^zh-(?:tw|hant)$/.test(language)));
+							const title = useContext ? context.title : await verifiedTitle();
+							let result = await dependencies.fetchers[source](
 								title,
 								previous?.sourceId,
 							);
+							if (
+								useContext &&
+								!previous?.sourceId &&
+								!result.sourceId &&
+								!(source === "bahamut" && !title.animated)
+							) {
+								result = await dependencies.fetchers[source](
+									await verifiedTitle(),
+								);
+							}
 							next.sources[source] = {
 								...result,
 								retryAt: Date.now() + (result.sourceId ? DAY : DAY / 4),
@@ -215,13 +274,55 @@ export function createReviewCache(
 		storage: ReviewStorage | null,
 		waitUntil: (job: Promise<void>) => void,
 		waitForRefreshMs = 0,
+		season?: number,
+		context?: ReviewContext,
 	): Promise<ExtraReview[]> => {
-		if (!storage) return [];
+		if (!storage || season === 0) return [];
 		const startedAt = performance.now();
-		const key = `reviews/v1/${type}/${id}.json`;
-		const loading = read(key, storage);
+		const baseKey = `reviews/v2/${type}/${id}${season === undefined ? "" : `/season/${season}`}.json`;
+		// Client hints cannot overwrite the canonical TMDB-verified mapping.
+		const digest = context
+			? await crypto.subtle.digest(
+					"SHA-256",
+					new TextEncoder().encode(JSON.stringify(context)),
+				)
+			: null;
+		const fingerprint = digest
+			? [...new Uint8Array(digest)]
+					.map((byte) => byte.toString(16).padStart(2, "0"))
+					.join("")
+			: "";
+		const key = context ? `${baseKey}/context/${fingerprint}` : baseKey;
+		const own = read(key, storage);
+		const hasResults = (
+			snapshot: Snapshot | null | undefined,
+		): snapshot is Snapshot =>
+			SOURCES.some((source) => snapshot?.sources[source]?.results.length);
+		const canonical = context ? read(baseKey, storage) : own;
+		let loadedSnapshot: Snapshot | null = null;
+		const loading = (
+			context
+				? Promise.race([
+						own.then((snapshot) =>
+							hasResults(snapshot)
+								? snapshot
+								: canonical.then((fallback) =>
+										hasResults(fallback) ? fallback : snapshot,
+									),
+						),
+						canonical.then((snapshot) =>
+							hasResults(snapshot) ? snapshot : own,
+						),
+					])
+				: own
+		).then((snapshot) => {
+			loadedSnapshot = snapshot;
+			return snapshot;
+		});
 		const background = loading.then((snapshot) =>
-			snapshot ? refresh(key, type, id, storage, snapshot) : undefined,
+			snapshot
+				? refresh(key, type, id, storage, snapshot, season, context)
+				: undefined,
 		);
 		waitUntil(background);
 		let timer: ReturnType<typeof setTimeout> | undefined;
@@ -247,7 +348,12 @@ export function createReviewCache(
 						timer = setTimeout(resolve, remaining);
 					}),
 				]);
-				snapshot = memory.get(key)?.snapshot ?? snapshot;
+				const latest = memory.get(key)?.snapshot;
+				snapshot = hasResults(latest)
+					? latest
+					: hasResults(loadedSnapshot)
+						? loadedSnapshot
+						: (latest ?? loadedSnapshot ?? snapshot);
 			}
 			return SOURCES.flatMap(
 				(source) => snapshot?.sources[source]?.results ?? [],

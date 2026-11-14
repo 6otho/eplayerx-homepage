@@ -8,6 +8,138 @@ type ReviewResponse = {
 	total_results: number;
 };
 
+test("client detail context obtains reviews without a redundant TMDB details request", async (t) => {
+	process.env.TMDB_API_TOKEN ||= "test-token";
+	const requested: string[] = [];
+	t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+		const url = new URL(input instanceof Request ? input.url : String(input));
+		requested.push(url.pathname);
+		if (url.pathname.endsWith("/reviews"))
+			return Response.json({
+				results: [{ id: "tmdb", content: "Review" }],
+				total_results: 1,
+			});
+		if (url.pathname.endsWith("/search"))
+			return Response.json({
+				subjects: {
+					items: [
+						{
+							target_type: "movie",
+							target: { id: "1234", title: "客户端片名", year: "2023" },
+						},
+					],
+				},
+			});
+		assert.equal(url.pathname, "/rexxar/api/v2/movie/1234/interests");
+		return Response.json({ interests: [{ id: "1", comment: "短评" }] });
+	});
+	const app = new Hono();
+	app.route("/tmdb", routes);
+	const query = new URLSearchParams({
+		id: "9924",
+		sources: "all",
+		language: "zh-CN",
+		context: JSON.stringify({
+			titles: ["客户端片名"],
+			year: 2023,
+			animated: false,
+		}),
+	});
+	const jobs: Promise<unknown>[] = [];
+	const response = await app.request(
+		`/tmdb/movie/reviews?${query}`,
+		{},
+		{ ASSETS: { get: async () => null, put: async () => {} } },
+		{
+			waitUntil: (job: Promise<unknown>) => {
+				jobs.push(job);
+			},
+			passThroughOnException() {},
+		} as ExecutionContext,
+	);
+	assert.equal(response.status, 200);
+	assert.equal(((await response.json()) as ReviewResponse).results.length, 2);
+	assert.equal(
+		requested.length,
+		3,
+		"one review request, one search and one comments request",
+	);
+	await Promise.all(jobs);
+});
+
+test("season requests isolate supplementary comments but retain TMDB whole-show reviews", async (t) => {
+	process.env.TMDB_API_TOKEN ||= "test-token";
+	const requested: string[] = [],
+		keys: string[] = [];
+	t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+		const url = new URL(input instanceof Request ? input.url : String(input));
+		requested.push(url.pathname);
+		return Response.json({
+			results: [{ id: "whole-show", content: "TMDB" }],
+			total_results: 1,
+		});
+	});
+	const env = {
+		ASSETS: {
+			get: async (key: string) => {
+				keys.push(key);
+				return {
+					json: async () => ({
+						version: 1,
+						sources: {
+							douban: {
+								sourceId: "season-two",
+								retryAt: Date.now() + 86400000,
+								results: [{ id: "s2", source: "douban", content: "第二季" }],
+							},
+							bahamut: {
+								sourceId: null,
+								retryAt: Date.now() + 86400000,
+								results: [],
+							},
+						},
+					}),
+				};
+			},
+		},
+	};
+	const jobs: Promise<unknown>[] = [];
+	const context = {
+		waitUntil: (job: Promise<unknown>) => {
+			jobs.push(job);
+		},
+		passThroughOnException() {},
+	};
+	const app = new Hono();
+	app.route("/tmdb", routes);
+	const response = await app.request(
+		"/tmdb/tv/reviews?id=9901&season=2&sources=all&language=en-US",
+		{},
+		env,
+		context as ExecutionContext,
+	);
+	assert.equal(response.status, 200);
+	assert.deepEqual(
+		((await response.json()) as ReviewResponse).results.map((item) => item.id),
+		["whole-show", "s2"],
+	);
+	assert.deepEqual(keys, ["reviews/v2/tv/9901/season/2.json"]);
+	assert.deepEqual(requested, ["/3/tv/9901/reviews"]);
+	for (const query of ["season=-1", "season=1.2", "season=", "season=1001"]) {
+		assert.equal(
+			(await app.request(`/tmdb/tv/reviews?id=9901&${query}&sources=all`))
+				.status,
+			400,
+		);
+	}
+	assert.equal(
+		(await app.request("/tmdb/movie/reviews?id=9901&season=1&sources=all"))
+			.status,
+		400,
+	);
+	await Promise.all(jobs);
+});
+
 test("combined reviews preserve the legacy contract, source identity and short cold-cache TTL", async (t) => {
 	const token = process.env.TMDB_API_TOKEN;
 	process.env.TMDB_API_TOKEN = "test-token";
