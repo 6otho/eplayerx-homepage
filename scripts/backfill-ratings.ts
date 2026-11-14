@@ -223,12 +223,8 @@ async function main(): Promise<void> {
 				changed = true;
 				itemsUpdated++;
 			}
-			// 🔑 客户端同步 vote_average 与 ratings.tmdb（实测：这既是显示字段也是刷新信号）
-			//    之前提取后客户端能显示，就是因为 vote_average 被更新了
-			if (c && merged.tmdb && Number(it.vote_average || 0) !== merged.tmdb) {
-				(it as Record<string, unknown>).vote_average = merged.tmdb;
-				changed = true;
-			}
+			// 🎯 vote_average 是 TMDB 原始评分(0-10)，由 crawler 从 TMDB 写入。
+			//    这里绝不能拿 ratings.tmdb(0-100) 去覆盖它——那就和上游不一致了。
 			// crawledAt 同步刷新（辅助信号）
 			if (c) {
 				(it as Record<string, unknown>).crawledAt = new Date().toISOString();
