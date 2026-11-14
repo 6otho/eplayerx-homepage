@@ -73,7 +73,7 @@ async function main(): Promise<void> {
 			try {
 				const res = await fetch(`${base}/action/batch_force_logo`, {
 					method: "POST",
-					headers: { Authorization: `Bearer ${pwd}`, "Content-Type": "application/json" },
+					headers: { Authorization: `Bearer ${pwd}`, "Content-Type": "application/json", "x-from-action": "1" },
 					body: JSON.stringify({ items: chunk.map((id) => ({ id, type })), category: categoryId, weekday: 1 }),
 				});
 				const d = await res.json().catch(() => null);
