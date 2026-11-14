@@ -66,6 +66,29 @@ function bake(src: string, v: number): number | undefined {
 	}
 }
 
+const TMDB_TOKEN = process.env.TMDB_API_TOKEN || "";
+const voteCache = new Map<string, number>();
+
+/** 从 TMDB 取真实的 vote_average（0-10），带内存缓存 */
+async function fetchTmdbVoteAverage(mt: "movie" | "tv", tmdbId: number | string): Promise<number | undefined> {
+	const key = `${mt}:${tmdbId}`;
+	if (voteCache.has(key)) return voteCache.get(key);
+	if (!TMDB_TOKEN) return undefined;
+	try {
+		const res = await fetch(`https://api.themoviedb.org/3/${mt}/${tmdbId}?language=zh-CN`, {
+			headers: { Authorization: `Bearer ${TMDB_TOKEN}`, accept: "application/json" },
+		});
+		if (!res.ok) { voteCache.set(key, 0); return undefined; }
+		const j = (await res.json()) as { vote_average?: number };
+		const v = typeof j.vote_average === "number" ? j.vote_average : 0;
+		voteCache.set(key, v);
+		return v > 0 ? v : undefined;
+	} catch {
+		voteCache.set(key, 0);
+		return undefined;
+	}
+}
+
 async function main(): Promise<void> {
 	const keys = parseMdblistApiKeys();
 	console.log(`MDBList keys: ${keys.length}`);
@@ -173,7 +196,7 @@ async function main(): Promise<void> {
 		for (const it of items) {
 			const tmdbId = it.tmdbId || it.id;
 			if (!tmdbId) continue;
-			const mt = String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv";
+			const mt = (String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv") as "movie" | "tv";
 			const c = cache[`${mt}:${tmdbId}`];
 			if (!c) continue;
 
@@ -223,8 +246,15 @@ async function main(): Promise<void> {
 				changed = true;
 				itemsUpdated++;
 			}
-			// 🎯 vote_average 是 TMDB 原始评分(0-10)，由 crawler 从 TMDB 写入。
-			//    这里绝不能拿 ratings.tmdb(0-100) 去覆盖它——那就和上游不一致了。
+			// 🎯 vote_average 必须是 TMDB 原始评分(0-10)。
+			//    历史脏数据里被写成了 0-100（如 100），这里从 TMDB 拉真值修正一次。
+			if (typeof it.vote_average === "number" && it.vote_average > 10) {
+				const real = await fetchTmdbVoteAverage(mt, tmdbId);
+				if (real && real > 0) {
+					(it as Record<string, unknown>).vote_average = real;
+					changed = true;
+				}
+			}
 			// crawledAt 同步刷新（辅助信号）
 			if (c) {
 				(it as Record<string, unknown>).crawledAt = new Date().toISOString();
