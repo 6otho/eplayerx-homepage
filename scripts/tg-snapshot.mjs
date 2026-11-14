@@ -51,7 +51,7 @@ async function listKeys() {
       Bucket: BUCKET, ContinuationToken: token, MaxKeys: 1000,
     }));
     for (const o of r.Contents || []) {
-      if (o.Key?.endsWith(".json") && !SKIP.has(o.Key) && !o.Key.startsWith("_$") && !o.Key.startsWith("reviews/")) out.push(o.Key);
+      if (o.Key?.endsWith(".json") && !SKIP.has(o.Key) && !o.Key.startsWith("_$") && !o.Key.startsWith("reviews/") && isKnownCategory(o.Key)) out.push(o.Key);
     }
     token = r.IsTruncated ? r.NextContinuationToken : undefined;
   } while (token);
@@ -77,36 +77,6 @@ async function collect() {
 }
 
 const CATEGORY_NAMES = {
-  "bangumi-animation.json": "Bangumi 热门动画",
-  "douban-animation.json": "豆瓣热门动画",
-  "douban-baiye.json": "白夜剧场",
-  "douban-hot-variety-shows.json": "豆瓣热门综艺",
-  "douban-japanese-tv.json": "热门日剧",
-  "douban-jifeng.json": "疾风剧场",
-  "douban-lianlian.json": "恋恋剧场",
-  "douban-miwu.json": "迷雾剧场",
-  "douban-shenghua.json": "生花剧场",
-  "douban-tv.json": "豆瓣热门剧集",
-  "douban-x.json": "X 剧场",
-  "douban-yinghuo.json": "萤火剧场",
-  "guest_trakt-movies.json": "访客热门电影",
-  "guest_trakt-shows.json": "访客热门剧集",
-  "hami-taiwanese-tv.json": "Hami 台剧",
-  "imdb-top-movies.json": "IMDb 高分电影",
-  "theater-baiye.json": "白夜剧场排期",
-  "theater-jifeng.json": "疾风剧场排期",
-  "theater-lianlian.json": "恋恋剧场排期",
-  "theater-miwu.json": "迷雾剧场排期",
-  "theater-shenghua.json": "生花剧场排期",
-  "theater-x.json": "X 剧场排期",
-  "theater-yinghuo.json": "萤火剧场排期",
-  "tmdb-filmarks-jp.json": "Filmarks 日影热门",
-  "tmdb-netflix-movies.json": "Netflix 热门电影",
-  "tmdb-tv-netflix-hbo.json": "Netflix & HBO 剧集",
-  "weekly-anime.json": "番剧周更表",
-  "weekly-cn-drama.json": "国产剧周更表",
-  "weekly-ecchi.json": "肉番周更表",
-  "weekly_ecchi_collection.json": "肉番周更表",
   "bangumi-airing.json": "今日热门番剧",
   "douban-korean-tv.json": "热门韩剧安利",
   "douban-movies.json": "实时热门电影",
@@ -147,6 +117,13 @@ const CATEGORY_NAMES = {
   "weekly_korean_drama_collection.json": "韩剧追剧周更表",
   "weekly_sea_drama_collection.json": "东南亚剧周更表",
 };
+
+/** 是否属于 movie-api 实际拥有的分类（其它文件不纳入通知） */
+function isKnownCategory(key) {
+  if (CATEGORY_NAMES[key]) return true;
+  const m = key.match(/^(.+)-\d+\.json$/);
+  return !!(m && CATEGORY_NAMES[m[1] + ".json"]);
+}
 
 function labelOf(key) {
   if (CATEGORY_NAMES[key]) return CATEGORY_NAMES[key];
