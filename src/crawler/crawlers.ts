@@ -79,7 +79,8 @@ function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
 	// 这里按「剥离分季后缀的标题」合并，只保留质量最好的一条。
 	// 规范化标题：去掉空格/标点，并剥离「第二季」「Season 2」「S2」「第二期」「篇」等分季后缀，
 	// 这样同一部剧的不同季会被识别成同一条，不会重复入库。
-	const SEASON_SUFFIX = /(第[一二三四五六七八九十0-9]{1,3}[季期篇章部]|season\s*\d{1,2}|part\s*\d{1,2}|\bs\d{1,2}\b|ⅱ|ⅲ|ⅳ)/gi;
+	// 覆盖 TMDB 上常见的重复条目命名：分季版 / 分季 / 第X季 / Season X / S2 / 合辑 / 合集 …
+	const SEASON_SUFFIX = /(第[一二三四五六七八九十0-9]{1,3}[季期篇章部]|season\s*\d{1,2}|part\s*\d{1,2}|\bs\d{1,2}\b|ⅱ|ⅲ|ⅳ|[（(【\[]?\s*分季(版)?\s*[）)】\]]?|[-_—\s]*分季(版)?|合辑|合集|全集|完整版)/gi;
 	const norm = (v: string) =>
 		(v || "").toLowerCase().replace(SEASON_SUFFIX, "").replace(/[\s\-_:,.　·、，。]/g, "");
 	const byTitle = new Map<string, ContentItem>();
