@@ -116,6 +116,8 @@ async function main(): Promise<void> {
 
 	// 一条评分"完整"的判定：至少 3 个来源有值
 	const RATING_KEYS = ["imdb", "trakt", "rotten_tomatoes", "letterboxd", "metacritic"];
+	// 判定「评分够全」用的字段（含 MDBList 原始键名 + 烘焙后的别名）
+	const RETRY_KEYS = ["imdb", "trakt", "rotten_tomatoes", "tomatoes", "letterboxd", "metacritic", "tmdb"];
 	// ✅ 与上游一致：缓存里有这条记录就跳过（不管几个来源）
 	//    原注释："Unique tmdbIds are cached in R2 so each title is queried at most once"
 	//    额外保险：仍保留 7 天冷却，防止空记录被反复重查
@@ -124,9 +126,13 @@ async function main(): Promise<void> {
 	const isComplete = (ck: string) => {
 		const c = cache[ck];
 		if (!c || typeof c !== "object") return false;
-		const n = RATING_KEYS.filter((k) => typeof (c as Record<string, number>)[k] === "number").length;
-		if (n >= 1) return true; // 有任何评分来源 → 视为已查过
-		// 一条都没有（MDBList 无数据）：冷却期内不重查
+		const n = RETRY_KEYS.filter((k) => {
+			const v = (c as Record<string, number>)[k];
+			return typeof v === "number" && v > 0;
+		}).length;
+		// 🎯 来源 ≥3 才算完整（只有 trakt 一条不算，继续补烂番茄/imdb）
+		if (n >= 3) return true;
+		// 完全查不到数据：冷却期内不重查
 		const at = Number((c as Record<string, unknown>).__checkedAt || 0);
 		return at > 0 && Date.now() - at < RETRY_MS;
 	};
@@ -169,10 +175,15 @@ async function main(): Promise<void> {
 			// ⛔ 拿到空值时不覆盖：保留已有缓存，避免查询失败把好数据抹掉
 			//    （之前 `cache[ck] = clean` 无条件覆盖，遇到额度/网络波动就会清空）
 			if (Object.keys(clean).length > 0) {
-				cache[ck] = { ...(cache[ck] || {}), ...clean, __checkedAt: Date.now() };
+				const merged = { ...(cache[ck] || {}), ...clean };
+				// 🎯 只有来源够全（≥3）才打冷却标记；
+				//    只查到 1-2 个源的（如只有 trakt）下次还要再查，否则烂番茄永远补不上
+				const scored = RETRY_KEYS.filter((k) => typeof (merged as Record<string, number>)[k] === "number").length;
+				if (scored >= 3) (merged as Record<string, unknown>).__checkedAt = Date.now();
+				cache[ck] = merged;
 				got++;
 			} else {
-				// 查了但 MDBList 没数据：也打上时间戳，冷却期内不再重查
+				// 查了但 MDBList 一条都没有：冷却期内不再重查
 				cache[ck] = { ...(cache[ck] || {}), __checkedAt: Date.now() };
 				empty++;
 			}
