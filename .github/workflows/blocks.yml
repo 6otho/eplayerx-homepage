@@ -6,11 +6,8 @@ name: Refresh blocks
 #   scripts/blocks/monthly/  -> 1st of each month
 #   scripts/blocks/manual/   -> only via workflow_dispatch
 on:
-  schedule:
-    # Off-peak UTC, staggered after crawler (02:17) to reduce hosted-runner contention
-    - cron: "23 3 * * *" # daily group  (~11:23 CST)
-    - cron: "23 4 * * 0" # weekly group (~12:23 CST Sunday)
-    - cron: "23 5 1 * *" # monthly group (~13:23 CST 1st)
+  # 🔕 自动定时已关闭：本项目的 R2 没有使用 blocks 社区榜单（blocks/ 目录为空），
+  #    该任务每天失败并产生通知噪音。需要时可手动 workflow_dispatch 触发。
   workflow_dispatch:
     inputs:
       target:
