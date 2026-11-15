@@ -291,7 +291,8 @@ export function pickPreferredLogo(
 	const pick = (items: ImageEntry[]) =>
 		bestByVote(landscape(items)) ?? bestByVote(items);
 
-	if (appLanguage === "zh" && preferredRegion) {
+	// 注：原产语言优先已在下面处理；中文地区细分仅在「原语言就是中文」时才生效
+	if (appLanguage === "zh" && preferredRegion && original === "zh") {
 		const regionMatches = logos.filter(
 			(logo) =>
 				logoLanguageCode(logo) === "zh" && logo.iso_3166_1 === preferredRegion,
@@ -300,8 +301,9 @@ export function pickPreferredLogo(
 		if (regionHit) return regionHit;
 	}
 
-	// 🎯 语言优先级：原语言 > 界面语言 > 无字
-	//    欧美剧优先用英文/原语言 Logo，中文剧才用中文 Logo
+	// 🎯 主 logo 必须是「原产国语言」那张：
+	//    本项目客户端无法切换 logo 地区，R2 里存的 logo 就是最终显示的那张。
+	//    顺序：原语言 → 界面语言 → 无字
 	const languages: Array<string | undefined> = [];
 	if (original) languages.push(original);
 	if (appLanguage !== original) languages.push(appLanguage);
