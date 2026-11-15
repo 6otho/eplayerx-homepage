@@ -79,6 +79,16 @@ export interface ContentItem {
   first_air_date?: string | null;
   overview?: string | null;
   tagline?: string | null;
+  /** 与上游一致的基础字段（客户端渲染需要） */
+  vote_count?: number | null;
+  popularity?: number | null;
+  original_title?: string | null;
+  original_name?: string | null;
+  original_language?: string | null;
+  adult?: boolean;
+  video?: boolean;
+  softcore?: boolean;
+  id?: number;
   thumb?: string | null;
   logo?: string | null;
   noLogoPoster?: string | null;
