@@ -210,7 +210,10 @@ export async function crawlDiscoverCategory(cat: DiscoverCategory, limit = 100):
 		return 0;
 	}
 	const deduped = deduplicateByTmdbId(ok);
-	await saveRawFile(cat.fileName, deduped, "tmdb", cat.mediaType === "movie" ? "movie" : "animation");
+	// 🎯 与 movie-api 的 CATEGORY_CONFIGS 一致：movie → movie，tv → tv_series
+	//    （之前统一写成 animation 会让客户端按动画分类处理，导致评分渲染异常）
+	const typeLabel = cat.mediaType === "movie" ? "movie" : "tv_series";
+	await saveRawFile(cat.fileName, deduped, "tmdb", typeLabel);
 	console.log(`  💾 ${cat.label}: 保存 ${deduped.length} 条`);
 	return deduped.length;
 }
