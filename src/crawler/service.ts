@@ -798,10 +798,19 @@ export async function getDiscoverTVByNetworkLastUpdate(): Promise<
  * 通用：按文件名读取已有数据（供 tmdb discover 类分类合并用）
  */
 export async function loadRawFile(fileName: string): Promise<ContentItem[]> {
+  // 直接用 S3 读（自定义域名在某些环境不可达，之前导致读到 0 条）
   try {
-    const blobData = await loadBlobContent(fileName);
-    return blobData?.data || [];
-  } catch {
+    const obj = await r2Client.send(
+      new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: fileName })
+    );
+    const body = await obj.Body?.transformToString();
+    if (!body) return [];
+    const parsed = JSON.parse(body) as BlobData;
+    return Array.isArray(parsed?.data) ? parsed.data : [];
+  } catch (e: any) {
+    if (e?.$metadata?.httpStatusCode !== 404 && e?.name !== "NoSuchKey") {
+      console.warn(`读取 ${fileName} 失败:`, e?.message);
+    }
     return [];
   }
 }
