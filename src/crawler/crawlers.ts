@@ -24,6 +24,7 @@ import {
 	saveJapaneseTVSeries,
 	saveKoreanTVSeries,
 	saveMovies,
+	saveRawFile,
 	saveTVSeries,
 } from "./service.js";
 import {
@@ -329,10 +330,9 @@ export async function crawlDoubanAnimation() {
 		const title = resolveAnimationTitle(item.title);
 		console.log(`🔍 Searching: ${title}`);
 
-		// 🎯 必须是日本的动画，否则会混入国产/欧美动画
+		// 国产动漫：只要"动画"类型，不限制国家（这里放 JP 过滤是错的，会导致匹配异常）
 		const tmdbData = await searchTMDB(title, "tv", {
 			requireTvGenreIds: [TMDB_TV_GENRE_ANIMATION],
-			requireOriginCountries: ["JP"],
 		});
 
 		if (tmdbData) {
@@ -421,8 +421,10 @@ export async function crawlBangumiAnimation() {
 		const title = resolveAnimationTitle(item.title);
 		console.log(`🔍 Searching: ${title}`);
 
+		// 🎯 Bangumi 是日番榜：限日本，避免混入国产/欧美动画
 		const tmdbData = await searchTMDB(title, "tv", {
 			requireTvGenreIds: [TMDB_TV_GENRE_ANIMATION],
+			requireOriginCountries: ["JP"],
 		});
 
 		if (tmdbData) {
@@ -454,6 +456,90 @@ export async function crawlBangumiAnimation() {
 /**
  * Run all crawlers
  */
+/**
+ * TMDB discover 型分类（tmdb_anime_cn / tmdb_tv_ja）
+ * 原由 movie-api 抓取，现统一到 GitHub Actions，避免两处代码互相覆盖。
+ * poster_path 一律取自 TMDB 详情接口（buildContentItem 内部已保证）。
+ */
+const DISCOVER_CATEGORIES = [
+	{
+		id: "tmdb_anime_cn",
+		fileName: "tmdb-anime-cn.json",
+		label: "热门国产动漫",
+		mediaType: "tv" as const,
+		query: { with_original_language: "zh", with_origin_country: "CN", with_genres: "16" },
+	},
+	{
+		id: "tmdb_tv_ja",
+		fileName: "tmdb-tv-ja.json",
+		label: "专治精神内耗的日剧",
+		mediaType: "tv" as const,
+		query: { with_original_language: "ja", without_genres: "16", with_origin_country: "JP" },
+	},
+];
+
+async function crawlDiscoverCategory(cat: (typeof DISCOVER_CATEGORIES)[number]) {
+	console.log(`\n🎬 [${cat.label}] 开始抓取`);
+	const limit = Number(process.env.DISCOVER_LIMIT || 100);
+	const pages = Math.ceil(limit / 20);
+	const raw: TmdbSearchResult[] = [];
+	const seen = new Set<number>();
+
+	for (let page = 1; page <= pages; page++) {
+		const result = await tmdb.GET(`/3/discover/${cat.mediaType}`, {
+			params: {
+				query: {
+					language: "zh-CN",
+					sort_by: "popularity.desc",
+					page: String(page),
+					...cat.query,
+				} as never,
+			},
+		});
+		const list = (result.data as { results?: TmdbSearchResult[] } | undefined)?.results ?? [];
+		if (!list.length) break;
+		for (const r of list) {
+			const id = Number((r as { id?: number }).id);
+			if (!id || seen.has(id)) continue;
+			seen.add(id);
+			raw.push(r);
+		}
+		await delay(250);
+	}
+	console.log(`📥 列表返回 ${raw.length} 条`);
+
+	const results: ContentItem[] = [];
+	for (const item of raw) {
+		const title = (item as { name?: string }).name || (item as { title?: string }).title || "";
+		if (!title) continue;
+		try {
+			const content = await buildContentItem(title, item, cat.mediaType);
+			if (content) {
+				results.push(content);
+				console.log(`  ✅ ${content.tmdbId} ${title}`);
+			}
+		} catch (e) {
+			console.error(`  ❌ ${title}:`, (e as Error).message);
+		}
+		await delay(200);
+	}
+
+	if (results.length) {
+		const deduped = deduplicateByTmdbId(results);
+		// saveRawFile 内部已做增量合并（保留历史条目）
+		await saveRawFile(cat.fileName, deduped, "tmdb", "animation");
+		console.log(`💾 ${cat.label}: 保存 ${deduped.length} 条`);
+	}
+}
+
+export async function crawlTmdbAnimeCn() {
+	await crawlDiscoverCategory(DISCOVER_CATEGORIES[0]);
+}
+
+export async function crawlTmdbTvJa() {
+	await crawlDiscoverCategory(DISCOVER_CATEGORIES[1]);
+}
+
 const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
 	douban_movies: crawlDoubanMovies,
 	douban_tv: crawlDoubanTVSeries,
@@ -463,6 +549,8 @@ const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
 	douban_animation: crawlDoubanAnimation,
 	douban_variety: crawlDoubanHotVarietyShows,
 	bangumi_animation: crawlBangumiAnimation,
+	tmdb_anime_cn: crawlTmdbAnimeCn,
+	tmdb_tv_ja: crawlTmdbTvJa,
 };
 
 async function runAllCrawlers() {

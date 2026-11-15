@@ -778,3 +778,42 @@ export async function getDiscoverTVByNetworkLastUpdate(): Promise<
     return null;
   }
 }
+
+
+/**
+ * 通用：按文件名读取已有数据（供 tmdb discover 类分类合并用）
+ */
+export async function loadRawFile(fileName: string): Promise<ContentItem[]> {
+  try {
+    const blobData = await loadBlobContent(fileName);
+    return blobData?.data || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * 通用：按文件名保存（与其它分类同样的增量合并 + 去重规则）
+ */
+export async function saveRawFile(
+  fileName: string,
+  items: ContentItem[],
+  platform = "tmdb",
+  type = "tv_series",
+): Promise<void> {
+  if (!R2_BUCKET_NAME) throw new Error("R2_BUCKET_NAME is not configured");
+  const merged = await mergeWithExisting(fileName, items);
+  const data: BlobData = {
+    platform,
+    type,
+    count: merged.length,
+    lastUpdated: new Date().toISOString(),
+    data: merged,
+  };
+  await r2Client.send(new PutObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: fileName,
+    Body: JSON.stringify(data, null, 2),
+    ContentType: "application/json",
+  }));
+}

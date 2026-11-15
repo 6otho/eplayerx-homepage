@@ -44,8 +44,30 @@ async function main(): Promise<void> {
 	const filter = String(process.env.CATEGORY_FILTER || "").trim();
 
 	const norm = (s: string) => s.toLowerCase().replace(/[-_]/g, "");
+	// 🎯 只处理 movie-api 真实拥有的分类（CATEGORY_CONFIGS 里的 39 个）。
+	//    R2 里还有 reviews/ 缓存、上游遗留的 theater-*/douban-baiye 等，
+	//    对它们调用提取接口会污染数据（之前一次跑了 143 个"分类"就是这么来的）。
+	const MOVIE_API_CATEGORIES = new Set([
+		"weekly_anime_collection", "weekly_drama_collection", "weekly_guoman_collection",
+		"weekly_korean_drama_collection", "weekly_japanese_drama_collection", "weekly_sea_drama_collection",
+		"tmdb_popular_movies", "tmdb_popular_tv", "bangumi_airing", "douban_tv_custom",
+		"tmdb_tv_netflix", "variety_cn", "variety_kr", "variety_global", "tmdb_tv_hbo",
+		"tmdb_tv_apple", "trakt_movies", "tmdb_anime_cn", "trakt_shows", "douban_movies",
+		"douban_korean_tv", "tmdb_tv_ja", "tmdb_anime_jp", "imdb_top_anime", "prime_hot_anime",
+		"filmarks_anime_movie", "netflix_hot_anime", "tmdb_anime_top_ja", "tmdb_anime_movie_ja",
+		"tmdb_tv_es", "tmdb_tv_tw", "tmdb_movie_tw", "tmdb_movie_sea", "tmdb_movie_hk_erotic_comedy",
+		"tmdb_tv_th", "tmdb_movie_th", "tmdb_tv_bl", "netflix_tv_minor", "netflix_movie_minor",
+	]);
+
 	const files = (await listR2Keys(""))
-		.filter((k) => !SKIP.has(k) && !k.startsWith("_$"))
+		.filter((k) => !SKIP.has(k) && !k.startsWith("_$") && !k.startsWith("reviews/"))
+		.filter((k) => {
+			const id = toCategoryId(k);
+			if (MOVIE_API_CATEGORIES.has(id)) return true;
+			// 周更表按天分文件：weekly_drama_collection_3.json
+			const m = id.match(/^(.+)_(\d+)$/);
+			return !!(m && MOVIE_API_CATEGORIES.has(m[1]));
+		})
 		.filter((k) => (filter ? norm(k).includes(norm(filter)) : true));
 
 	console.log(`提取目标: ${files.length} 个分类，每个 ${topN === Number.POSITIVE_INFINITY ? "全部" : "前 " + topN} 条`);
