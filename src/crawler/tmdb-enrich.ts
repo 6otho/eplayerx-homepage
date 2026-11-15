@@ -300,8 +300,11 @@ export function pickPreferredLogo(
 		if (regionHit) return regionHit;
 	}
 
-	const languages: Array<string | undefined> = [appLanguage];
-	if (original && original !== appLanguage) languages.push(original);
+	// 🎯 语言优先级：原语言 > 界面语言 > 无字
+	//    欧美剧优先用英文/原语言 Logo，中文剧才用中文 Logo
+	const languages: Array<string | undefined> = [];
+	if (original) languages.push(original);
+	if (appLanguage !== original) languages.push(appLanguage);
 	languages.push(undefined);
 
 	const seen = new Set<string>();
