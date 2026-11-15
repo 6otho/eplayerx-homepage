@@ -114,15 +114,17 @@ async function main(): Promise<void> {
 
 	// 一条评分"完整"的判定：至少 3 个来源有值
 	const RATING_KEYS = ["imdb", "trakt", "rotten_tomatoes", "letterboxd", "metacritic"];
-	// 冷却期：查过但不全的条目，N 天内不再重查（避免每次全量重复烧额度）
+	// ✅ 与上游一致：缓存里有这条记录就跳过（不管几个来源）
+	//    原注释："Unique tmdbIds are cached in R2 so each title is queried at most once"
+	//    额外保险：仍保留 7 天冷却，防止空记录被反复重查
 	const RETRY_DAYS = Number(process.env.RETRY_DAYS || 7);
 	const RETRY_MS = RETRY_DAYS * 86400 * 1000;
 	const isComplete = (ck: string) => {
 		const c = cache[ck];
 		if (!c || typeof c !== "object") return false;
 		const n = RATING_KEYS.filter((k) => typeof (c as Record<string, number>)[k] === "number").length;
-		if (n >= 3) return true;
-		// 不满 3 源，但最近 RETRY_DAYS 天内查过 → 也跳过（MDBList 就这几分，重查无意义）
+		if (n >= 1) return true; // 有任何评分来源 → 视为已查过
+		// 一条都没有（MDBList 无数据）：冷却期内不重查
 		const at = Number((c as Record<string, unknown>).__checkedAt || 0);
 		return at > 0 && Date.now() - at < RETRY_MS;
 	};
