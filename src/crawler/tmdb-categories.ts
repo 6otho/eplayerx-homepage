@@ -164,10 +164,13 @@ export async function crawlDiscoverCategory(cat: DiscoverCategory, limit = 100):
 		const old = await loadRawFile(cat.fileName);
 		const pinnedCount = old.filter((x) => (x as { pinned?: boolean }).pinned).length;
 		console.log(`  📂 旧数据 ${old.length} 条，其中 pinned ${pinnedCount} 条`);
-		for (const it of old) {
+		// 前 20 条（首页展示位）也一并刷新，避免它们因不在 discover 里而字段陈旧
+		const HEAD_REFRESH = 20;
+		for (const [idx, it] of old.entries()) {
 			const id = Number(it.tmdbId || (it as { id?: number }).id);
 			if (!id || seen.has(id)) continue;
-			if (!(it as { pinned?: boolean }).pinned) continue;
+			const isPinned = !!(it as { pinned?: boolean }).pinned;
+			if (!isPinned && idx >= HEAD_REFRESH) continue;
 			const title = (it as { title?: string }).title || (it as { name?: string }).name || "";
 			if (!title) continue;
 			seen.add(id);
