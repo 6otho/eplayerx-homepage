@@ -9,7 +9,7 @@
 
 import { tmdb } from "../tmdb/client.js";
 import { buildContentItem, deduplicateByTmdbId } from "./crawlers.js";
-import { saveRawFile } from "./service.js";
+import { loadRawFile, saveRawFile } from "./service.js";
 import type { TmdbSearchResult } from "./tmdb-enrich.js";
 
 export interface DiscoverCategory {
@@ -156,9 +156,27 @@ export const DISCOVER_CATEGORIES: DiscoverCategory[] = [
 /** 抓一个分类：discover 列表 → 逐条取详情 → 合并保存 */
 export async function crawlDiscoverCategory(cat: DiscoverCategory, limit = 100): Promise<number> {
 	console.log(`\n🎬 [${cat.label}] ${cat.id}`);
-	const pages = Math.ceil(limit / 20);
+
+	// 🔝 先把「已置顶 / 轮播位」的旧条目纳入刷新范围（它们可能不在 discover 前 N 条里）
 	const raw: TmdbSearchResult[] = [];
 	const seen = new Set<number>();
+	try {
+		const old = await loadRawFile(cat.fileName);
+		for (const it of old) {
+			const id = Number(it.tmdbId || (it as { id?: number }).id);
+			if (!id || seen.has(id)) continue;
+			if (!(it as { pinned?: boolean }).pinned) continue;
+			const title = (it as { title?: string }).title || (it as { name?: string }).name || "";
+			if (!title) continue;
+			seen.add(id);
+			// 用最小字段构造，buildContentItem 内部会重新拉详情
+			raw.push({ id, name: title, title } as TmdbSearchResult);
+			console.log(`  🔝 置顶补抓: ${title}`);
+		}
+	} catch { /* 首次运行没有旧文件 */ }
+
+	const pages = Math.ceil(limit / 20);
+	let discoverCount = 0;
 
 	for (let page = 1; page <= pages; page++) {
 		let results: TmdbSearchResult[] = [];
@@ -184,9 +202,10 @@ export async function crawlDiscoverCategory(cat: DiscoverCategory, limit = 100):
 			if (!id || seen.has(id)) continue;
 			seen.add(id);
 			raw.push(r);
-			if (raw.length >= limit) break;
+			discoverCount++;
+			if (discoverCount >= limit) break;
 		}
-		if (raw.length >= limit) break;
+		if (discoverCount >= limit) break;
 		await new Promise((r) => setTimeout(r, 250));
 	}
 	console.log(`  📥 列表 ${raw.length} 条`);
