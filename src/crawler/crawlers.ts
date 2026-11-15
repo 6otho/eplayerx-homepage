@@ -14,6 +14,7 @@ import {
 	fetchDoubanKoreanTVSeries,
 } from "./douban-scraper.js";
 import { fetchHamiTaiwaneseTVSeries } from "./hami-scraper.js";
+import { crawlAllDiscoverCategories } from "./tmdb-categories.js";
 import {
 	type ContentItem,
 	type ContentItemTranslation,
@@ -66,7 +67,7 @@ const absImg = (p: string | null | undefined): string | null => {
 /**
  * Deduplicate content items by tmdbId, keeping the latest one
  */
-function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
+export function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
 	const byTmdb = new Map<number, ContentItem>();
 	for (const item of items) {
 		const existing = byTmdb.get(item.tmdbId);
@@ -129,7 +130,7 @@ function translationFromEnrichment(
 	};
 }
 
-async function buildContentItem(
+export async function buildContentItem(
 	title: string,
 	tmdbData: TmdbSearchResult,
 	mediaType: "movie" | "tv",
@@ -473,90 +474,6 @@ export async function crawlBangumiAnimation() {
 /**
  * Run all crawlers
  */
-/**
- * TMDB discover 型分类（tmdb_anime_cn / tmdb_tv_ja）
- * 原由 movie-api 抓取，现统一到 GitHub Actions，避免两处代码互相覆盖。
- * poster_path 一律取自 TMDB 详情接口（buildContentItem 内部已保证）。
- */
-const DISCOVER_CATEGORIES = [
-	{
-		id: "tmdb_anime_cn",
-		fileName: "tmdb-anime-cn.json",
-		label: "热门国产动漫",
-		mediaType: "tv" as const,
-		query: { with_original_language: "zh", with_origin_country: "CN", with_genres: "16" },
-	},
-	{
-		id: "tmdb_tv_ja",
-		fileName: "tmdb-tv-ja.json",
-		label: "专治精神内耗的日剧",
-		mediaType: "tv" as const,
-		query: { with_original_language: "ja", without_genres: "16", with_origin_country: "JP" },
-	},
-];
-
-async function crawlDiscoverCategory(cat: (typeof DISCOVER_CATEGORIES)[number]) {
-	console.log(`\n🎬 [${cat.label}] 开始抓取`);
-	const limit = Number(process.env.DISCOVER_LIMIT || 100);
-	const pages = Math.ceil(limit / 20);
-	const raw: TmdbSearchResult[] = [];
-	const seen = new Set<number>();
-
-	for (let page = 1; page <= pages; page++) {
-		const result = await tmdb.GET(`/3/discover/${cat.mediaType}`, {
-			params: {
-				query: {
-					language: "zh-CN",
-					sort_by: "popularity.desc",
-					page: String(page),
-					...cat.query,
-				} as never,
-			},
-		});
-		const list = (result.data as { results?: TmdbSearchResult[] } | undefined)?.results ?? [];
-		if (!list.length) break;
-		for (const r of list) {
-			const id = Number((r as { id?: number }).id);
-			if (!id || seen.has(id)) continue;
-			seen.add(id);
-			raw.push(r);
-		}
-		await delay(250);
-	}
-	console.log(`📥 列表返回 ${raw.length} 条`);
-
-	const results: ContentItem[] = [];
-	for (const item of raw) {
-		const title = (item as { name?: string }).name || (item as { title?: string }).title || "";
-		if (!title) continue;
-		try {
-			const content = await buildContentItem(title, item, cat.mediaType);
-			if (content) {
-				results.push(content);
-				console.log(`  ✅ ${content.tmdbId} ${title}`);
-			}
-		} catch (e) {
-			console.error(`  ❌ ${title}:`, (e as Error).message);
-		}
-		await delay(200);
-	}
-
-	if (results.length) {
-		const deduped = deduplicateByTmdbId(results);
-		// saveRawFile 内部已做增量合并（保留历史条目）
-		await saveRawFile(cat.fileName, deduped, "tmdb", "animation");
-		console.log(`💾 ${cat.label}: 保存 ${deduped.length} 条`);
-	}
-}
-
-export async function crawlTmdbAnimeCn() {
-	await crawlDiscoverCategory(DISCOVER_CATEGORIES[0]);
-}
-
-export async function crawlTmdbTvJa() {
-	await crawlDiscoverCategory(DISCOVER_CATEGORIES[1]);
-}
-
 const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
 	douban_movies: crawlDoubanMovies,
 	douban_tv: crawlDoubanTVSeries,
@@ -566,18 +483,28 @@ const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
 	douban_animation: crawlDoubanAnimation,
 	douban_variety: crawlDoubanHotVarietyShows,
 	bangumi_animation: crawlBangumiAnimation,
-	tmdb_anime_cn: crawlTmdbAnimeCn,
-	tmdb_tv_ja: crawlTmdbTvJa,
+	tmdb_discover_all: () => crawlAllDiscoverCategories(),
 };
+
+/** CRAWL_ONLY 里可以直接写 tmdb_xxx，走统一的 discover 爬虫 */
+function resolveCrawler(name: string): (() => Promise<unknown>) | undefined {
+	if (ALL_CRAWLERS[name]) return ALL_CRAWLERS[name];
+	// tmdb_anime_cn / tmdb_tv_ja / tmdb_popular_tv … 都交给 discover 组
+	if (name.startsWith("tmdb_") || (name.startsWith("netflix_") && name.endsWith("_minor"))) {
+		return () => crawlAllDiscoverCategories([name]);
+	}
+	return undefined;
+}
 
 async function runAllCrawlers() {
 	// CRAWL_ONLY=xxx,yyy 时只跑指定爬虫（用于单分类验证）
 	const only = (process.env.CRAWL_ONLY || "").split(",").map((x) => x.trim()).filter(Boolean);
 	const names = only.length ? only : Object.keys(ALL_CRAWLERS);
+	// 默认全量时，discover 组已包含在 ALL_CRAWLERS 里（tmdb_discover_all）
 	console.log(`🚀 Starting crawlers: ${names.join(", ")}\n`);
 
 	for (const name of names) {
-		const fn = ALL_CRAWLERS[name];
+		const fn = resolveCrawler(name);
 		if (!fn) {
 			console.warn(`⚠️ 未知爬虫: ${name}`);
 			continue;
