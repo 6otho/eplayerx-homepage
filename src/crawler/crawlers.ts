@@ -15,6 +15,7 @@ import {
 } from "./douban-scraper.js";
 import { fetchHamiTaiwaneseTVSeries } from "./hami-scraper.js";
 import { crawlAllDiscoverCategories } from "./tmdb-categories.js";
+import { crawlHkEroticComedy } from "./hk-erotic.js";
 import {
 	crawlVarietyCn,
 	crawlVarietyKr,
@@ -517,6 +518,7 @@ const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
 	trakt_movies: crawlTraktMovies,
 	trakt_shows: crawlTraktShows,
 	bangumi_airing: crawlBangumiAiring,
+	tmdb_movie_hk_erotic_comedy: crawlHkEroticComedy,
 };
 
 /** CRAWL_ONLY 里可以直接写 tmdb_xxx，走统一的 discover 爬虫 */
