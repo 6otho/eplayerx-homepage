@@ -57,7 +57,8 @@ jobs:
       R2_CUSTOM_DOMAIN: ${{ vars.R2_CUSTOM_DOMAIN }}
       CATEGORY_FILTER: ${{ github.event.inputs.category || '' }}
       FORCE_RETRY: ${{ github.event.inputs.force || '' }}
-      TOP_ONLY: ${{ github.event.inputs.top_only || '' }}
+      # 默认只补前 20 条（轮播图范围）；手动触发时传 top_only=0 才全量
+      TOP_ONLY: ${{ github.event.inputs.top_only || '1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -109,7 +110,8 @@ jobs:
         env:
           MOVIE_API_BASE: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
-          TOP_N: "0"
+          # 只提取每个分类前 20 条（轮播图范围），不做全量
+          TOP_N: "20"
           CATEGORY_FILTER: ${{ github.event.inputs.category || '' }}
         run: bun run scripts/auto-extract.ts
 

@@ -94,7 +94,9 @@ async function main(): Promise<void> {
 	console.log(`MDBList keys: ${keys.length}`);
 	if (keys.length === 0) { console.error("❌ MDBLIST_API_KEY 未配置"); process.exit(1); }
 
-	const topOnly = process.env.TOP_ONLY === "1";
+	// 🎯 默认只补每个分类前 20 条（对应轮播图/首屏，与上游 refreshTrendingRatings 一致）
+	//    要全量补漏时显式传 TOP_ONLY=0
+	const topOnly = process.env.TOP_ONLY !== "0";
 	const TOP_N = 20;
 	const arg = process.argv[2] || process.env.CATEGORY_FILTER || "";
 
