@@ -59,6 +59,13 @@ export interface TmdbSearchResult {
 	tagline?: string | null;
 	original_language?: string | null;
 	origin_country?: string[];
+	// 🎯 与上游一致：客户端渲染依赖这些字段
+	original_title?: string | null;
+	original_name?: string | null;
+	vote_count?: number | null;
+	popularity?: number | null;
+	adult?: boolean;
+	video?: boolean;
 }
 
 export interface ImageMeta {

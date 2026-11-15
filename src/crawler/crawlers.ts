@@ -167,6 +167,11 @@ export async function buildContentItem(
 	// 🎯 海报必须来自 TMDB 详情接口（enriched.tmdbData），不能退回搜索结果：
 	//    搜索结果里的 poster_path 不一定是官方主海报（可能是别的语言/备选图）
 	const data = enriched?.tmdbData ?? tmdbData;
+	// 🔍 调试：确认详情接口到底返回了哪些字段
+	if (process.env.CRAWL_DEBUG === "1") {
+		console.log(`  [DEBUG] ${title} enriched=${!!enriched} dataKeys=${Object.keys(data).join(",")}`);
+		console.log(`  [DEBUG] overview=${String((data as any).overview).slice(0,20)} vote_count=${(data as any).vote_count} original_title=${(data as any).original_title}`);
+	}
 	const posterFromDetail = enriched?.tmdbData?.poster_path ?? null;
 	const externalIds = enriched?.externalIds ?? { imdbId: null, tvdbId: null };
 	const imageMeta = enriched?.imageMeta ?? {
