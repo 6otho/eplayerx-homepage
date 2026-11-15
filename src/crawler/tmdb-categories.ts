@@ -162,6 +162,8 @@ export async function crawlDiscoverCategory(cat: DiscoverCategory, limit = 100):
 	const seen = new Set<number>();
 	try {
 		const old = await loadRawFile(cat.fileName);
+		const pinnedCount = old.filter((x) => (x as { pinned?: boolean }).pinned).length;
+		console.log(`  📂 旧数据 ${old.length} 条，其中 pinned ${pinnedCount} 条`);
 		for (const it of old) {
 			const id = Number(it.tmdbId || (it as { id?: number }).id);
 			if (!id || seen.has(id)) continue;
