@@ -82,16 +82,28 @@ function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
 	const score = (x: ContentItem) =>
 		(x.poster_path ? 4 : 0) + (x.imdbId ? 2 : 0) + (x.vote_average ?? 0) / 10;
 
+	const out: ContentItem[] = [];
 	for (const item of byTmdb.values()) {
+		const titleNorm = norm(item.title || item.name || "");
 		const year = (item.first_air_date || item.release_date || "").slice(0, 4);
-		const key = norm(item.title || "") + "|" + year;
+		// ⚠️ 标题为空时不能用 title 判重，否则所有空标题条目会被合并成一条
+		if (!titleNorm) {
+			out.push(item);
+			continue;
+		}
+		const key = titleNorm + "|" + year;
 		const existing = byTitle.get(key);
 		if (!existing || score(item) > score(existing)) {
 			byTitle.set(key, item);
 		}
 	}
 
-	return Array.from(byTitle.values());
+	// 合并：有标题的按 title+year 去重，无标题的单独保留（已按 tmdbId 去重）
+	const kept = new Set(Array.from(byTitle.values()).map((x) => x.tmdbId));
+	return [
+		...Array.from(byTitle.values()),
+		...out.filter((x) => !kept.has(x.tmdbId)),
+	];
 }
 
 function translationFromEnrichment(
