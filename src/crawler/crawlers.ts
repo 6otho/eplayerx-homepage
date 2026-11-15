@@ -167,6 +167,9 @@ export async function buildContentItem(
 	// 🎯 海报必须来自 TMDB 详情接口（enriched.tmdbData），不能退回搜索结果：
 	//    搜索结果里的 poster_path 不一定是官方主海报（可能是别的语言/备选图）
 	const data = enriched?.tmdbData ?? tmdbData;
+	// ⚠️ 详情接口失败时，搜索结果缺少 vote_count/original_title/adult 等字段，
+	//    用搜索结果作为兜底来源（值为 null，由 movie-api 层从缓存补齐）
+	const detailOk = !!enriched?.tmdbData;
 	// 🔍 调试：确认详情接口到底返回了哪些字段
 	if (process.env.CRAWL_DEBUG === "1") {
 		console.log(`  [DEBUG] ${title} enriched=${!!enriched} dataKeys=${Object.keys(data).join(",")}`);
@@ -218,8 +221,11 @@ export async function buildContentItem(
 		original_title: data.original_title ?? null,
 		original_name: data.original_name ?? null,
 		original_language: data.original_language ?? null,
+		origin_country: data.origin_country ?? [],
+		original_name: data.original_name ?? null,
 		adult: data.adult ?? false,
 		video: data.video ?? false,
+		...(detailOk ? {} : { __detailMissing: true }),
 		...(data.trailer ? { trailer: data.trailer } : {}),
 		...(ratings ? { ratings } : {}),
 		poster_path: absImg(posterFromDetail) as string,

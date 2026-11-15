@@ -85,6 +85,8 @@ export interface ContentItem {
   original_title?: string | null;
   original_name?: string | null;
   original_language?: string | null;
+  origin_country?: string[];
+  original_name?: string | null;
   adult?: boolean;
   video?: boolean;
   softcore?: boolean;
