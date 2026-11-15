@@ -16,6 +16,14 @@ import {
 import { fetchHamiTaiwaneseTVSeries } from "./hami-scraper.js";
 import { crawlAllDiscoverCategories } from "./tmdb-categories.js";
 import {
+	crawlVarietyCn,
+	crawlVarietyKr,
+	crawlVarietyGlobal,
+	crawlTraktMovies,
+	crawlTraktShows,
+	crawlBangumiAiring,
+} from "./variety-trakt.js";
+import {
 	type ContentItem,
 	type ContentItemTranslation,
 	saveBangumiAnimation,
@@ -484,6 +492,12 @@ const ALL_CRAWLERS: Record<string, () => Promise<unknown>> = {
 	douban_variety: crawlDoubanHotVarietyShows,
 	bangumi_animation: crawlBangumiAnimation,
 	tmdb_discover_all: () => crawlAllDiscoverCategories(),
+	variety_cn: crawlVarietyCn,
+	variety_kr: crawlVarietyKr,
+	variety_global: crawlVarietyGlobal,
+	trakt_movies: crawlTraktMovies,
+	trakt_shows: crawlTraktShows,
+	bangumi_airing: crawlBangumiAiring,
 };
 
 /** CRAWL_ONLY 里可以直接写 tmdb_xxx，走统一的 discover 爬虫 */
