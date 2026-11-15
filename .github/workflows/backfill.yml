@@ -10,7 +10,7 @@ on:
     branches: [main]
   # 兜底：万一联动没触发，每天 09:43（北京）再跑一次
   schedule:
-    - cron: "43 1 * * *"
+    - cron: "30 2 * * *"
   workflow_dispatch:
     inputs:
       category:
@@ -40,8 +40,8 @@ concurrency:
 
 jobs:
   backfill:
-    # 🔒 只在定时（schedule）或手动派发时跑；crawler 的 workflow_run 联动已关闭。
-    #    原因：单分类调试 crawler 时不该触发全量 backfill（会覆盖数据）。
+    # 🔒 只按定时（北京 10:30）跑：必须等周更（09:00 起）跑完，
+    #    这样 backfill 完成后的一次通知才能同时覆盖 爬虫 + 周更 + 评分补全。
     if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 300
@@ -106,9 +106,11 @@ jobs:
         continue-on-error: true
         run: node scripts/tg-snapshot.mjs diff
 
-      - name: Notify Telegram
+      - name: Flush Telegram (合并爬虫 + 周更 + 评分补全，只发一条)
         if: always()
+        continue-on-error: true
         env:
           WORKER_URL: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
-        run: node scripts/tg-notify.mjs backfill
+        run: node scripts/tg-flush.mjs
+
