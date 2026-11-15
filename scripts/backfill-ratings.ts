@@ -114,10 +114,17 @@ async function main(): Promise<void> {
 
 	// 一条评分"完整"的判定：至少 3 个来源有值
 	const RATING_KEYS = ["imdb", "trakt", "rotten_tomatoes", "letterboxd", "metacritic"];
+	// 冷却期：查过但不全的条目，N 天内不再重查（避免每次全量重复烧额度）
+	const RETRY_DAYS = Number(process.env.RETRY_DAYS || 7);
+	const RETRY_MS = RETRY_DAYS * 86400 * 1000;
 	const isComplete = (ck: string) => {
 		const c = cache[ck];
 		if (!c || typeof c !== "object") return false;
-		return RATING_KEYS.filter((k) => typeof (c as Record<string, number>)[k] === "number").length >= 3;
+		const n = RATING_KEYS.filter((k) => typeof (c as Record<string, number>)[k] === "number").length;
+		if (n >= 3) return true;
+		// 不满 3 源，但最近 RETRY_DAYS 天内查过 → 也跳过（MDBList 就这几分，重查无意义）
+		const at = Number((c as Record<string, unknown>).__checkedAt || 0);
+		return at > 0 && Date.now() - at < RETRY_MS;
 	};
 
 	let skipped = 0;
@@ -158,10 +165,11 @@ async function main(): Promise<void> {
 			// ⛔ 拿到空值时不覆盖：保留已有缓存，避免查询失败把好数据抹掉
 			//    （之前 `cache[ck] = clean` 无条件覆盖，遇到额度/网络波动就会清空）
 			if (Object.keys(clean).length > 0) {
-				cache[ck] = { ...(cache[ck] || {}), ...clean };
+				cache[ck] = { ...(cache[ck] || {}), ...clean, __checkedAt: Date.now() };
 				got++;
 			} else {
-				if (!cache[ck]) cache[ck] = {};
+				// 查了但 MDBList 没数据：也打上时间戳，冷却期内不再重查
+				cache[ck] = { ...(cache[ck] || {}), __checkedAt: Date.now() };
 				empty++;
 			}
 		} catch (e) {
@@ -206,6 +214,8 @@ async function main(): Promise<void> {
 			// ✅ 缓存优先：以 MDBList 为准，保证与上游完全一致
 			const merged: Record<string, number> = { ...(it.ratings || {}) };
 			const fill = (k, v) => { if (v !== undefined) merged[k] = v; };
+			// __checkedAt 是内部冷却标记，不写入数据文件
+			if (merged.__checkedAt) delete merged.__checkedAt;
 			if (c) {
 				if (c.tmdb) fill("tmdb", bake("tmdb", c.tmdb));
 				if (c.imdb) fill("imdb", bake("imdb", c.imdb));
