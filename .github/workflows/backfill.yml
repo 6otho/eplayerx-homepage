@@ -40,9 +40,11 @@ concurrency:
 
 jobs:
   backfill:
-    # 🔒 只按定时（北京 10:30）跑：必须等周更（09:00 起）跑完，
-    #    这样 backfill 完成后的一次通知才能同时覆盖 爬虫 + 周更 + 评分补全。
-    if: github.event_name != 'workflow_run'
+    # 🔗 crawler 跑完立即联动 backfill（补评分/logo，不发通知）；
+    #    每天 10:30 还有一次兜底定时，确保周更数据也补上。
+    if: |
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 300
     env:
@@ -79,6 +81,19 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile --no-progress
+
+      - name: Wait for CF weekly cron (最多等 50 分钟)
+        if: github.event_name == 'workflow_run'
+        continue-on-error: true
+        run: |
+          echo "等待 Cloudflare 周更任务收尾…"
+          for i in $(seq 1 50); do
+            s=$(curl -s --max-time 20 "${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}/api/cron_status" || echo '{}')
+            st=$(echo "$s" | sed -n 's/.*"status"[ ]*:[ ]*"\([A-Z]*\)".*/\1/p')
+            echo "  [$i] cron status=$st"
+            if [ "$st" != "RUNNING" ]; then echo "周更已结束"; break; fi
+            sleep 60
+          done
 
       - name: Snapshot before backfill
         continue-on-error: true
