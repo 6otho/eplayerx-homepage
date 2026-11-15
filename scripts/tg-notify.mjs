@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * 跑完 crawler / backfill 后，把本次变化汇总推送到 Telegram。
- * 通过 movie-api 的 /action/tg_notify 转发（那里已有 TG_BOT_TOKEN/CHAT_ID）。
+ * 先排入 movie-api 的 /action/tg_queue，等 CF cron 跑完与周更合并成一条 TG 发出。
  *
  * 用法:
  *   node scripts/tg-notify.mjs crawler   # 爬虫跑完
@@ -219,7 +219,8 @@ async function main() {
     `<i>${new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</i>`,
   ].filter((x) => x !== undefined).join("\n");
 
-  const res = await fetch(`${WORKER_URL}/action/tg_notify`, {
+    // 改为排队：等 CF cron 跑完，与周更汇总合并成一条 TG
+  const res = await fetch(`${WORKER_URL}/action/tg_queue`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${ADMIN_SECRET}`,
