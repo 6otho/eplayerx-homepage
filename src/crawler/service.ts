@@ -178,8 +178,29 @@ async function mergeWithExisting(
     }
   }
 
-  // 新数据覆盖旧的同一条
-  for (const item of incoming) map.set(keyOf(item), item);
+  // 🔒 新数据覆盖旧的同一条，但保留人工标记与手动素材
+  const IMG_SRC: Record<string, string> = {
+    poster_path: "poster_source",
+    logo: "logo_source",
+    thumb: "thumb_source",
+    backdrop_path: "backdrop_source",
+    noLogoPoster: "no_logo_poster_source",
+  };
+  for (const item of incoming) {
+    const k = keyOf(item);
+    const old = map.get(k) as Record<string, unknown> | undefined;
+    const cur = item as Record<string, unknown>;
+    if (old) {
+      if (old.pinned !== undefined) cur.pinned = old.pinned;
+      for (const [imgKey, srcKey] of Object.entries(IMG_SRC)) {
+        if (old[srcKey] === "manual" && old[imgKey] !== undefined) {
+          cur[imgKey] = old[imgKey];
+          cur[srcKey] = "manual";
+        }
+      }
+    }
+    map.set(k, item);
+  }
 
   // 默认去掉过老的（保留近 3 年首播）；keepAll=true 时不过滤（tmdb discover 类用）
   const minYear = new Date().getFullYear() - 3;
