@@ -5,6 +5,7 @@ import adminApp from "./blocks/admin.js";
 import blocksApp, { importLandingApp } from "./blocks/index.js";
 import crawlerApp from "./crawler/index.js";
 import homeApp from "./home/index.js";
+import mediaRecognitionApp from "./media-recognition.js";
 import baiduOAuthApp from "./oauth/baidu.js";
 import ratingsApp, { ratingsCacheMiddleware } from "./ratings/index.js";
 import timingAdminApp from "./episode-timing-admin.js";
@@ -50,6 +51,7 @@ const welcomeStrings = [
 
 app.route("/oauth/baidu", baiduOAuthApp);
 app.route("/subtitles/deepseek", deepSeekApp);
+app.route("/media", mediaRecognitionApp);
 
 // Root route
 app.get("/", (c) => {

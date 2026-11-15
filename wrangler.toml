@@ -38,6 +38,13 @@ name = "RATINGS_RATE_LIMITER"
 namespace_id = "20261014"
 simple = { limit = 60, period = 60 }
 
+# Paid media recognition uses the existing server-only OPENAI_API_KEY.
+# shortcut: per-location limits reduce abuse, not a global spending cap.
+[[ratelimits]]
+name = "MEDIA_RECOGNITION_RATE_LIMITER"
+namespace_id = "20261114"
+simple = { limit = 30, period = 60 }
+
 # Limit episode timing lookups and submissions.
 [[ratelimits]]
 name = "EPISODE_TIMING_RATE_LIMITER"
