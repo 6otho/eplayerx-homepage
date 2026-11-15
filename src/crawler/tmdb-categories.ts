@@ -222,7 +222,9 @@ export async function crawlAllDiscoverCategories(only?: string[]): Promise<void>
 		: DISCOVER_CATEGORIES;
 	for (const cat of list) {
 		try {
-			await crawlDiscoverCategory(cat);
+			// 🎯 支持只抓前 N 条（默认 100），用 CRAWL_LIMIT 控制
+			const lim = Number(process.env.CRAWL_LIMIT || 100);
+			await crawlDiscoverCategory(cat, lim);
 		} catch (e) {
 			console.error(`❌ ${cat.id} 失败:`, (e as Error).message);
 		}

@@ -6,6 +6,10 @@ on:
     - cron: "37 0 * * *"
   workflow_dispatch:
     inputs:
+      limit:
+        description: "每个分类抓取条数（默认 100，调试用 20）"
+        required: false
+        default: "100"
       crawl_only:
         description: "只跑指定爬虫（如 douban_variety），留空跑全部"
         required: false
@@ -21,6 +25,7 @@ jobs:
     timeout-minutes: 30
     env:
       CRAWL_ONLY: ${{ github.event.inputs.crawl_only }}
+      CRAWL_LIMIT: ${{ github.event.inputs.limit || '100' }}
       TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
       PUBLIC_TMDB_API_BASE_URL: ${{ vars.PUBLIC_TMDB_API_BASE_URL }}
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
