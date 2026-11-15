@@ -119,14 +119,28 @@ async function buildContentItem(
 	const tmdbId = tmdbData.id;
 	if (!tmdbId) return null;
 
-	const enriched = await fetchDetailsWithEnrichment(
+	let enriched = await fetchDetailsWithEnrichment(
 		tmdbId,
 		mediaType,
 		"zh-CN",
 		tmdb,
 		tmdbData.original_language,
 	);
+	// 🎯 详情拿不到时重试一次：宁可多一次请求，也不要用搜索结果里的海报兜底
+	if (!enriched) {
+		await delay(300);
+		enriched = await fetchDetailsWithEnrichment(
+			tmdbId,
+			mediaType,
+			"zh-CN",
+			tmdb,
+			tmdbData.original_language,
+		);
+	}
+	// 🎯 海报必须来自 TMDB 详情接口（enriched.tmdbData），不能退回搜索结果：
+	//    搜索结果里的 poster_path 不一定是官方主海报（可能是别的语言/备选图）
 	const data = enriched?.tmdbData ?? tmdbData;
+	const posterFromDetail = enriched?.tmdbData?.poster_path ?? null;
 	const externalIds = enriched?.externalIds ?? { imdbId: null, tvdbId: null };
 	const imageMeta = enriched?.imageMeta ?? {
 		thumb: absImg(data.backdrop_path || data.poster_path),
@@ -168,7 +182,7 @@ async function buildContentItem(
 		vote_average: data.vote_average ?? null,
 		...(data.trailer ? { trailer: data.trailer } : {}),
 		...(ratings ? { ratings } : {}),
-		poster_path: absImg(data.poster_path) as string,
+		poster_path: absImg(posterFromDetail) as string,
 		backdrop_path: absImg(data.backdrop_path),
 		genre_ids: data.genre_ids || [],
 		media_type: mediaType,
