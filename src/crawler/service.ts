@@ -144,6 +144,7 @@ async function loadBlobContent(pathname: string): Promise<BlobData | null> {
 async function mergeWithExisting(
   key: string,
   incoming: ContentItem[],
+  keepAll = false,
 ): Promise<ContentItem[]> {
   const map = new Map<string, ContentItem>();
   const keyOf = (x: ContentItem) => String(x.tmdbId || x.title || "");
@@ -168,9 +169,10 @@ async function mergeWithExisting(
   // 新数据覆盖旧的同一条
   for (const item of incoming) map.set(keyOf(item), item);
 
-  // 去掉过老的（保留近 3 年首播）
+  // 默认去掉过老的（保留近 3 年首播）；keepAll=true 时不过滤（tmdb discover 类用）
   const minYear = new Date().getFullYear() - 3;
   const merged = Array.from(map.values()).filter((x) => {
+    if (keepAll) return true;
     const y = Number.parseInt(
       (x.first_air_date || x.release_date || "").slice(0, 4),
       10
@@ -802,7 +804,8 @@ export async function saveRawFile(
   type = "tv_series",
 ): Promise<void> {
   if (!R2_BUCKET_NAME) throw new Error("R2_BUCKET_NAME is not configured");
-  const merged = await mergeWithExisting(fileName, items);
+  // 🔓 discover 类分类：新抓的全都要，不做年份过滤
+  const merged = await mergeWithExisting(fileName, items, true);
   const data: BlobData = {
     platform,
     type,
