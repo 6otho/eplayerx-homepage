@@ -75,9 +75,13 @@ function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
 		}
 	}
 
-	// Second pass: TMDB sometimes has duplicate entries for the same show
-	// (same title/year, different origin_country). Merge them by title+year.
-	const norm = (v: string) => (v || "").toLowerCase().replace(/[\s\-_:,.　·、，。]/g, "");
+	// 第二遍：同一部剧可能被 TMDB 拆成多个条目（不同 origin_country、不同季）。
+	// 这里按「剥离分季后缀的标题」合并，只保留质量最好的一条。
+	// 规范化标题：去掉空格/标点，并剥离「第二季」「Season 2」「S2」「第二期」「篇」等分季后缀，
+	// 这样同一部剧的不同季会被识别成同一条，不会重复入库。
+	const SEASON_SUFFIX = /(第[一二三四五六七八九十0-9]{1,3}[季期篇章部]|season\s*\d{1,2}|part\s*\d{1,2}|\bs\d{1,2}\b|ⅱ|ⅲ|ⅳ)/gi;
+	const norm = (v: string) =>
+		(v || "").toLowerCase().replace(SEASON_SUFFIX, "").replace(/[\s\-_:,.　·、，。]/g, "");
 	const byTitle = new Map<string, ContentItem>();
 	const score = (x: ContentItem) =>
 		(x.poster_path ? 4 : 0) + (x.imdbId ? 2 : 0) + (x.vote_average ?? 0) / 10;
@@ -85,20 +89,20 @@ function deduplicateByTmdbId(items: ContentItem[]): ContentItem[] {
 	const out: ContentItem[] = [];
 	for (const item of byTmdb.values()) {
 		const titleNorm = norm(item.title || item.name || "");
-		const year = (item.first_air_date || item.release_date || "").slice(0, 4);
 		// ⚠️ 标题为空时不能用 title 判重，否则所有空标题条目会被合并成一条
 		if (!titleNorm) {
 			out.push(item);
 			continue;
 		}
-		const key = titleNorm + "|" + year;
+		// 🔑 剥离分季后，若标题相同就视为同一部剧（不同季的首播年不同，不能把年份放进 key）
+		const key = titleNorm;
 		const existing = byTitle.get(key);
 		if (!existing || score(item) > score(existing)) {
 			byTitle.set(key, item);
 		}
 	}
 
-	// 合并：有标题的按 title+year 去重，无标题的单独保留（已按 tmdbId 去重）
+	// 合并：有标题的按规范化标题去重；无标题的单独保留（已按 tmdbId 去重）
 	const kept = new Set(Array.from(byTitle.values()).map((x) => x.tmdbId));
 	return [
 		...Array.from(byTitle.values()),
