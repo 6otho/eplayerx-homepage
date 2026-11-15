@@ -40,6 +40,9 @@ concurrency:
 
 jobs:
   backfill:
+    # 🔒 只在定时（schedule）或手动派发时跑；crawler 的 workflow_run 联动已关闭。
+    #    原因：单分类调试 crawler 时不该触发全量 backfill（会覆盖数据）。
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-latest
     timeout-minutes: 300
     env:
