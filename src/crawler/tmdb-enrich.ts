@@ -295,6 +295,7 @@ export function pickPreferredLogo(
 	const landscape = (items: ImageEntry[]) => items.filter(isLandscapeLogo);
 	const matching = (language: string | undefined) =>
 		logos.filter((logo) => logoLanguageCode(logo) === language);
+	// 🎯 同一语言内：有横版锁死横版；该语言只有竖版也用（不能因为竖版就跳到别的语言）
 	const pick = (items: ImageEntry[]) =>
 		bestByVote(landscape(items)) ?? bestByVote(items);
 
