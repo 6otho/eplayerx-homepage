@@ -6,7 +6,7 @@
 
 import { tmdb } from "../tmdb/client.js";
 import { buildContentItem, deduplicateByTmdbId } from "./crawlers.js";
-import { saveRawFile } from "./service.js";
+import { loadRawFile, saveRawFile } from "./service.js";
 import type { TmdbSearchResult } from "./tmdb-enrich.js";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -122,11 +122,28 @@ export async function crawlHkEroticComedy(limit = 100): Promise<number> {
 		if (!id) continue;
 		if (!map.has(id)) map.set(id, item);
 	}
-	const merged = Array.from(map.values());
+	let merged = Array.from(map.values());
 	console.log(`  🔀 去重后 ${merged.length} 条（种子 ${seedIds.size} 条）`);
 
-	// 4) 逐条取详情
+	// 4) 🎯 与今日电影/电视剧同一套：旧文件前 20 条 + pinned 也强制刷新
+	try {
+		const old = await loadRawFile("tmdb-movie-hk-erotic-comedy.json");
+		const HEAD_REFRESH = 20;
+		for (const [idx, it] of old.entries()) {
+			const id = Number(it.tmdbId || (it as { id?: number }).id);
+			if (!id || map.has(id)) continue;
+			const isPinned = !!(it as { pinned?: boolean }).pinned;
+			if (!isPinned && idx >= HEAD_REFRESH) continue;
+			const t = (it as { title?: string }).title || (it as { name?: string }).name || "";
+			if (!t) continue;
+			map.set(id, { id, name: t, title: t } as TmdbSearchResult);
+			console.log(`  🔝 旧条目补抓: ${t}`);
+		}
+	} catch { /* 首次运行 */ }
+
+	// 5) 逐条取详情
 	const results: NonNullable<Awaited<ReturnType<typeof buildContentItem>>>[] = [];
+	merged = Array.from(map.values());
 	for (const item of merged) {
 		const title = (item as { title?: string }).title || (item as { name?: string }).name || "";
 		if (!title) continue;
