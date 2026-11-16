@@ -22,10 +22,10 @@ concurrency:
 jobs:
   crawler:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     env:
       CRAWL_ONLY: ${{ github.event.inputs.crawl_only }}
-      CRAWL_LIMIT: ${{ github.event.inputs.limit || '100' }}
+      CRAWL_LIMIT: ${{ github.event.inputs.limit || '20' }}
       TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
       PUBLIC_TMDB_API_BASE_URL: ${{ vars.PUBLIC_TMDB_API_BASE_URL }}
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
