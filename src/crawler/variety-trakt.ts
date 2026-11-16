@@ -53,6 +53,25 @@ async function buildAndSave(
 	mediaType: "tv" | "movie",
 	type = "tv_series",
 ): Promise<number> {
+	// 🎯 与今日电影/今日电视剧（crawlDiscoverCategory）完全同一套逻辑：
+	//    旧文件的前 20 条 + pinned 条目也强制刷新，避免字段陈旧
+	const HEAD_REFRESH = 20;
+	try {
+		const old = await loadRawFile(fileName);
+		const have = new Set(raw.map((i) => Number((i as { id?: number }).id)));
+		for (const [idx, it] of old.entries()) {
+			const id = Number(it.tmdbId || (it as { id?: number }).id);
+			if (!id || have.has(id)) continue;
+			const isPinned = !!(it as { pinned?: boolean }).pinned;
+			if (!isPinned && idx >= HEAD_REFRESH) continue;
+			const title = (it as { title?: string }).title || (it as { name?: string }).name || "";
+			if (!title) continue;
+			raw.push({ id, name: title, title } as TmdbSearchResult);
+			have.add(id);
+			console.log(`  🔝 旧条目补抓: ${title}`);
+		}
+	} catch { /* 首次运行 */ }
+
 	const results: NonNullable<Awaited<ReturnType<typeof buildContentItem>>>[] = [];
 	for (const item of raw) {
 		const title = (item as { name?: string }).name || (item as { title?: string }).title || "";
