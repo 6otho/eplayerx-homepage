@@ -151,8 +151,10 @@ async function main(): Promise<void> {
 			const mt = (String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv") as "movie" | "tv";
 			const ck = `${mt}:${tmdbId}`;
 			if (targets.has(ck)) return;
-			// ⏭ 已有完整评分 → 跳过，不消耗 MDBList 额度
-			if (isComplete(ck)) { skipped++; return; }
+			// 🎯 与上游 refreshTrendingRatings 一致：前 20 条（首页展示位）每天强制重查，
+			//    不管缓存里有没有 —— 否则 MDBList 后补的 letterboxd/烂番茄永远拿不到
+			const isHead = i < TOP_N;
+			if (!isHead && isComplete(ck)) { skipped++; return; }
 			targets.set(ck, { mt, tmdbId, label: it.name || it.title || String(tmdbId) });
 		});
 	}
