@@ -33,6 +33,7 @@ import {
 	saveHotVarietyShows,
 	saveJapaneseTVSeries,
 	saveKoreanTVSeries,
+	loadRawFile,
 	saveMovies,
 	saveRawFile,
 	saveTVSeries,
@@ -52,6 +53,7 @@ const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 interface CrawlTVSeriesOptions {
 	label: string;
+	fileName: string;
 	fetchItems: () => Promise<Array<{ title: string }>>;
 	saveItems: (items: ContentItem[]) => Promise<unknown>;
 }
@@ -245,6 +247,37 @@ export async function buildContentItem(
 	};
 }
 
+/**
+ * 🎯 与今日电影/电视剧/番剧同一套逻辑：旧文件的前 20 条 + pinned 条目也强制刷新详情
+ *    （豆瓣类每次只抓当前榜单，旧条目字段陈旧会导致客户端评分/封面不显示）
+ */
+async function refreshHead(
+	fileName: string,
+	mediaType: "movie" | "tv",
+	have: Set<number>,
+): Promise<NonNullable<Awaited<ReturnType<typeof buildContentItem>>>[]> {
+	const out: NonNullable<Awaited<ReturnType<typeof buildContentItem>>>[] = [];
+	const HEAD_REFRESH = 20;
+	try {
+		const old = await loadRawFile(fileName);
+		for (const [idx, it] of old.entries()) {
+			const id = Number(it.tmdbId || (it as { id?: number }).id);
+			if (!id || have.has(id)) continue;
+			const isPinned = !!(it as { pinned?: boolean }).pinned;
+			if (!isPinned && idx >= HEAD_REFRESH) continue;
+			const title = (it as { title?: string }).title || (it as { name?: string }).name || "";
+			if (!title) continue;
+			try {
+				const c = await buildContentItem(title, { id, title, name: title } as TmdbSearchResult, mediaType);
+				if (c) { out.push(c); have.add(id); }
+			} catch { /* ignore */ }
+			await delay(160);
+		}
+	} catch { /* 首次运行 */ }
+	if (out.length) console.log(`  🔝 旧条目补抓: ${out.length} 条`);
+	return out;
+}
+
 async function crawlDoubanTVSeriesCollection(options: CrawlTVSeriesOptions) {
 	console.log(`📺 Crawling ${options.label}...`);
 
@@ -272,7 +305,9 @@ async function crawlDoubanTVSeriesCollection(options: CrawlTVSeriesOptions) {
 	}
 
 	if (results.length > 0) {
-		const deduplicated = deduplicateByTmdbId(results);
+		const have = new Set(results.map((r) => r.tmdbId));
+		const extra = await refreshHead(options.fileName, "tv", have);
+		const deduplicated = deduplicateByTmdbId([...results, ...extra]);
 		await options.saveItems(deduplicated);
 		console.log(
 			`💾 Saved ${deduplicated.length} ${options.label} to JSON (${
@@ -314,7 +349,9 @@ export async function crawlDoubanMovies() {
 	}
 
 	if (results.length > 0) {
-		const deduplicated = deduplicateByTmdbId(results);
+		const have = new Set(results.map((r) => r.tmdbId));
+		const extra = await refreshHead("douban-movies.json", "movie", have);
+		const deduplicated = deduplicateByTmdbId([...results, ...extra]);
 		await saveMovies(deduplicated);
 		console.log(
 			`💾 Saved ${deduplicated.length} movies to JSON (${
@@ -332,6 +369,7 @@ export async function crawlDoubanMovies() {
 export async function crawlDoubanTVSeries() {
 	return crawlDoubanTVSeriesCollection({
 		label: "Douban domestic TV series",
+		fileName: "douban-tv.json",
 		fetchItems: fetchDoubanHotTVSeries,
 		saveItems: saveTVSeries,
 	});
@@ -340,6 +378,7 @@ export async function crawlDoubanTVSeries() {
 export async function crawlDoubanKoreanTVSeries() {
 	return crawlDoubanTVSeriesCollection({
 		label: "Douban Korean TV series",
+		fileName: "douban-korean-tv.json",
 		fetchItems: fetchDoubanKoreanTVSeries,
 		saveItems: saveKoreanTVSeries,
 	});
@@ -348,6 +387,7 @@ export async function crawlDoubanKoreanTVSeries() {
 export async function crawlDoubanJapaneseTVSeries() {
 	return crawlDoubanTVSeriesCollection({
 		label: "Douban Japanese TV series",
+		fileName: "douban-japanese-tv.json",
 		fetchItems: fetchDoubanJapaneseTVSeries,
 		saveItems: saveJapaneseTVSeries,
 	});
@@ -356,6 +396,7 @@ export async function crawlDoubanJapaneseTVSeries() {
 export async function crawlHamiTaiwaneseTVSeries() {
 	return crawlDoubanTVSeriesCollection({
 		label: "Hami Taiwanese TV series",
+		fileName: "hami-taiwanese-tv.json",
 		fetchItems: fetchHamiTaiwaneseTVSeries,
 		saveItems: saveHamiTaiwaneseTVSeries,
 	});
@@ -396,7 +437,7 @@ export async function crawlDoubanAnimation() {
 
 	if (results.length > 0) {
 		const deduplicated = deduplicateByTmdbId(results);
-		await saveDoubanAnimation(deduplicated);
+		await saveDoubanAnimation(deduplicateByTmdbId([...deduplicated, ...(await refreshHead("douban-animation.json", "tv", new Set(deduplicated.map((r) => r.tmdbId))))]));
 		console.log(
 			`💾 Saved ${deduplicated.length} animation to JSON (${
 				results.length - deduplicated.length
@@ -441,7 +482,7 @@ export async function crawlDoubanHotVarietyShows() {
 
 	if (results.length > 0) {
 		const deduplicated = deduplicateByTmdbId(results);
-		await saveHotVarietyShows(deduplicated);
+		await saveHotVarietyShows(deduplicateByTmdbId([...deduplicated, ...(await refreshHead("douban-hot-variety-shows.json", "tv", new Set(deduplicated.map((r) => r.tmdbId))))]));
 		console.log(
 			`💾 Saved ${deduplicated.length} hot variety shows to JSON (${
 				results.length - deduplicated.length
@@ -488,7 +529,7 @@ export async function crawlBangumiAnimation() {
 
 	if (results.length > 0) {
 		const deduplicated = deduplicateByTmdbId(results);
-		await saveBangumiAnimation(deduplicated);
+		await saveBangumiAnimation(deduplicateByTmdbId([...deduplicated, ...(await refreshHead("bangumi-animation.json", "tv", new Set(deduplicated.map((r) => r.tmdbId))))]));
 		console.log(
 			`💾 Saved ${deduplicated.length} animation to JSON (${
 				results.length - deduplicated.length
