@@ -5,7 +5,7 @@
 
 import { tmdb } from "../tmdb/client.js";
 import { buildContentItem, deduplicateByTmdbId } from "./crawlers.js";
-import { saveRawFile } from "./service.js";
+import { loadRawFile, saveRawFile } from "./service.js";
 import type { TmdbSearchResult } from "./tmdb-enrich.js";
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -215,6 +215,22 @@ export async function crawlBangumiAiring(): Promise<void> {
 		console.error("  ❌ bangumi 抓取失败:", (e as Error).message);
 		return;
 	}
+	// 🎯 与 discover 类一致：旧文件里的条目也要强制刷新详情
+	//    （bangumi 排名会变，不刷新会留下 overview=null 的陈旧条目）
+	try {
+		const old = await loadRawFile("bangumi-airing.json");
+		const have = new Set(items.map((i) => Number((i as { id?: number }).id)));
+		for (const it of old) {
+			const id = Number(it.tmdbId || (it as { id?: number }).id);
+			if (!id || have.has(id)) continue;
+			const title = (it as { title?: string }).title || (it as { name?: string }).name || "";
+			if (!title) continue;
+			items.push({ id, name: title, title } as TmdbSearchResult);
+			have.add(id);
+			console.log(`  🔝 旧条目补抓: ${title}`);
+		}
+	} catch { /* 首次运行 */ }
+
 	// 只保留日本动画
 	const jp = items.filter((it) => {
 		const c = ((it as { origin_country?: string[] }).origin_country || []) as string[];
