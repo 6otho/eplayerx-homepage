@@ -173,11 +173,6 @@ export async function buildContentItem(
 	// ⚠️ 详情接口失败时，搜索结果缺少 vote_count/original_title/adult 等字段，
 	//    用搜索结果作为兜底来源（值为 null，由 movie-api 层从缓存补齐）
 	const detailOk = !!enriched?.tmdbData;
-	// 🔍 调试：确认详情接口到底返回了哪些字段
-	if (process.env.CRAWL_DEBUG === "1") {
-		console.log(`  [DEBUG] ${title} enriched=${!!enriched} dataKeys=${Object.keys(data).join(",")}`);
-		console.log(`  [DEBUG] overview=${String((data as any).overview).slice(0,20)} vote_count=${(data as any).vote_count} original_title=${(data as any).original_title}`);
-	}
 	const posterFromDetail = enriched?.tmdbData?.poster_path ?? null;
 	const externalIds = enriched?.externalIds ?? { imdbId: null, tvdbId: null };
 	const imageMeta = enriched?.imageMeta ?? {

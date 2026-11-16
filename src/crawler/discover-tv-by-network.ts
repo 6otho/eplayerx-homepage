@@ -151,7 +151,8 @@ async function fetchTVByNetwork(
         name: tv.name || "",
         original_name: tv.original_name || "",
         overview: tv.overview || null,
-        poster_path: absImg(imageMeta.noLogoPoster),
+        // 🎯 poster_path 必须是 TMDB 主海报，不是无字海报
+        poster_path: absImg(tv.poster_path),
         backdrop_path: absImg(tv.backdrop_path),
         first_air_date: tv.first_air_date || null,
         vote_average: tv.vote_average || 0,
