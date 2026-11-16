@@ -289,28 +289,52 @@ export async function fetchDoubanReviews(
 ): Promise<SourceReviews> {
 	let resolved = sourceId;
 	if (!resolved) {
-		const data = await doubanJson(
-			`search?q=${encodeURIComponent(title.doubanQuery ?? (title.searchTitles ?? title.titles)[0])}&type=${title.type}`,
-		);
-		if (!Array.isArray(row(data.subjects).items))
+		// Anonymous Rexxar search requires login; the public search page embeds JSON.
+		const query = title.doubanQuery ?? (title.searchTitles ?? title.titles)[0];
+		const html = await (
+			await get(
+				`https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(query)}`,
+				"https://movie.douban.com/",
+			)
+		).text();
+		const embedded = html.match(/window\.__DATA__\s*=\s*(\{[^\r\n]*\})\s*;/);
+		if (!embedded) throw new Error("Unexpected Douban search response");
+		const data = row(JSON.parse(embedded[1]));
+		if (!Array.isArray(data.items) || text(data.error_info))
 			throw new Error("Unexpected Douban search response");
-		const candidates = list(row(data.subjects).items)
-			.map(row)
-			.filter((item) => {
-				const target = row(item.target);
-				return (
-					item.target_type === title.type &&
-					Number(target.year) === title.year &&
-					matches(text(target.title), title.titles)
-				);
-			});
-		const ids = [
+		const candidates = [
 			...new Set(
-				candidates
-					.map((item) => id(row(item.target).id))
+				data.items
+					.map(row)
+					.filter(
+						(item) =>
+							item.tpl_name === "search_subject" &&
+							Number(text(item.title).match(/\((\d{4})\)\s*$/)?.[1]) ===
+								title.year,
+					)
+					.map((item) => id(item.id))
 					.filter((value): value is string => !!value),
 			),
 		];
+		// Do not guess uniqueness by checking only part of a broad result set.
+		if (candidates.length > 5) return { sourceId: null, results: [] };
+		const verified = await Promise.all(
+			candidates.map(async (candidate) => {
+				const target = await doubanJson(`${title.type}/${candidate}`);
+				const names = [
+					target.title,
+					target.original_title,
+					...list(target.aka),
+				];
+				return id(target.id) === candidate &&
+					target.type === title.type &&
+					Number(target.year) === title.year &&
+					names.some((name) => matches(text(name), title.titles))
+					? candidate
+					: null;
+			}),
+		);
+		const ids = verified.filter((value): value is string => !!value);
 		if (ids.length !== 1) return { sourceId: null, results: [] };
 		resolved = ids[0];
 	}

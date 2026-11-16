@@ -19,16 +19,25 @@ test("client detail context obtains reviews without a redundant TMDB details req
 				results: [{ id: "tmdb", content: "Review" }],
 				total_results: 1,
 			});
-		if (url.pathname.endsWith("/search"))
-			return Response.json({
-				subjects: {
+		if (url.pathname.endsWith("/subject_search"))
+			return new Response(
+				`<script>window.__DATA__ = ${JSON.stringify({
 					items: [
 						{
-							target_type: "movie",
-							target: { id: "1234", title: "客户端片名", year: "2023" },
+							id: "1234",
+							tpl_name: "search_subject",
+							title: "客户端片名 (2023)",
 						},
 					],
-				},
+					error_info: "",
+				})};</script>`,
+			);
+		if (url.pathname === "/rexxar/api/v2/movie/1234")
+			return Response.json({
+				id: "1234",
+				type: "movie",
+				title: "客户端片名",
+				year: "2023",
 			});
 		assert.equal(url.pathname, "/rexxar/api/v2/movie/1234/interests");
 		return Response.json({ interests: [{ id: "1", comment: "短评" }] });
@@ -61,8 +70,8 @@ test("client detail context obtains reviews without a redundant TMDB details req
 	assert.equal(((await response.json()) as ReviewResponse).results.length, 2);
 	assert.equal(
 		requested.length,
-		3,
-		"one review request, one search and one comments request",
+		4,
+		"one TMDB review request, public search, Douban verification and comments",
 	);
 	await Promise.all(jobs);
 });
