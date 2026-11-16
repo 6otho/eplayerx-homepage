@@ -236,7 +236,8 @@ async function main(): Promise<void> {
 				if (c.imdb) fill("imdb", bake("imdb", c.imdb));
 				if (c.trakt) fill("trakt", bake("trakt", c.trakt));
 				if (c.letterboxd) fill("letterboxd", bake("letterboxd", c.letterboxd));
-				if (c.tomatoes) fill("rotten_tomatoes", bake("tomatoes", c.tomatoes));
+				// 🎯 与上游 ItemRatings 一致：键名是 tomatoes（不是 rotten_tomatoes）
+				if (c.tomatoes) { const v = bake("tomatoes", c.tomatoes); fill("tomatoes", v); fill("rotten_tomatoes", v); }
 				if (c.tomatoesAudience) fill("tomatoesAudience", bake("tomatoesAudience", c.tomatoesAudience));
 				if (c.metacritic) fill("metacritic", bake("metacritic", c.metacritic));
 				if (c.metacriticUser || c.metacriticuser) fill("metacriticUser", Number(c.metacriticUser || c.metacriticuser));
@@ -257,8 +258,8 @@ async function main(): Promise<void> {
 				setIfMissing("letterboxdRating", merged.letterboxd);
 				setIfMissing("letterboxd", merged.letterboxd);
 			}
-			if (merged.rotten_tomatoes) {
-				const rt = merged.rotten_tomatoes;
+			if (merged.tomatoes || merged.rotten_tomatoes) {
+				const rt = merged.tomatoes ?? merged.rotten_tomatoes;
 				for (const k of ["rotten_tomatoes", "rottenTomatoes", "tomato_rating", "tomatoRating", "tomatoMeter", "tomatoes", "rt"]) {
 					setIfMissing(k, rt);
 				}
