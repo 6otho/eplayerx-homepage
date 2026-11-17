@@ -81,22 +81,30 @@ async function main(): Promise<void> {
 		if (!Array.isArray(items) || !items.length) continue;
 
 		const head = items.slice(0, topN);
-		const isMovie = key.includes("movie") || items.some((x) => String(x.media_type || "").includes("movie"));
-		const type = isMovie ? "movie" : "tv";
 		const categoryId = toCategoryId(key);
-		const allIds = head.map((it) => String(it.tmdbId || it.id)).filter(Boolean);
-		if (!allIds.length) continue;
+		// 🎯 每条按自己的 media_type 判断 movie/tv，不能整批判定
+		//    （同一 id 在 TMDB 的 movie 和 tv 是不同作品，整批判断会拿到完全错的海报/logo）
+		const catDefault = key.includes("movie") ? "movie" : "tv";
+		const entries = head
+			.map((it) => {
+				const id = String(it.tmdbId || it.id || "").trim();
+				if (!id) return null;
+				const mt = String(it.media_type || "").toLowerCase();
+				const type = mt.includes("movie") ? "movie" : mt.includes("tv") ? "tv" : catDefault;
+				return { id, type };
+			})
+			.filter((x): x is { id: string; type: string } => !!x);
+		if (!entries.length) continue;
 
-		// 分批：每次 20 条，避免单次请求过大/超时
 		const BATCH = 10;  // 实测：提取接口单次约能处理 10 条（子请求上限）
 		let succTotal = 0;
-		for (let i = 0; i < allIds.length; i += BATCH) {
-			const chunk = allIds.slice(i, i + BATCH);
+		for (let i = 0; i < entries.length; i += BATCH) {
+			const chunk = entries.slice(i, i + BATCH);
 			try {
 				const res = await fetch(`${base}/action/batch_force_logo`, {
 					method: "POST",
 					headers: { Authorization: `Bearer ${pwd}`, "Content-Type": "application/json", "x-from-action": "1" },
-					body: JSON.stringify({ items: chunk.map((id) => ({ id, type })), category: categoryId, weekday: 1 }),
+					body: JSON.stringify({ items: chunk, category: categoryId, weekday: 1 }),
 				});
 				const d = await res.json().catch(() => null);
 				if (res.ok && d && d.success) {
@@ -105,8 +113,8 @@ async function main(): Promise<void> {
 			} catch { /* 单批失败继续 */ }
 			await sleep(250);
 		}
-		totalItems += allIds.length;
-		console.log(`  ✅ ${key}: ${succTotal}/${allIds.length}`);
+		totalItems += entries.length;
+		console.log(`  ✅ ${key}: ${succTotal}/${entries.length}`);
 		okCats++;
 	}
 
