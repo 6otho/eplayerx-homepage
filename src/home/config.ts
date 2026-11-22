@@ -449,7 +449,7 @@ function createV2BlockTemplates(language: string, timezone: string): V2Section[]
 			id: "tmdb-discover-genres",
 			titleKey: "home.tmdb_discover_genres",
 			preset: "genres-list",
-			source: { path: "/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
+			source: { path: "https://r2.eplayerx.cc.cd/crawler/discover/genres", query: { language }, itemEnvelope: "data" },
 		},
 		{ type: "decades-collection" },
 		{
