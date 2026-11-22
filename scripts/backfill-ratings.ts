@@ -218,7 +218,7 @@ async function main(): Promise<void> {
 		if (!Array.isArray(items) || !items.length) continue;
 
 		let changed = false;
-		for (const it of items) {
+		for (const it of topOnly && arg ? items.slice(0, TOP_N) : items) {
 			const tmdbId = it.tmdbId || it.id;
 			if (!tmdbId) continue;
 			const mt = (String(it.media_type || key).toLowerCase().includes("movie") ? "movie" : "tv") as "movie" | "tv";
