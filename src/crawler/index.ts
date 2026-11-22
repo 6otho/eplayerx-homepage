@@ -765,7 +765,7 @@ function createDiscoverGenres(locale: Locale): DiscoverGenresResponse {
     return {
       id: item.id,
       title,
-      imageUri: `https://${R2_CUSTOM_DOMAIN}/genres/${item.imageName}`,
+      imageUri: `https://r2.eplayerx.cc.cd/genres/${item.imageName}`,
       route: createTmdbListRoute(title, {
         category: "discover",
         type: "movie",
