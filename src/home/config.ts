@@ -1,3 +1,4 @@
+import { SHARED_HOME_ORDER, SHARED_COLLECTIONS } from "./shared-home-order.js";
 /// <reference types="@cloudflare/workers-types" />
 /**
  * Default homepage V2. Old clients keep using `/home/config` (version 1);
@@ -798,7 +799,10 @@ export async function createDefaultHomeConfig(
 		apiBaseUrl: options.apiBaseUrl,
 		imageBaseUrl: options.imageBaseUrl,
 		carouselSourceId: "tmdb_popular_movies",
-		blocks,
+		blocks: SHARED_HOME_ORDER.map((id) => {
+			const existing = blocks.find((block) => block.id === id);
+			return existing ?? (SHARED_COLLECTIONS[id] as CollectionBlock);
+		}),
 	};
 }
 
