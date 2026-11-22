@@ -23,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
-      CRAWL_ONLY: ${{ github.event.inputs.crawl_only }}
-      CRAWL_LIMIT: ${{ github.event.inputs.limit || '20' }}
+      CRAWL_ONLY: tmdb_popular_tv,tmdb_popular_movies
+      CRAWL_LIMIT: '20'
       TMDB_API_TOKEN: ${{ secrets.TMDB_API_TOKEN }}
       PUBLIC_TMDB_API_BASE_URL: ${{ vars.PUBLIC_TMDB_API_BASE_URL }}
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
@@ -75,20 +75,18 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --no-progress
 
-      - name: Snapshot before crawl (记录抓取前的条目清单)
-        continue-on-error: true
-        run: node scripts/tg-snapshot.mjs save
-
-      - name: Run crawler
+      - name: Incremental crawl — popular TV and movies only
         run: bun run crawler:run
-
-      - name: Diff new items (找出新增条目)
-        continue-on-error: true
-        run: node scripts/tg-snapshot.mjs diff
-
-      - name: Notify Telegram
-        if: always()
+      - name: Backfill ratings and artwork — same two categories only
         env:
-          WORKER_URL: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
+          MDBLIST_API_KEY: ${{ secrets.MDBLIST_API_KEY }}
+          MOVIE_API_BASE: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
-        run: node scripts/tg-notify.mjs crawler
+          TOP_N: '20'
+          TOP_ONLY: '1'
+        run: |
+          for category in tmdb_popular_tv tmdb_popular_movies; do
+            export CATEGORY_FILTER="$category"
+            bun run scripts/auto-extract.ts
+            bun run scripts/backfill-ratings.ts "$category"
+          done
