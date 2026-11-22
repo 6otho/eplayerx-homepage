@@ -118,15 +118,12 @@ jobs:
         if: github.event.inputs.rebake_only != '1'
         run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category || '' }}
 
-      - name: Strip movie and TV overviews after backfill
-        run: bun run scripts/strip-backfill-overviews.ts
-
       - name: Diff new items (找出新增条目)
         continue-on-error: true
         run: node scripts/tg-snapshot.mjs diff
 
       - name: Flush Telegram (合并爬虫 + 周更 + 评分补全，只发一条)
-        if: always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.category == '')
+        if: always()
         continue-on-error: true
         env:
           WORKER_URL: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
