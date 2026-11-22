@@ -95,7 +95,12 @@ jobs:
             sleep 60
           done
 
+      - name: Backfill domestic TV overviews only
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.category == 'douban_tv_custom' && github.event.inputs.rebake_only == 'overview'
+        run: bun run scripts/backfill-domestic-overviews.ts
+
       - name: Snapshot before backfill
+        if: github.event.inputs.rebake_only != 'overview'
         continue-on-error: true
         run: node scripts/tg-snapshot.mjs save
 
@@ -105,7 +110,7 @@ jobs:
 
       # 🎯 关键：只有走「提取」接口客户端才会更新（实测验证）
       - name: Auto extract (触发客户端更新)
-        if: github.event.inputs.no_extract != '1'
+        if: github.event.inputs.no_extract != '1' && github.event.inputs.rebake_only != 'overview'
         env:
           MOVIE_API_BASE: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
           ADMIN_SECRET: ${{ secrets.ADMIN_SECRET }}
@@ -115,15 +120,16 @@ jobs:
         run: bun run scripts/auto-extract.ts
 
       - name: Sync ratings (重查 MDBList + 写缓存 + 烘焙数据文件)
-        if: github.event.inputs.rebake_only != '1'
+        if: github.event.inputs.rebake_only != '1' && github.event.inputs.rebake_only != 'overview'
         run: bun run scripts/backfill-ratings.ts ${{ github.event.inputs.category || '' }}
 
       - name: Diff new items (找出新增条目)
+        if: github.event.inputs.rebake_only != 'overview'
         continue-on-error: true
         run: node scripts/tg-snapshot.mjs diff
 
       - name: Flush Telegram (合并爬虫 + 周更 + 评分补全，只发一条)
-        if: always()
+        if: always() && github.event.inputs.rebake_only != 'overview'
         continue-on-error: true
         env:
           WORKER_URL: ${{ vars.MOVIE_API_BASE || 'https://movie-api.l3okuu.workers.dev' }}
