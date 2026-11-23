@@ -29,8 +29,12 @@ test("crawler writes require bearer auth; public snapshots stay readable", async
 	assert.equal((await app.request("/crawl/movies", {
 		method: "POST", headers: { Authorization: "Bearer " },
 	})).status, 401);
-	assert.equal((await app.request("/popular/douban/movies", undefined, {
-		ASSETS: { get: async () => ({ body: new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('{"data":[]}')); c.close(); } }),
-			httpMetadata: {} }) } as unknown as R2Bucket,
-	})).status, 200);
+	const publicSnapshot = await app.request("/popular/douban/movies", undefined, {
+		ASSETS: { get: async () => ({ json: async () => ({ data: [
+			{ tmdbId: 42, media_type: "movie", poster_path: "/poster.jpg", noLogoPoster: "/poster.jpg" },
+		] }) }) } as unknown as R2Bucket,
+	});
+	assert.equal(publicSnapshot.status, 200);
+	const { data } = await publicSnapshot.json() as { data: { hasNoLogoPoster: boolean }[] };
+	assert.equal(data[0].hasNoLogoPoster, false);
 });

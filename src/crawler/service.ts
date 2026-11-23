@@ -59,6 +59,7 @@ export interface ContentItemTranslation {
   thumb?: string | null;
   logo?: string | null;
   noLogoPoster?: string | null;
+  hasNoLogoPoster?: boolean;
   poster_path?: string | null;
   backdrop_path?: string | null;
 }
@@ -82,6 +83,7 @@ export interface ContentItem {
   thumb?: string | null;
   logo?: string | null;
   noLogoPoster?: string | null;
+  hasNoLogoPoster?: boolean;
   /** Extra locales from TMDB (zh stays on top-level fields). */
   translations?: {
     en?: ContentItemTranslation;

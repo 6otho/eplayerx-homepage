@@ -82,6 +82,7 @@ export interface SnapshotItem {
 	thumb?: string | null;
 	logo?: string | null;
 	noLogoPoster?: string | null;
+	hasNoLogoPoster?: boolean;
 }
 
 export interface SnapshotBlob {

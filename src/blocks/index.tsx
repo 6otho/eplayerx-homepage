@@ -1,4 +1,4 @@
-import { hasMediaLanguages, localizeMediaPayload } from "../media-languages.js";
+import { localizeMediaPayload } from "../media-languages.js";
 /** @jsxImportSource hono/jsx */
 /// <reference types="@cloudflare/workers-types" />
 /**
@@ -159,7 +159,7 @@ async function publicCachedGet(
 		return render();
 	}
 	const cacheUrl = new URL(c.req.url);
-	cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? "20261014-preview-escaping-media-languages-v3-textless" : "20261014-preview-escaping");
+	cacheUrl.searchParams.set("_cache_version", "20261121-textless-poster");
 	const cacheKey = new Request(cacheUrl, { method: "GET" });
 	const cached = await cache.match(cacheKey);
 	if (cached) return cached;
@@ -675,29 +675,15 @@ app.get("/data/:blockId", (c) =>
 				},
 			});
 		}
-		const body =
-			object.kind === "r2" ? object.object.body : object.response.body;
-		const contentType =
-			object.kind === "r2"
-				? object.object.httpMetadata?.contentType || "application/json"
-				: object.response.headers.get("Content-Type") || "application/json";
-		// Without a limit (the iOS client) stream the snapshot through untouched;
-		// the blob carries the block's display title since publish time.
-		if ((!Number.isFinite(limit) || limit <= 0) && !hasMediaLanguages(c)) {
-			return new Response(body, {
-				status: 200,
-				headers: { "Content-Type": contentType },
-			});
-		}
 		const blob = (
 			object.kind === "r2"
 				? await object.object.json()
 				: await object.response.json()
 		) as SnapshotBlob | CollectionPreviewBlob;
-		if (isCollectionPreviewBlob(blob)) {
+		if (isCollectionPreviewBlob(blob) || !Number.isFinite(limit) || limit <= 0) {
 			return c.json(await localizeMediaPayload(blob, c));
 		}
-		const data = Number.isFinite(limit) && limit > 0 ? (blob.data ?? []).slice(0, limit) : (blob.data ?? []);
+		const data = (blob.data ?? []).slice(0, limit);
 		return c.json(await localizeMediaPayload({ ...blob, count: data.length, data }, c));
 	}),
 );

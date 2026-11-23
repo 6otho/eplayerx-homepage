@@ -95,3 +95,7 @@ Home configuration and media-list endpoints accept optional `metadataLanguage`, 
 Default posters and logos follow the App's `language`, independently of `metadataLanguage`. Empty preferences restore these defaults; `original` selects the work's original language. Missing preferred artwork falls back to the original language, then textless artwork.
 
 For example, `language=en-US&metadataLanguage=zh-CN&posterLanguage=zh-TW&logoLanguage=ja-JP` selects English headings, Simplified Chinese media text, Traditional Chinese posters, and Japanese logos. Browse categories retain the App language. Response caches include all preferences; published snapshots and existing scraped data are never rewritten. Legacy requests add no upstream work, and existing chart translations are reused when available.
+
+### Textless portrait posters
+
+Home media items and `/tmdb/movie/details` and `/tmdb/tv/details` expose `hasNoLogoPoster`. When it is `true`, `noLogoPoster` contains the textless portrait path and the client can overlay the available title logo. When it is `false`, use `poster_path` for portrait art. Older snapshots may keep the regular poster in `noLogoPoster`, so check the flag before showing a logo.

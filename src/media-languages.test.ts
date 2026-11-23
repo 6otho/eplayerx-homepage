@@ -26,6 +26,7 @@ test("independent languages retain textless carousel posters under TMDB image-la
     const [item] = await enrichWithImages([{ id: 42, original_language: "en" }], "en-US", "movie",
       { appLanguage: "zh-CN", metadataLanguage: "en-US", posterLanguage, logoLanguage: "ja-JP" });
     assert.equal(item.noLogoPoster, "/textless.jpg");
+    assert.equal(item.hasNoLogoPoster, true);
     assert.equal(item.poster_path, posterLanguage ? "/en.jpg" : "/cn.jpg");
     assert.equal(item.logo, "/ja.png");
   }
@@ -39,6 +40,50 @@ test("incomplete image enrichment preserves an already-known textless carousel p
   const [item] = await enrichWithImages([{ id: 42, noLogoPoster: "/saved-textless.jpg" }], "en-US", "movie",
     { appLanguage: "zh-CN", metadataLanguage: "en-US" });
   assert.equal(item.noLogoPoster, "/saved-textless.jpg");
+  assert.equal(item.hasNoLogoPoster, true);
+});
+
+test("old snapshots distinguish ordinary poster fallbacks without fetching artwork", async (t) => {
+  const fetch = t.mock.method(globalThis, "fetch", async () => { throw new Error("unexpected artwork request"); });
+  const app = new Hono();
+  app.get("/", async (c) => c.json(await localizeMediaPayload({ data: [
+    { tmdbId: 1, media_type: "movie", poster_path: "/poster.jpg", noLogoPoster: "/poster.jpg" },
+    { tmdbId: 2, media_type: "tv", poster_path: "/poster.jpg", noLogoPoster: "/clean.jpg" },
+    { tmdbId: 3, media_type: "movie", poster_path: "/clean.jpg", noLogoPoster: "/clean.jpg", hasNoLogoPoster: true },
+    { tmdbId: 4, media_type: "movie", poster_path: "/poster.jpg", noLogoPoster: "/other.jpg", hasNoLogoPoster: false },
+  ] }, c)));
+  const response = await app.request("/");
+  const { data } = await response.json() as { data: { hasNoLogoPoster: boolean }[] };
+  assert.deepEqual(data.map(item => item.hasNoLogoPoster), [false, true, true, false]);
+  assert.equal(fetch.mock.callCount(), 0);
+});
+
+test("movie and TV details report textless portrait art and retain certification data", async (t) => {
+  process.env.TMDB_API_TOKEN = "test";
+  const fetch = t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    const url = new URL(input instanceof Request ? input.url : String(input));
+    const isMovie = url.pathname.includes("/movie/");
+    const certification = isMovie ? "release_dates" : "content_ratings";
+    assert.equal(url.searchParams.get("include_image_language"), "null");
+    assert.equal(url.searchParams.get("append_to_response"), `${certification},images`);
+    const posters = [
+      { file_path: "/wide.jpg", iso_639_1: null, width: 1600, height: 900, vote_average: 10 },
+      { file_path: "/poster.jpg", iso_639_1: "en", width: 1000, height: 1500, vote_average: 9 },
+    ];
+    if (isMovie) posters.push({ file_path: "/clean.jpg", iso_639_1: null, width: 1000, height: 1500, vote_average: 5 });
+    return Response.json({ id: 42, poster_path: "/poster.jpg", [certification]: { results: [] }, images: { posters } });
+  });
+  for (const type of ["movie", "tv"]) {
+    const response = await routes.request(`/${type}/details?id=42&language=en-US`);
+    assert.equal(response.status, 200);
+    const data = await response.json() as Record<string, unknown>;
+    assert.equal(data.hasNoLogoPoster, type === "movie");
+    assert.equal(data.noLogoPoster, type === "movie" ? "/clean.jpg" : null);
+    assert.equal(data.poster_path, "/poster.jpg");
+    assert.deepEqual(data[type === "movie" ? "release_dates" : "content_ratings"], { results: [] });
+    assert.equal(data.images, undefined);
+  }
+  assert.equal(fetch.mock.callCount(), 2, "one upstream request per detail");
 });
 
 test("Logo falls back to the newly discovered origin language without replacing textless posters", async (t) => {

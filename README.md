@@ -197,6 +197,10 @@ MIT License
 
 例如 `language=en-US&metadataLanguage=zh-CN&posterLanguage=zh-TW&logoLanguage=ja-JP` 返回英文栏目、简中影片内容、繁中海报、日文 Logo。分类和语言浏览入口仍使用 App 语言。响应缓存按完整参数区分；已发布快照和已有刮削数据不会被重写。没有独立偏好的旧请求不增加上游查询，榜单已有中英文译文优先复用。
 
+### 无字竖海报
+
+首页影片条目和 `/tmdb/movie/details`、`/tmdb/tv/details` 提供 `hasNoLogoPoster`。为 `true` 时，`noLogoPoster` 是无字竖海报路径，客户端可叠加可用的标题 Logo。为 `false` 时，竖图使用 `poster_path`。旧榜单快照可能在 `noLogoPoster` 里保存普通海报，客户端应以布尔值为准。
+
 ### 客户端广告扫描完成状态
 
 部署此版本前先应用 D1 迁移 `0026_ad_scan_completions.sql`，再部署 Worker，最后发布客户端。
