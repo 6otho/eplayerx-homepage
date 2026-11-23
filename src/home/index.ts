@@ -64,12 +64,12 @@ function isPlayerClient(c: Context): boolean {
  * 🌟 1. /config 接口：始终输出你的自定义数据！
  */
 app.get("/config", async (c) => {
-	cacheHomeConfig(c);
+	c.header("Cache-Control", "no-store");
 	const data = await createDefaultHomeConfig({
 		...resolveConfigRequest(c),
 		db: c.env?.DB,
 	});
-	return c.json({ ...data, blocks: orderCustomHome(data.blocks) });
+	return c.json({ ...data, blocks: await orderCustomHome(data.blocks, c.env?.DB) });
 });
 
 /**

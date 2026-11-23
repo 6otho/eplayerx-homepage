@@ -1,3 +1,4 @@
+import { getCommunityBlocksByIds } from "../blocks/storage.js";
 import type { HomeConfigV2Block } from "./config.js";
 const collections = [
   {
@@ -430,9 +431,18 @@ const collections = [
     "author": "Zemkk"
   }
 ] as HomeConfigV2Block[];
-export function orderCustomHome(blocks: HomeConfigV2Block[]) {
+export async function orderCustomHome(blocks: HomeConfigV2Block[], db?: D1Database) {
+ const rows = db && await getCommunityBlocksByIds(db, collections.map(b => b.id)).catch(() => undefined);
+ const mapped = collections.map(fallback => {
+  try {
+   const live = JSON.parse(rows?.get(fallback.id)?.block_json ?? 'null');
+   if (live?.preset === 'collection-list' && Array.isArray(live.children) && live.children.length >= 2)
+    return { ...fallback, ...live, id: fallback.id };
+  } catch { /* Use the published share snapshot. */ }
+  return fallback;
+ });
  const ids = ["tmdb-discover-genres", "tmdb-discover-tv-by-language", "tmdb-discover-networks"];
  const browsers = ids.flatMap(id => blocks.filter(b => b.id === id).slice(0, 1));
  const moved = new Set([...ids, ...collections.map(b => b.id)]);
- return blocks.filter(b => !moved.has(b.id)).flatMap(b => b.id === "douban_korean_tv" ? [...browsers,b] : b.id === "weekly_japanese_drama_collection" ? [b,...collections] : [b]);
+ return blocks.filter(b => !moved.has(b.id)).flatMap(b => b.id === "douban_korean_tv" ? [...browsers,b] : b.id === "weekly_japanese_drama_collection" ? [b,...mapped] : [b]);
 }
