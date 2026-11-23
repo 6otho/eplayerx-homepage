@@ -91,6 +91,7 @@ async function buildItem(newTmdbId: number): Promise<SnapshotItem> {
 		thumb: imageMeta.thumb,
 		logo: imageMeta.logo,
 		noLogoPoster: imageMeta.noLogoPoster,
+		hasNoLogoPoster: imageMeta.hasNoLogoPoster,
 	};
 }
 

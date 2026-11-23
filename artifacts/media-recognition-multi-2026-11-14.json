@@ -1,0 +1,2047 @@
+{
+  "description": "Synthetic filenames evaluated through production Swift parsing, matching and isolated recognition persistence. Core and holdout figures are separate completed runs. Pro identity is mocked only in the loopback evaluation proxy; Luna and TMDB calls are live. Baseline observations were recovered from actual test stdout. These are fixture expectations, not a statistical estimate for user libraries.",
+  "baselineCore": {
+    "cases": 41,
+    "metExpectation": 34,
+    "recognized": 38,
+    "modelCalls": 19,
+    "freeUserModelCalls": 0
+  },
+  "optimizedCore": {
+    "cases": 41,
+    "metExpectation": 41,
+    "recognized": 39,
+    "modelCalls": 14,
+    "freeUserModelCalls": 0
+  },
+  "holdout": {
+    "cases": 15,
+    "metExpectation": 15,
+    "recognized": 15,
+    "modelCalls": 11,
+    "freeUserModelCalls": 0
+  },
+  "overall": {
+    "cases": 56,
+    "metExpectation": 56,
+    "recognized": 54,
+    "modelCalls": 25,
+    "freeUserModelCalls": 0
+  },
+  "crossSeason": [
+    {
+      "aiCalls": 1,
+      "matchedID": "100088",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "TLOU Complete",
+        "season": 2,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 100088,
+        "filename": "TLOU.S02E01.mkv",
+        "folders": [
+          "TV",
+          "TLOU Complete",
+          "Season 2"
+        ],
+        "id": "tlou-hard-s2",
+        "type": "tv"
+      },
+      "seconds": 2.60965096950531,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "TLOU Complete",
+        "season": 1,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 100088,
+        "filename": "TLOU.S01E01.mkv",
+        "folders": [
+          "TV",
+          "TLOU Complete",
+          "Season 1"
+        ],
+        "id": "tlou-hard-s1",
+        "type": "tv"
+      },
+      "seconds": 0.0040329694747924805,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "ai",
+      "parsed": {
+        "episode": 2,
+        "folderTitle": "TLOU Complete",
+        "season": 2,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 100088,
+        "filename": "TLOU.S02E02.mkv",
+        "folders": [
+          "TV",
+          "TLOU Complete",
+          "Season 2"
+        ],
+        "id": "tlou-hard-e2",
+        "type": "tv"
+      },
+      "seconds": 0.0029469728469848633,
+      "title": "最后生还者"
+    }
+  ],
+  "baselineResults": [
+    {
+      "sample": {
+        "id": "hp1",
+        "filename": "HP1.2001.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "type": "movie",
+        "expected": 671,
+        "category": "collection"
+      },
+      "parsed": "HP1",
+      "matchedID": "671",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "hp2",
+        "filename": "HP2.2002.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "type": "movie",
+        "expected": 672,
+        "category": "collection"
+      },
+      "parsed": "HP2",
+      "matchedID": "672",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "hp3",
+        "filename": "HP3.2004.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "type": "movie",
+        "expected": 673,
+        "category": "collection"
+      },
+      "parsed": "HP3",
+      "matchedID": "673",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "hp4",
+        "filename": "HP7.Part1.2010.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "type": "movie",
+        "expected": 12444,
+        "category": "collection"
+      },
+      "parsed": "HP7 Part1",
+      "matchedID": "12444",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "hp5",
+        "filename": "HP7.Part2.2011.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "type": "movie",
+        "expected": 12445,
+        "category": "collection"
+      },
+      "parsed": "HP7 Part2",
+      "matchedID": "12445",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "lotr1",
+        "filename": "LOTR1.2001.Extended.BluRay.mkv",
+        "folders": [
+          "Movies",
+          "指环王三部曲"
+        ],
+        "type": "movie",
+        "expected": 120,
+        "category": "collection"
+      },
+      "parsed": "LOTR1",
+      "matchedID": "120",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "lotr2",
+        "filename": "LOTR2.2002.Extended.BluRay.mkv",
+        "folders": [
+          "Movies",
+          "指环王三部曲"
+        ],
+        "type": "movie",
+        "expected": 121,
+        "category": "collection"
+      },
+      "parsed": "LOTR2",
+      "matchedID": "121",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "lotr3",
+        "filename": "LOTR3.2003.Extended.BluRay.mkv",
+        "folders": [
+          "Movies",
+          "指环王三部曲"
+        ],
+        "type": "movie",
+        "expected": 122,
+        "category": "collection"
+      },
+      "parsed": "LOTR3",
+      "matchedID": "122",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "casino",
+        "filename": "007.Casino.Royale.2006.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 36557,
+        "category": "same-folder"
+      },
+      "parsed": "007 Casino Royale",
+      "matchedID": "36557",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "skyfall",
+        "filename": "007.Skyfall.2012.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 37724,
+        "category": "same-folder"
+      },
+      "parsed": "007 Skyfall",
+      "matchedID": "37724",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "avatar",
+        "filename": "Avatar.2009.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 19995,
+        "category": "same-folder"
+      },
+      "parsed": "Avatar",
+      "matchedID": "19995",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "avatar2",
+        "filename": "Avatar.The.Way.Of.Water.2022.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 76600,
+        "category": "same-folder"
+      },
+      "parsed": "Avatar The Way Of Water",
+      "matchedID": "76600",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "dune-old",
+        "filename": "Dune.1984.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 841,
+        "category": "same-folder"
+      },
+      "parsed": "Dune",
+      "matchedID": "841",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "dune-new",
+        "filename": "Dune.2021.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 438631,
+        "category": "same-folder"
+      },
+      "parsed": "Dune",
+      "matchedID": "438631",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "dune2",
+        "filename": "Dune.Part.Two.2024.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 693134,
+        "category": "same-folder"
+      },
+      "parsed": "Dune Part Two",
+      "matchedID": "693134",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "crash-old",
+        "filename": "Crash.1996.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 884,
+        "category": "same-folder"
+      },
+      "parsed": "Crash",
+      "matchedID": "884",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "crash-new",
+        "filename": "Crash.2004.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "type": "movie",
+        "expected": 1640,
+        "category": "same-folder"
+      },
+      "parsed": "Crash",
+      "matchedID": null,
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "tlou-s1",
+        "filename": "TLOU.2023.S01E01.mkv",
+        "folders": [
+          "TV",
+          "最后生还者",
+          "Season 1"
+        ],
+        "type": "tv",
+        "expected": 100088,
+        "category": "multi-season"
+      },
+      "parsed": "TLOU",
+      "matchedID": "100088",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "tlou-s2",
+        "filename": "TLOU.2025.S02E01.mkv",
+        "folders": [
+          "TV",
+          "最后生还者",
+          "Season 2"
+        ],
+        "type": "tv",
+        "expected": 100088,
+        "category": "multi-season"
+      },
+      "parsed": "TLOU",
+      "matchedID": "100088",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "tlou-e2",
+        "filename": "TLOU.S01E02.mkv",
+        "folders": [
+          "TV",
+          "最后生还者",
+          "Season 1"
+        ],
+        "type": "tv",
+        "expected": 100088,
+        "category": "multi-season"
+      },
+      "parsed": "TLOU",
+      "matchedID": "100088",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "got",
+        "filename": "GOT.S01E01.1080p.mkv",
+        "folders": [
+          "TV",
+          "To Watch"
+        ],
+        "type": "tv",
+        "expected": 1399,
+        "category": "abbreviation"
+      },
+      "parsed": "GOT",
+      "matchedID": "1399",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "hotd",
+        "filename": "HOTD.S01E01.1080p.mkv",
+        "folders": [
+          "TV",
+          "To Watch"
+        ],
+        "type": "tv",
+        "expected": 94997,
+        "category": "abbreviation"
+      },
+      "parsed": "HOTD",
+      "matchedID": "94997",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "tbbt",
+        "filename": "TBBT.S01E01.mkv",
+        "folders": [
+          "TV",
+          "To Watch"
+        ],
+        "type": "tv",
+        "expected": 1418,
+        "category": "abbreviation"
+      },
+      "parsed": "TBBT",
+      "matchedID": "1418",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "bb",
+        "filename": "BB.S01E01.mkv",
+        "folders": [
+          "TV",
+          "Breaking Bad"
+        ],
+        "type": "tv",
+        "expected": 1396,
+        "category": "abbreviation"
+      },
+      "parsed": "BB",
+      "matchedID": "45476",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "office-us",
+        "filename": "The.Office.S01E01.mkv",
+        "folders": [
+          "TV"
+        ],
+        "type": "tv",
+        "expected": 2316,
+        "category": "same-title"
+      },
+      "parsed": "The Office",
+      "matchedID": "2316",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "office-uk",
+        "filename": "Office.S01E01.mkv",
+        "folders": [
+          "英剧",
+          "The Office UK"
+        ],
+        "type": "tv",
+        "expected": 2996,
+        "category": "same-title"
+      },
+      "parsed": "Office",
+      "matchedID": "54179",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "office-au",
+        "filename": "Office.S01E01.mkv",
+        "folders": [
+          "澳剧",
+          "The Office AU"
+        ],
+        "type": "tv",
+        "expected": 256480,
+        "category": "same-title"
+      },
+      "parsed": "Office",
+      "matchedID": "54179",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "shameless-us",
+        "filename": "Shameless.S01E01.mkv",
+        "folders": [
+          "美剧"
+        ],
+        "type": "tv",
+        "expected": 34307,
+        "category": "same-title"
+      },
+      "parsed": "Shameless",
+      "matchedID": "34307",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "shameless-uk",
+        "filename": "Shameless.S01E01.mkv",
+        "folders": [
+          "英剧"
+        ],
+        "type": "tv",
+        "expected": 1906,
+        "category": "same-title"
+      },
+      "parsed": "Shameless",
+      "matchedID": "1906",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "ghosts-us",
+        "filename": "Ghosts.S01E01.mkv",
+        "folders": [
+          "美剧"
+        ],
+        "type": "tv",
+        "expected": 126027,
+        "category": "same-title"
+      },
+      "parsed": "Ghosts",
+      "matchedID": "17174",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "ghosts-uk",
+        "filename": "Ghosts.S01E01.mkv",
+        "folders": [
+          "英剧"
+        ],
+        "type": "tv",
+        "expected": 17174,
+        "category": "same-title"
+      },
+      "parsed": "Ghosts",
+      "matchedID": "17174",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "utopia-us",
+        "filename": "Utopia.S01E01.mkv",
+        "folders": [
+          "美剧"
+        ],
+        "type": "tv",
+        "expected": 78903,
+        "category": "same-title"
+      },
+      "parsed": "Utopia",
+      "matchedID": "46511",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "utopia-uk",
+        "filename": "Utopia.S01E01.mkv",
+        "folders": [
+          "英剧"
+        ],
+        "type": "tv",
+        "expected": 46511,
+        "category": "same-title"
+      },
+      "parsed": "Utopia",
+      "matchedID": "46511",
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "frieren",
+        "filename": "[VCB-Studio] Sousou no Frieren [01][1080p][x265].mkv",
+        "folders": [
+          "Anime",
+          "葬送的芙莉莲",
+          "Season 1"
+        ],
+        "type": "tv",
+        "expected": 209867,
+        "category": "abbreviation"
+      },
+      "parsed": "Sousou no Frieren",
+      "matchedID": "209867",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "kny",
+        "filename": "KNY.S01E01.mkv",
+        "folders": [
+          "Anime",
+          "Demon Slayer"
+        ],
+        "type": "tv",
+        "expected": 85937,
+        "category": "abbreviation"
+      },
+      "parsed": "KNY",
+      "matchedID": "85937",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "franxx",
+        "filename": "FRXX.S01E01.mkv",
+        "folders": [
+          "Anime",
+          "Darling in the Franxx"
+        ],
+        "type": "tv",
+        "expected": 76121,
+        "category": "abbreviation"
+      },
+      "parsed": "FRXX",
+      "matchedID": "76121",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "inception-generic",
+        "filename": "movie.mkv",
+        "folders": [
+          "Movies",
+          "Inception.2010"
+        ],
+        "type": "movie",
+        "expected": 27205,
+        "category": "generic-file"
+      },
+      "parsed": "movie",
+      "matchedID": "27205",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "interstellar-generic",
+        "filename": "movie.mkv",
+        "folders": [
+          "Movies",
+          "Interstellar.2014"
+        ],
+        "type": "movie",
+        "expected": 157336,
+        "category": "generic-file"
+      },
+      "parsed": "movie",
+      "matchedID": "309810",
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "unknown",
+        "filename": "a8f01c72.1080p.mkv",
+        "folders": [
+          "Downloads"
+        ],
+        "type": "movie",
+        "expected": null,
+        "category": "no-clue"
+      },
+      "parsed": "a8f01c72",
+      "matchedID": null,
+      "aiCalls": 1
+    },
+    {
+      "sample": {
+        "id": "free-unmatched",
+        "filename": "HP1.2001.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "type": "movie",
+        "expected": null,
+        "category": "free-control",
+        "pro": false
+      },
+      "parsed": "HP1",
+      "matchedID": null,
+      "aiCalls": 0
+    },
+    {
+      "sample": {
+        "id": "free-matched",
+        "filename": "Spirited.Away.2001.mkv",
+        "folders": [
+          "Movies"
+        ],
+        "type": "movie",
+        "expected": 129,
+        "category": "free-control",
+        "pro": false
+      },
+      "parsed": "Spirited Away",
+      "matchedID": "129",
+      "aiCalls": 0
+    }
+  ],
+  "optimizedResults": [
+    {
+      "aiCalls": 1,
+      "matchedID": "671",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Harry Potter Collection",
+        "title": "HP1",
+        "year": 2001
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 671,
+        "filename": "HP1.2001.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "id": "hp1",
+        "type": "movie"
+      },
+      "seconds": 3.0314829349517822,
+      "title": "哈利·波特与魔法石"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "672",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Harry Potter Collection",
+        "title": "HP2",
+        "year": 2002
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 672,
+        "filename": "HP2.2002.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "id": "hp2",
+        "type": "movie"
+      },
+      "seconds": 2.231959104537964,
+      "title": "哈利·波特与密室"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "673",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Harry Potter Collection",
+        "title": "HP3",
+        "year": 2004
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 673,
+        "filename": "HP3.2004.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "id": "hp3",
+        "type": "movie"
+      },
+      "seconds": 2.998849034309387,
+      "title": "哈利·波特与阿兹卡班的囚徒"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "12444",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Harry Potter Collection",
+        "title": "HP7 Part1",
+        "year": 2010
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 12444,
+        "filename": "HP7.Part1.2010.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "id": "hp4",
+        "type": "movie"
+      },
+      "seconds": 2.3039610385894775,
+      "title": "哈利·波特与死亡圣器（上）"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "12445",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Harry Potter Collection",
+        "title": "HP7 Part2",
+        "year": 2011
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 12445,
+        "filename": "HP7.Part2.2011.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "id": "hp5",
+        "type": "movie"
+      },
+      "seconds": 2.429232954978943,
+      "title": "哈利·波特与死亡圣器（下）"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "120",
+      "method": "title",
+      "parsed": {
+        "folderTitle": "指环王三部曲",
+        "title": "LOTR1",
+        "year": 2001
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 120,
+        "filename": "LOTR1.2001.Extended.BluRay.mkv",
+        "folders": [
+          "Movies",
+          "指环王三部曲"
+        ],
+        "id": "lotr1",
+        "type": "movie"
+      },
+      "seconds": 0.362807035446167,
+      "title": "指环王1：护戒使者"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "121",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "指环王三部曲",
+        "title": "LOTR2",
+        "year": 2002
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 121,
+        "filename": "LOTR2.2002.Extended.BluRay.mkv",
+        "folders": [
+          "Movies",
+          "指环王三部曲"
+        ],
+        "id": "lotr2",
+        "type": "movie"
+      },
+      "seconds": 2.048058032989502,
+      "title": "指环王2：双塔奇兵"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "122",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "指环王三部曲",
+        "title": "LOTR3",
+        "year": 2003
+      },
+      "sample": {
+        "category": "collection",
+        "expected": 122,
+        "filename": "LOTR3.2003.Extended.BluRay.mkv",
+        "folders": [
+          "Movies",
+          "指环王三部曲"
+        ],
+        "id": "lotr3",
+        "type": "movie"
+      },
+      "seconds": 1.9062049388885498,
+      "title": "指环王3：王者无敌"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "36557",
+      "method": "title",
+      "parsed": {
+        "title": "007 Casino Royale",
+        "year": 2006
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 36557,
+        "filename": "007.Casino.Royale.2006.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "casino",
+        "type": "movie"
+      },
+      "seconds": 0.1828169822692871,
+      "title": "007：大战皇家赌场"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "37724",
+      "method": "title",
+      "parsed": {
+        "title": "007 Skyfall",
+        "year": 2012
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 37724,
+        "filename": "007.Skyfall.2012.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "skyfall",
+        "type": "movie"
+      },
+      "seconds": 0.19461309909820557,
+      "title": "007：大破天幕杀机"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "19995",
+      "method": "title",
+      "parsed": {
+        "title": "Avatar",
+        "year": 2009
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 19995,
+        "filename": "Avatar.2009.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "avatar",
+        "type": "movie"
+      },
+      "seconds": 0.1817840337753296,
+      "title": "阿凡达"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "76600",
+      "method": "title",
+      "parsed": {
+        "title": "Avatar The Way Of Water",
+        "year": 2022
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 76600,
+        "filename": "Avatar.The.Way.Of.Water.2022.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "avatar2",
+        "type": "movie"
+      },
+      "seconds": 0.17950499057769775,
+      "title": "阿凡达：水之道"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "841",
+      "method": "title",
+      "parsed": {
+        "title": "Dune",
+        "year": 1984
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 841,
+        "filename": "Dune.1984.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "dune-old",
+        "type": "movie"
+      },
+      "seconds": 0.17821502685546875,
+      "title": "沙丘"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "438631",
+      "method": "title",
+      "parsed": {
+        "title": "Dune",
+        "year": 2021
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 438631,
+        "filename": "Dune.2021.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "dune-new",
+        "type": "movie"
+      },
+      "seconds": 1.1734449863433838,
+      "title": "沙丘"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "693134",
+      "method": "title",
+      "parsed": {
+        "title": "Dune Part Two",
+        "year": 2024
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 693134,
+        "filename": "Dune.Part.Two.2024.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "dune2",
+        "type": "movie"
+      },
+      "seconds": 0.17852795124053955,
+      "title": "沙丘2"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "884",
+      "method": "title",
+      "parsed": {
+        "title": "Crash",
+        "year": 1996
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 884,
+        "filename": "Crash.1996.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "crash-old",
+        "type": "movie"
+      },
+      "seconds": 0.1772860288619995,
+      "title": "欲望号快车"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "1640",
+      "method": "ai",
+      "parsed": {
+        "title": "Crash",
+        "year": 2004
+      },
+      "sample": {
+        "category": "same-folder",
+        "expected": 1640,
+        "filename": "Crash.2004.mkv",
+        "folders": [
+          "Movies",
+          "合集"
+        ],
+        "id": "crash-new",
+        "type": "movie"
+      },
+      "seconds": 0.5516419410705566,
+      "title": "撞车"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "最后生还者",
+        "season": 1,
+        "title": "TLOU",
+        "year": 2023
+      },
+      "sample": {
+        "category": "multi-season",
+        "expected": 100088,
+        "filename": "TLOU.2023.S01E01.mkv",
+        "folders": [
+          "TV",
+          "最后生还者",
+          "Season 1"
+        ],
+        "id": "tlou-s1",
+        "type": "tv"
+      },
+      "seconds": 0.1808609962463379,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "最后生还者",
+        "season": 2,
+        "title": "TLOU",
+        "year": 2025
+      },
+      "sample": {
+        "category": "multi-season",
+        "expected": 100088,
+        "filename": "TLOU.2025.S02E01.mkv",
+        "folders": [
+          "TV",
+          "最后生还者",
+          "Season 2"
+        ],
+        "id": "tlou-s2",
+        "type": "tv"
+      },
+      "seconds": 0.18056809902191162,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "title",
+      "parsed": {
+        "episode": 2,
+        "folderTitle": "最后生还者",
+        "season": 1,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "multi-season",
+        "expected": 100088,
+        "filename": "TLOU.S01E02.mkv",
+        "folders": [
+          "TV",
+          "最后生还者",
+          "Season 1"
+        ],
+        "id": "tlou-e2",
+        "type": "tv"
+      },
+      "seconds": 0.19123005867004395,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "1399",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "To Watch",
+        "season": 1,
+        "title": "GOT"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 1399,
+        "filename": "GOT.S01E01.1080p.mkv",
+        "folders": [
+          "TV",
+          "To Watch"
+        ],
+        "id": "got",
+        "type": "tv"
+      },
+      "seconds": 4.027045011520386,
+      "title": "权力的游戏"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "94997",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "To Watch",
+        "season": 1,
+        "title": "HOTD"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 94997,
+        "filename": "HOTD.S01E01.1080p.mkv",
+        "folders": [
+          "TV",
+          "To Watch"
+        ],
+        "id": "hotd",
+        "type": "tv"
+      },
+      "seconds": 2.0275830030441284,
+      "title": "权力的游戏前传：龙族"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "1418",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "To Watch",
+        "season": 1,
+        "title": "TBBT"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 1418,
+        "filename": "TBBT.S01E01.mkv",
+        "folders": [
+          "TV",
+          "To Watch"
+        ],
+        "id": "tbbt",
+        "type": "tv"
+      },
+      "seconds": 2.2718530893325806,
+      "title": "生活大爆炸"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "1396",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "Breaking Bad",
+        "season": 1,
+        "title": "BB"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 1396,
+        "filename": "BB.S01E01.mkv",
+        "folders": [
+          "TV",
+          "Breaking Bad"
+        ],
+        "id": "bb",
+        "type": "tv"
+      },
+      "seconds": 0.18368291854858398,
+      "title": "绝命毒师"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "2316",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "season": 1,
+        "title": "The Office"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 2316,
+        "filename": "The.Office.S01E01.mkv",
+        "folders": [
+          "TV"
+        ],
+        "id": "office-us",
+        "type": "tv"
+      },
+      "seconds": 1.7405760288238525,
+      "title": "办公室"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "2996",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "The Office UK",
+        "season": 1,
+        "title": "Office"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 2996,
+        "filename": "Office.S01E01.mkv",
+        "folders": [
+          "英剧",
+          "The Office UK"
+        ],
+        "id": "office-uk",
+        "type": "tv"
+      },
+      "seconds": 0.18274199962615967,
+      "title": "办公室风云"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "256480",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "The Office AU",
+        "season": 1,
+        "title": "Office"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 256480,
+        "filename": "Office.S01E01.mkv",
+        "folders": [
+          "澳剧",
+          "The Office AU"
+        ],
+        "id": "office-au",
+        "type": "tv"
+      },
+      "seconds": 0.1824558973312378,
+      "title": "办公室(澳洲版)"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "34307",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "美剧",
+        "season": 1,
+        "title": "Shameless"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 34307,
+        "filename": "Shameless.S01E01.mkv",
+        "folders": [
+          "美剧"
+        ],
+        "id": "shameless-us",
+        "type": "tv"
+      },
+      "seconds": 0.7379579544067383,
+      "title": "无耻之徒"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "1906",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "英剧",
+        "season": 1,
+        "title": "Shameless"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 1906,
+        "filename": "Shameless.S01E01.mkv",
+        "folders": [
+          "英剧"
+        ],
+        "id": "shameless-uk",
+        "type": "tv"
+      },
+      "seconds": 2.2001229524612427,
+      "title": "无耻之徒"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "126027",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "美剧",
+        "season": 1,
+        "title": "Ghosts"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 126027,
+        "filename": "Ghosts.S01E01.mkv",
+        "folders": [
+          "美剧"
+        ],
+        "id": "ghosts-us",
+        "type": "tv"
+      },
+      "seconds": 2.105394959449768,
+      "title": "鬼屋欢乐送"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "17174",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "英剧",
+        "season": 1,
+        "title": "Ghosts"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 17174,
+        "filename": "Ghosts.S01E01.mkv",
+        "folders": [
+          "英剧"
+        ],
+        "id": "ghosts-uk",
+        "type": "tv"
+      },
+      "seconds": 3.5416070222854614,
+      "title": "古宅老友记"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "78903",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "美剧",
+        "season": 1,
+        "title": "Utopia"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 78903,
+        "filename": "Utopia.S01E01.mkv",
+        "folders": [
+          "美剧"
+        ],
+        "id": "utopia-us",
+        "type": "tv"
+      },
+      "seconds": 3.8182499408721924,
+      "title": "乌托邦"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "46511",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "英剧",
+        "season": 1,
+        "title": "Utopia"
+      },
+      "sample": {
+        "category": "same-title",
+        "expected": 46511,
+        "filename": "Utopia.S01E01.mkv",
+        "folders": [
+          "英剧"
+        ],
+        "id": "utopia-uk",
+        "type": "tv"
+      },
+      "seconds": 0.9331029653549194,
+      "title": "乌托邦"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "209867",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "葬送的芙莉莲",
+        "season": 1,
+        "title": "Sousou no Frieren"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 209867,
+        "filename": "[VCB-Studio] Sousou no Frieren [01][1080p][x265].mkv",
+        "folders": [
+          "Anime",
+          "葬送的芙莉莲",
+          "Season 1"
+        ],
+        "id": "frieren",
+        "type": "tv"
+      },
+      "seconds": 0.5587290525436401,
+      "title": "葬送的芙莉莲"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "85937",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "Demon Slayer",
+        "season": 1,
+        "title": "KNY"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 85937,
+        "filename": "KNY.S01E01.mkv",
+        "folders": [
+          "Anime",
+          "Demon Slayer"
+        ],
+        "id": "kny",
+        "type": "tv"
+      },
+      "seconds": 0.45508503913879395,
+      "title": "鬼灭之刃"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "76121",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "Darling in the Franxx",
+        "season": 1,
+        "title": "FRXX"
+      },
+      "sample": {
+        "category": "abbreviation",
+        "expected": 76121,
+        "filename": "FRXX.S01E01.mkv",
+        "folders": [
+          "Anime",
+          "Darling in the Franxx"
+        ],
+        "id": "franxx",
+        "type": "tv"
+      },
+      "seconds": 0.19490396976470947,
+      "title": "DARLING in the FRANXX"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "27205",
+      "method": "title",
+      "parsed": {
+        "folderTitle": "Inception",
+        "title": "movie",
+        "year": 2010
+      },
+      "sample": {
+        "category": "generic-file",
+        "expected": 27205,
+        "filename": "movie.mkv",
+        "folders": [
+          "Movies",
+          "Inception.2010"
+        ],
+        "id": "inception-generic",
+        "type": "movie"
+      },
+      "seconds": 0.27055299282073975,
+      "title": "盗梦空间"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "157336",
+      "method": "title",
+      "parsed": {
+        "folderTitle": "Interstellar",
+        "title": "movie",
+        "year": 2014
+      },
+      "sample": {
+        "category": "generic-file",
+        "expected": 157336,
+        "filename": "movie.mkv",
+        "folders": [
+          "Movies",
+          "Interstellar.2014"
+        ],
+        "id": "interstellar-generic",
+        "type": "movie"
+      },
+      "seconds": 0.17660796642303467,
+      "title": "星际穿越"
+    },
+    {
+      "aiCalls": 1,
+      "parsed": {
+        "folderTitle": "Downloads",
+        "title": "a8f01c72"
+      },
+      "sample": {
+        "category": "no-clue",
+        "filename": "a8f01c72.1080p.mkv",
+        "folders": [
+          "Downloads"
+        ],
+        "id": "unknown",
+        "type": "movie"
+      },
+      "seconds": 1.643468976020813
+    },
+    {
+      "aiCalls": 0,
+      "parsed": {
+        "folderTitle": "Harry Potter Collection",
+        "title": "HP1",
+        "year": 2001
+      },
+      "sample": {
+        "category": "free-control",
+        "filename": "HP1.2001.1080p.mkv",
+        "folders": [
+          "Movies",
+          "Harry Potter Collection"
+        ],
+        "id": "free-unmatched",
+        "pro": false,
+        "type": "movie"
+      },
+      "seconds": 0.0008440017700195312
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "129",
+      "method": "title",
+      "parsed": {
+        "title": "Spirited Away",
+        "year": 2001
+      },
+      "sample": {
+        "category": "free-control",
+        "expected": 129,
+        "filename": "Spirited.Away.2001.mkv",
+        "folders": [
+          "Movies"
+        ],
+        "id": "free-matched",
+        "pro": false,
+        "type": "movie"
+      },
+      "seconds": 0.26968300342559814,
+      "title": "千与千寻"
+    }
+  ],
+  "holdoutResults": [
+    {
+      "aiCalls": 1,
+      "matchedID": "157336",
+      "method": "ai",
+      "parsed": {
+        "title": "Intersteler",
+        "year": 2014
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 157336,
+        "filename": "Intersteler.2014.mkv",
+        "folders": [
+          "Movies"
+        ],
+        "id": "typo",
+        "type": "movie"
+      },
+      "seconds": 3.3191709518432617,
+      "title": "星际穿越"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "1396",
+      "method": "title",
+      "parsed": {
+        "episode": 1,
+        "season": 1,
+        "title": "BrBa"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 1396,
+        "filename": "BrBa.S01E01.mkv",
+        "folders": [
+          "TV"
+        ],
+        "id": "brba",
+        "type": "tv"
+      },
+      "seconds": 0.17768001556396484,
+      "title": "绝命毒师"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "1402",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "season": 1,
+        "title": "TWD"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 1402,
+        "filename": "TWD.S01E01.mkv",
+        "folders": [
+          "TV"
+        ],
+        "id": "twd",
+        "type": "tv"
+      },
+      "seconds": 2.119719982147217,
+      "title": "行尸走肉"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "31911",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "season": 1,
+        "title": "FMA Brotherhood"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 31911,
+        "filename": "FMA.Brotherhood.S01E01.mkv",
+        "folders": [
+          "Anime"
+        ],
+        "id": "fma",
+        "type": "tv"
+      },
+      "seconds": 3.4620189666748047,
+      "title": "钢之炼金术师 FA"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "545611",
+      "method": "title",
+      "parsed": {
+        "title": "EEAAO",
+        "year": 2022
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 545611,
+        "filename": "EEAAO.2022.mkv",
+        "folders": [
+          "Movies"
+        ],
+        "id": "eeaao",
+        "type": "movie"
+      },
+      "seconds": 0.1783679723739624,
+      "title": "瞬息全宇宙"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "49517",
+      "method": "ai",
+      "parsed": {
+        "title": "TTSS",
+        "year": 2011
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 49517,
+        "filename": "TTSS.2011.mkv",
+        "folders": [
+          "Movies"
+        ],
+        "id": "ttss",
+        "type": "movie"
+      },
+      "seconds": 3.5121270418167114,
+      "title": "锅匠，裁缝，士兵，间谍"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "11",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Star Wars Collection",
+        "title": "SW4",
+        "year": 1977
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 11,
+        "filename": "SW4.1977.mkv",
+        "folders": [
+          "Movies",
+          "Star Wars Collection"
+        ],
+        "id": "sw4",
+        "type": "movie"
+      },
+      "seconds": 4.160213947296143,
+      "title": "星球大战4：新希望"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "1891",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Star Wars Collection",
+        "title": "SW5",
+        "year": 1980
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 1891,
+        "filename": "SW5.1980.mkv",
+        "folders": [
+          "Movies",
+          "Star Wars Collection"
+        ],
+        "id": "sw5",
+        "type": "movie"
+      },
+      "seconds": 2.8701679706573486,
+      "title": "星球大战5：帝国反击战"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "1892",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "Star Wars Collection",
+        "title": "SW6",
+        "year": 1983
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 1892,
+        "filename": "SW6.1983.mkv",
+        "folders": [
+          "Movies",
+          "Star Wars Collection"
+        ],
+        "id": "sw6",
+        "type": "movie"
+      },
+      "seconds": 3.419981002807617,
+      "title": "星球大战6：绝地归来"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "10195",
+      "method": "ai",
+      "parsed": {
+        "folderTitle": "漫威",
+        "title": "LeiShen",
+        "year": 2011
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 10195,
+        "filename": "LeiShen.2011.mkv",
+        "folders": [
+          "Movies",
+          "漫威合集"
+        ],
+        "id": "thor-pinyin",
+        "type": "movie"
+      },
+      "seconds": 2.8143630027770996,
+      "title": "雷神"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "120",
+      "method": "ai",
+      "parsed": {
+        "title": "ZhiHuanWang1",
+        "year": 2001
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 120,
+        "filename": "ZhiHuanWang1.2001.mkv",
+        "folders": [
+          "Movies",
+          "电影合集"
+        ],
+        "id": "lotr-pinyin",
+        "type": "movie"
+      },
+      "seconds": 3.3393709659576416,
+      "title": "指环王1：护戒使者"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "10775",
+      "method": "ai",
+      "parsed": {
+        "title": "無間道 國粵雙語",
+        "year": 2002
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 10775,
+        "filename": "無間道 國粵雙語.2002.mkv",
+        "folders": [
+          "Movies"
+        ],
+        "id": "infernal",
+        "type": "movie"
+      },
+      "seconds": 2.999343991279602,
+      "title": "无间道"
+    },
+    {
+      "aiCalls": 1,
+      "matchedID": "100088",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "TLOU Complete",
+        "season": 2,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 100088,
+        "filename": "TLOU.S02E01.mkv",
+        "folders": [
+          "TV",
+          "TLOU Complete",
+          "Season 2"
+        ],
+        "id": "tlou-hard-s2",
+        "type": "tv"
+      },
+      "seconds": 2.60965096950531,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "ai",
+      "parsed": {
+        "episode": 1,
+        "folderTitle": "TLOU Complete",
+        "season": 1,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 100088,
+        "filename": "TLOU.S01E01.mkv",
+        "folders": [
+          "TV",
+          "TLOU Complete",
+          "Season 1"
+        ],
+        "id": "tlou-hard-s1",
+        "type": "tv"
+      },
+      "seconds": 0.0040329694747924805,
+      "title": "最后生还者"
+    },
+    {
+      "aiCalls": 0,
+      "matchedID": "100088",
+      "method": "ai",
+      "parsed": {
+        "episode": 2,
+        "folderTitle": "TLOU Complete",
+        "season": 2,
+        "title": "TLOU"
+      },
+      "sample": {
+        "category": "holdout",
+        "expected": 100088,
+        "filename": "TLOU.S02E02.mkv",
+        "folders": [
+          "TV",
+          "TLOU Complete",
+          "Season 2"
+        ],
+        "id": "tlou-hard-e2",
+        "type": "tv"
+      },
+      "seconds": 0.0029469728469848633,
+      "title": "最后生还者"
+    }
+  ]
+}

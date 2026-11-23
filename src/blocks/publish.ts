@@ -296,6 +296,7 @@ async function resolveItem(
 		thumb: imageMeta.thumb,
 		logo: imageMeta.logo,
 		noLogoPoster: imageMeta.noLogoPoster,
+		hasNoLogoPoster: imageMeta.hasNoLogoPoster,
 	};
 }
 

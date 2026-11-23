@@ -1,3 +1,5 @@
+import { languagePreference, localizeMediaPayload } from "../media-languages.js";
+import { hasTextlessPoster } from "./tmdb-enrich.js";
 /// <reference types="@cloudflare/workers-types" />
 import { type Context, Hono } from "hono";
 import {
@@ -18,7 +20,7 @@ const R2_CUSTOM_DOMAIN = process.env.R2_CUSTOM_DOMAIN || "assets.eplayerx.com";
 const STATIC_JSON_CACHE_CONTROL =
   "public, max-age=3600, s-maxage=3600, stale-while-revalidate=21600";
 /** Bump to drop Cache API entries after a static blob rewrite. */
-const STATIC_JSON_CACHE_EPOCH = "20260816-networks-hbo";
+const STATIC_JSON_CACHE_EPOCH = "20261121-textless-poster";
 
 type CrawlerBindings = {
   ASSETS?: R2Bucket;
@@ -143,7 +145,9 @@ async function staticJsonCacheMiddleware(
   if (!cache) {
     return next();
   }
-  const cacheKey = new Request(`${c.req.url}#${STATIC_JSON_CACHE_EPOCH}`, {
+  const cacheUrl = new URL(c.req.url);
+  cacheUrl.searchParams.set("_cache_version", STATIC_JSON_CACHE_EPOCH);
+  const cacheKey = new Request(cacheUrl, {
     method: "GET",
   });
   const hit = await cache.match(cacheKey);
@@ -645,9 +649,11 @@ function localizeContentItem(item: ContentItem, locale: Locale): ContentItem {
   const translation = pickContentTranslation(item, locale);
   if (!translation) {
     const { translations: _omit, ...rest } = item;
-    return rest;
+    return { ...rest, hasNoLogoPoster: hasTextlessPoster(rest) };
   }
   const { translations: _omit, ...rest } = item;
+  const translatedTextless = hasTextlessPoster(translation);
+  const baseTextless = hasTextlessPoster(rest);
   return {
     ...rest,
     title: translation.title || rest.title,
@@ -655,7 +661,8 @@ function localizeContentItem(item: ContentItem, locale: Locale): ContentItem {
     tagline: translation.tagline ?? rest.tagline,
     thumb: translation.thumb ?? rest.thumb,
     logo: translation.logo ?? rest.logo,
-    noLogoPoster: translation.noLogoPoster ?? rest.noLogoPoster,
+    noLogoPoster: translatedTextless || !baseTextless ? translation.noLogoPoster ?? rest.noLogoPoster : rest.noLogoPoster,
+    hasNoLogoPoster: translatedTextless || baseTextless,
     trailer: translation.trailer ?? rest.trailer,
     poster_path: translation.poster_path ?? rest.poster_path,
     backdrop_path: translation.backdrop_path ?? rest.backdrop_path,
@@ -681,13 +688,12 @@ async function servePopularJson(
   key: string
 ): Promise<Response> {
   const locale = resolveRequestLocale(c);
-  if (!locale) {
-    return serveStaticR2Json(c, key);
-  }
-
   const result = await readStaticR2Json(c, key);
   if (!result.ok) return result.response;
   const payload = result.data as PopularBlobPayload;
+  if (!locale) {
+    return c.json(await localizeMediaPayload(payload, c), 200, { "Cache-Control": STATIC_JSON_CACHE_CONTROL });
+  }
   let localized = localizePopularPayload(payload, locale);
   const selected = languagePreference(c.req.query("metadataLanguage"))?.toLowerCase();
   // Reuse published translations for common text-only switches; never re-scrape the snapshot.

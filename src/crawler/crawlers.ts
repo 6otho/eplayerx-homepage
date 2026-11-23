@@ -136,6 +136,7 @@ function translationFromEnrichment(
 		logo: absImg(enriched.imageMeta.logo),
 		noLogoPoster: absImg(enriched.imageMeta.noLogoPoster),
 		poster_path: absImg(data.poster_path),
+		hasNoLogoPoster: enriched.imageMeta.hasNoLogoPoster,
 		...(data.trailer ? { trailer: data.trailer } : {}),
 		backdrop_path: absImg(data.backdrop_path),
 	};
@@ -179,6 +180,7 @@ export async function buildContentItem(
 		thumb: absImg(data.backdrop_path || data.poster_path),
 		logo: null,
 		noLogoPoster: absImg(data.poster_path),
+		hasNoLogoPoster: false,
 	};
 
 	const translations: NonNullable<ContentItem["translations"]> = {};
@@ -237,6 +239,7 @@ export async function buildContentItem(
 		thumb: absImg(imageMeta.thumb),
 		logo: absImg(imageMeta.logo),
 		noLogoPoster: absImg(imageMeta.noLogoPoster),
+		hasNoLogoPoster: imageMeta.hasNoLogoPoster,
 		...(Object.keys(translations).length > 0 ? { translations } : {}),
 		crawledAt: new Date().toISOString(),
 	};

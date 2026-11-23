@@ -1,7 +1,7 @@
 import { cachedRatings, getRatingsCache } from "./ratings/cache.js";
 import { resolveTrailerCandidates, videoLanguages, type Details as TrailerDetails } from "./tmdb/trailer-candidates.js";
 import type { Context } from "hono";
-import { originLanguage, pickPreferredLogo, resolveArtworkImages } from "./crawler/tmdb-enrich.js";
+import { hasTextlessPoster, originLanguage, pickPreferredLogo, resolveArtworkImages, selectTextlessPoster } from "./crawler/tmdb-enrich.js";
 import { tmdb } from "./tmdb/client.js";
 
 const languageTag = /^[a-zA-Z]{2,3}(?:-[a-zA-Z0-9]{2,8})*$/;
@@ -21,9 +21,9 @@ export function hasMediaLanguages(c: Context): boolean {
 
 type Media = Record<string, any>;
 
-/** Optional response overlays never rewrite published snapshots or add work for legacy requests. */
+/** Normalize snapshot artwork and look up language preferences only when requested. */
 export async function localizeMediaPayload(payload: Media, c: Context, fallbackType?: "movie" | "tv"): Promise<Media> {
-  if (!hasMediaLanguages(c)) return payload;
+  const shouldLocalize = hasMediaLanguages(c);
   const preferences = {
     appLanguage: c.req.query("language") || "en-US",
     metadataLanguage: languagePreference(c.req.query("metadataLanguage")),
@@ -34,6 +34,7 @@ export async function localizeMediaPayload(payload: Media, c: Context, fallbackT
     const type = item.media_type || fallbackType;
     const id = Number(item.tmdbId ?? item.id);
     if (!["movie", "tv"].includes(type) || !Number.isSafeInteger(id) || id <= 0) return item;
+    if (!shouldLocalize) return { ...item, hasNoLogoPoster: hasTextlessPoster(item) };
     return (await enrichWithImages([{ ...item, id }], metadataLanguage(c), type, preferences))[0];
   }
   async function walk(value: any): Promise<any> {
@@ -91,12 +92,6 @@ type ImageEntry = {
   height?: number;
 };
 
-function bestByVote<T extends { vote_average?: number }>(items: T[]) {
-  return items.length
-    ? items.sort((a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0))[0]
-    : undefined;
-}
-
 function withCachedRatings(
   item: Record<string, unknown>,
   mediaType: "movie" | "tv",
@@ -120,7 +115,8 @@ export async function enrichWithImages(
     languageCode === "zh" ? ((preferences ? /hant|tw|hk|mo/i.test(artworkLanguage) : artworkLanguage.includes("TW")) ? "TW" : "CN") : undefined;
   const ratingsCache = getRatingsCache();
 
-  const enrichOne = async (item: Record<string, unknown>) => {
+  const enrichOne = async (raw: Record<string, unknown>) => {
+    const item: Record<string, unknown> = { ...raw, hasNoLogoPoster: hasTextlessPoster(raw) };
     const type = mediaType ?? (item.media_type as string);
     if (type !== "movie" && type !== "tv") return item;
 
@@ -161,9 +157,7 @@ export async function enrichWithImages(
       )?.file_path;
 
       const posters = (images?.posters ?? []) as ImageEntry[];
-      const noLogoPoster = bestByVote(
-        posters.filter((p) => !p.iso_639_1)
-      )?.file_path;
+      const noLogoPoster = selectTextlessPoster(posters);
 
       const backdrops = (images?.backdrops ?? []) as ImageEntry[];
       const thumb =
@@ -173,7 +167,14 @@ export async function enrichWithImages(
         (item.poster_path as string | undefined);
 
       const trailer = details?.videos ? await resolveTrailerCandidates(details, language, type, query.include_video_language).catch(() => undefined) : undefined;
-      const next: Record<string, unknown> = { ...withRatings, logo, noLogoPoster: noLogoPoster ?? item.noLogoPoster, thumb, ...(trailer ? { trailer } : {}) };
+      const next: Record<string, unknown> = {
+        ...withRatings,
+        logo,
+        noLogoPoster: noLogoPoster ?? item.noLogoPoster,
+        hasNoLogoPoster: !!noLogoPoster || item.hasNoLogoPoster === true,
+        thumb,
+        ...(trailer ? { trailer } : {}),
+      };
       next.tagline = (details as { tagline?: string } | undefined)?.tagline?.trim() || undefined;
       const resolve = (value?: string) => value === "original" ? original || artworkLanguage : value || artworkLanguage;
       const region = (tag: string) => /^zh/i.test(tag) ? (/hant|tw|hk|mo/i.test(tag) ? "TW" : "CN") : undefined;

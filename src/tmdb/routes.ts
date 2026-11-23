@@ -1,5 +1,7 @@
+import { withMatchTitles } from "./match-titles.js";
 import { metadataLanguage, hasMediaLanguages, localizeMediaPayload, enrichWithImages } from "../media-languages.js";
 import { Hono, type Context } from "hono";
+import { selectTextlessPoster, type TmdbImagesPayload } from "../crawler/tmdb-enrich.js";
 import { tmdb } from "./client.js";
 import { getExtraReviews, reviewStorage } from "../reviews/cache.js";
 import { sortReviews } from "../reviews/sort.js";
@@ -26,7 +28,7 @@ tmdbApp.route("/", trailerPlayback);
 tmdbApp.route("/", episodeGroups);
 
 /** Bump to drop Cache API entries after cached response-shape changes. */
-const TMDB_CACHE_EPOCH = "20261102-tagline";
+const TMDB_CACHE_EPOCH = "20261121-textless-poster";
 
 const TMDB_IMAGE_CACHE_CONTROL =
   "public, max-age=31536000, s-maxage=31536000, immutable";
@@ -190,7 +192,7 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
     ? "20260930-scrape-localized-matching-v2"
     : path === "/tv/season/details" ? "20260826-season-aggregate-credits" : TMDB_CACHE_EPOCH;
   const cacheUrl = new URL(c.req.url);
-  cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? `${epoch}-media-languages-v3-textless` : epoch);
+  cacheUrl.searchParams.set("_cache_version", hasMediaLanguages(c) ? `${epoch}-media-languages-v4` : epoch);
   cacheUrl.searchParams.sort();
   const cacheKey = new Request(cacheUrl, {
     method: "GET",
@@ -485,17 +487,11 @@ tmdbApp.get("/genre/movie/list", async (c) => {
   return c.json(result.data?.genres || []);
 });
 
-/** Return only alias names, not every translation's synopsis/artwork. */
-function withMatchTitles(data: unknown) {
-  const { translations, alternative_titles, ...details } = data as Record<string, unknown> & {
-    translations?: { translations?: { data?: { title?: string; name?: string } }[] };
-    alternative_titles?: { titles?: { title?: string }[]; results?: { title?: string }[] };
-  };
-  const titles = [details.title, details.name, details.original_title, details.original_name,
-    ...(translations?.translations ?? []).flatMap(row => [row.data?.title, row.data?.name]),
-    ...(alternative_titles?.titles ?? alternative_titles?.results ?? []).map(row => row.title),
-  ].filter((title): title is string => typeof title === "string" && title.trim().length > 0);
-  return { ...details, match_titles: [...new Set(titles.map(title => title.trim()))] };
+
+function withDetailPosterArtwork<T extends object>(data: T | undefined) {
+  const { images, ...details } = (data ?? {}) as T & { images?: TmdbImagesPayload };
+  const noLogoPoster = selectTextlessPoster(images?.posters) ?? null;
+  return { ...details, noLogoPoster, hasNoLogoPoster: !!noLogoPoster };
 }
 
 tmdbApp.get("/movie/details", async (c) => {
@@ -505,7 +501,8 @@ tmdbApp.get("/movie/details", async (c) => {
     params: {
       query: {
         language,
-        append_to_response: "release_dates",
+        append_to_response: "release_dates,images",
+        include_image_language: "null",
       },
       path: {
         movie_id: Number(id),
@@ -515,7 +512,7 @@ tmdbApp.get("/movie/details", async (c) => {
   if (result.response.status !== 200) {
     return c.json({ error: result.error }, 500);
   }
-  return c.json(result.data);
+  return c.json(withDetailPosterArtwork(result.data));
 });
 
 tmdbApp.get("/movie/images", async (c) => {
@@ -831,7 +828,8 @@ tmdbApp.get("/tv/details", async (c) => {
     params: {
       query: {
         language,
-        append_to_response: "content_ratings",
+        append_to_response: "content_ratings,images",
+        include_image_language: "null",
       },
       path: {
         series_id: Number(id),
@@ -841,7 +839,7 @@ tmdbApp.get("/tv/details", async (c) => {
   if (result.response.status !== 200) {
     return c.json({ error: result.error }, 500);
   }
-  return c.json(result.data);
+  return c.json(withDetailPosterArtwork(result.data));
 });
 
 tmdbApp.get("/tv/images", async (c) => {

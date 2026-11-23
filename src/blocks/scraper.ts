@@ -8,8 +8,10 @@
  */
 
 import {
+	hasTextlessPoster,
 	originLanguage,
 	pickPreferredLogo,
+	selectTextlessPoster,
 } from "../crawler/tmdb-enrich.js";
 import type { MediaType, ScrapeOptions, SnapshotItem } from "./types.js";
 
@@ -51,6 +53,7 @@ interface RawItem {
 	thumb?: string | null;
 	logo?: string | null;
 	noLogoPoster?: string | null;
+	hasNoLogoPoster?: boolean;
 }
 
 function joinUrl(base: string, path: string): string {
@@ -109,6 +112,7 @@ function normalize(raw: RawItem, mediaType: MediaType): SnapshotItem | null {
 		thumb: raw.thumb ?? raw.backdrop_path ?? raw.poster_path ?? null,
 		logo: raw.logo ?? null,
 		noLogoPoster: raw.noLogoPoster ?? null,
+		hasNoLogoPoster: hasTextlessPoster(raw),
 	};
 }
 
@@ -147,14 +151,6 @@ interface TmdbImagesResponse {
 	posters?: ImageEntry[];
 }
 
-function bestByVote(entries: ImageEntry[]): ImageEntry | undefined {
-	return entries.length
-		? [...entries].sort(
-				(a, b) => (b.vote_average ?? 0) - (a.vote_average ?? 0),
-			)[0]
-		: undefined;
-}
-
 async function enrichItem(
 	token: string,
 	item: SnapshotItem,
@@ -190,15 +186,8 @@ async function enrichItem(
 				originLanguage(item.original_language, item.origin_country),
 			)?.file_path ?? null;
 
-		const posters = images.posters ?? [];
-		// No textless poster available: fall back to the regular poster so
-		// clients always have portrait art instead of a null slot.
-		const noLogoPoster =
-			bestByVote(posters.filter((p) => !p.iso_639_1))?.file_path ??
-			item.poster_path ??
-			null;
-
-		return { ...item, thumb, logo, noLogoPoster };
+		const textlessPoster = selectTextlessPoster(images.posters);
+		return { ...item, thumb, logo, noLogoPoster: textlessPoster ?? item.poster_path ?? null, hasNoLogoPoster: !!textlessPoster };
 	} catch {
 		return item;
 	}

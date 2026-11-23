@@ -70,6 +70,20 @@ DeepSeek 固定使用 `deepseek-flash`；OpenAI 固定使用 [`gpt-6-luna`](http
 
 验证：`node --import tsx --test src/subtitles/deepseek.test.ts` 和 `npm run test:ts`。
 
+## 媒体库 AI 识别兜底
+
+`POST /media/recognize` 专用于常规刮削后仍为「未识别 / 待匹配」的作品。独立接口复用服务端 `OPENAI_API_KEY`，固定使用 [`gpt-6-luna`](https://developers.openai.com/api/docs/models/gpt-6-luna)，`reasoning_effort: "low"`、结构化输出、`store: false`。不复用字幕翻译协议，也不改变常规 TMDB 搜索接口。
+
+仅对拥有当前平台 Pro 或全平台 Pro 权益的用户开放。客户端从 RevenueCat 的真实权益快照取得当前用户 ID，通过 `Authorization: Bearer <App User ID>` 自动发送；服务端使用固定项目的 `REVENUECAT_API_KEY` 独立核验有效权益（含终身及宽限期），最多缓存 60 秒且不超过权益到期时间。无身份返回 401，无有效 Pro 返回 403，核验失败不调用 AI。Debug 默认解锁不能绕过这一限制；用户 ID 作为此接口的持有者凭证使用，不写入应用日志。Worker 需额外配置 `REVENUECAT_API_KEY` Secret（现有项目的 RevenueCat 公共 SDK Key 即可，不接收客户端传入的 Key）。
+
+输入包含 `filename`、最多三级 `folders` 目录名、解析后的 `title`、可选 `year`、`type`（`movie` / `tv`）、`language` 和 `reason`（`unmatched` / `confirmation`）。只传名称，不传源地址、视频内容或网盘凭证。Luna 综合缩写、别名、目录、地区、年份、简介和候选热度选择最可能的作品；同名且缺少版本线索时优先识别最常见版本。返回的 ID 必须来自 TMDB 查询结果，保存的标题、简介、海报等也来自 TMDB。完全没有线索时返回 `{"match":null}`；故障保留原有状态。
+
+客户端仅在媒体库扫描时启用兜底，已匹配、明确 ID、完整 NFO、手动绑定及播放入口不调用 AI。同作品合并请求并缓存五分钟，AI 并发最多 2；季集号保留原解析结果。Worker 需配置 `MEDIA_RECOGNITION_RATE_LIMITER`（30 次/分钟/IP，Cloudflare 节点近似计数，并非全局费用上限），单次最多 8 KiB，整体 25 秒超时。模型请求不重试；调用模型前的 429 / 503 由客户端现有扫描队列限次重试，并遵守 Retry-After；401 / 403 会停止本轮后续 AI 请求。明确地区/年份下的唯一匹配和有明显支持度优势的电影目录条目可直接确定，不调用模型。已确定作品后，补充详情失败时保留搜索结果中的身份和元数据，并记录其实际语言。
+
+缩写或 `movie` / `video` 等通用文件名优先参考明确父目录；地区版本线索优先于热度。AI 兜底允许首映与广泛上映相差一年的情况，常规精确匹配规则不因此放宽。56 条合成样本的测试结果保存在[评估记录](./artifacts/media-recognition-multi-2026-11-14.json)。
+
+验证：`node --import tsx --test src/media-recognition.test.ts src/media-pro-access.test.ts`。
+
 ## 🔑 获取 TMDB API Token
 
 1. 访问 [TMDB 官网](https://www.themoviedb.org/) 并注册账号
@@ -182,6 +196,10 @@ MIT License
 海报和 Logo 的默认语言均跟随 App 的 `language`，不会跟随独立的 `metadataLanguage`。空值表示恢复默认；`original` 按作品原始语言选择，缺少目标语言图片时依次回退原语言和无文字图片。
 
 例如 `language=en-US&metadataLanguage=zh-CN&posterLanguage=zh-TW&logoLanguage=ja-JP` 返回英文栏目、简中影片内容、繁中海报、日文 Logo。分类和语言浏览入口仍使用 App 语言。响应缓存按完整参数区分；已发布快照和已有刮削数据不会被重写。没有独立偏好的旧请求不增加上游查询，榜单已有中英文译文优先复用。
+
+### 无字竖海报
+
+首页影片条目和 `/tmdb/movie/details`、`/tmdb/tv/details` 提供 `hasNoLogoPoster`。为 `true` 时，`noLogoPoster` 是无字竖海报路径，客户端可叠加可用的标题 Logo。为 `false` 时，竖图使用 `poster_path`。旧榜单快照可能在 `noLogoPoster` 里保存普通海报，客户端应以布尔值为准。
 
 ### 客户端广告扫描完成状态
 

@@ -72,6 +72,7 @@ export interface ImageMeta {
 	thumb: string | null;
 	logo: string | null;
 	noLogoPoster: string | null;
+	hasNoLogoPoster: boolean;
 }
 
 export interface ExternalIds {
@@ -79,7 +80,7 @@ export interface ExternalIds {
 	tvdbId: number | null;
 }
 
-interface TmdbImagesPayload {
+export interface TmdbImagesPayload {
 	backdrops?: ImageEntry[];
 	logos?: ImageEntry[];
 	posters?: ImageEntry[];
@@ -161,6 +162,7 @@ function imageMetaFromImagesPayload(
 		thumb: backdropPath || posterPath || null,
 		logo: null,
 		noLogoPoster: posterPath ?? null,
+		hasNoLogoPoster: false,
 	};
 	if (!images) return fallback;
 
@@ -188,13 +190,13 @@ function imageMetaFromImagesPayload(
 			originLanguage(originalLanguage, originCountries),
 		)?.file_path ?? null;
 
-	const posters = images.posters ?? [];
-	const noLogoPoster =
-		bestByVote(posters.filter((p) => !p.iso_639_1))?.file_path ??
-		posterPath ??
-		null;
-
-	return { thumb, logo, noLogoPoster };
+	const textlessPoster = selectTextlessPoster(images.posters);
+	return {
+		thumb,
+		logo,
+		noLogoPoster: textlessPoster ?? fallback.noLogoPoster,
+		hasNoLogoPoster: !!textlessPoster,
+	};
 }
 
 type ImageEntry = {
@@ -213,16 +215,30 @@ function bestByVote(items: ImageEntry[]) {
 		: undefined;
 }
 
-function logoAspectRatio(logo: ImageEntry): number {
-	if (logo.aspect_ratio && logo.aspect_ratio > 0) return logo.aspect_ratio;
-	if (logo.width && logo.height && logo.height > 0) {
-		return logo.width / logo.height;
+export function selectTextlessPoster(posters?: ImageEntry[] | null): string | undefined {
+	const textless = (posters ?? []).filter((poster) =>
+		poster.file_path?.trim() && !poster.iso_639_1 && imageAspectRatio(poster) < 1,
+	);
+	const fullSize = textless.filter((poster) => (poster.width ?? 0) >= 1000);
+	return bestByVote(fullSize.length ? fullSize : textless)?.file_path;
+}
+
+export function hasTextlessPoster(item: { noLogoPoster?: unknown; poster_path?: unknown; hasNoLogoPoster?: unknown }): boolean {
+	if (typeof item.noLogoPoster !== "string" || !item.noLogoPoster.trim()) return false;
+	// Older snapshots stored the regular poster as the fallback in noLogoPoster.
+	return typeof item.hasNoLogoPoster === "boolean" ? item.hasNoLogoPoster : item.noLogoPoster !== item.poster_path;
+}
+
+function imageAspectRatio(image: ImageEntry): number {
+	if (image.aspect_ratio && image.aspect_ratio > 0) return image.aspect_ratio;
+	if (image.width && image.height && image.height > 0) {
+		return image.width / image.height;
 	}
 	return 0;
 }
 
 function isLandscapeLogo(logo: ImageEntry): boolean {
-	return logoAspectRatio(logo) > 1;
+	return imageAspectRatio(logo) > 1;
 }
 
 const ORIGIN_COUNTRY_LANGUAGES: Record<string, string> = {
@@ -412,6 +428,7 @@ export async function fetchImageMeta(
 		thumb: backdropPath || posterPath || null,
 		logo: null,
 		noLogoPoster: posterPath ?? null,
+		hasNoLogoPoster: false,
 	};
 
 	try {

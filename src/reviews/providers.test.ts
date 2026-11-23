@@ -17,6 +17,19 @@ const title = {
 	animated: true,
 };
 
+function doubanSearch(items: { id: string; year: string }[]): Response {
+	return new Response(
+		`<script>window.__DATA__ = ${JSON.stringify({
+			items: items.map((item) => ({
+				id: item.id,
+				tpl_name: "search_subject",
+				title: `搜索显示名 原名 (${item.year})`,
+			})),
+			error_info: "",
+		})};</script>`,
+	);
+}
+
 test("Douban normalizes stars, timestamps and source URLs and rejects malformed responses", () => {
 	const reviews = parseDoubanReviews({
 		interests: [
@@ -45,30 +58,31 @@ test("Douban normalizes stars, timestamps and source URLs and rejects malformed 
 test("Douban requires an unambiguous title, media type and release year", async (t) => {
 	let searches = 0;
 	const matching = {
-		target_type: "tv",
-		target: { id: "12", title: "测试作品 第一季", year: "2023" },
+		type: "tv",
+		id: "12",
+		title: "测试作品 第一季",
+		year: "2023",
 	};
 	const items = [
 		matching,
-		{ ...matching, target_type: "movie" },
-		{
-			target_type: "tv",
-			target: { id: "14", title: "测试作品 第二季", year: "2024" },
-		},
+		{ ...matching, id: "15", type: "movie" },
+		{ ...matching, id: "14", title: "测试作品 第二季", year: "2024" },
 	];
 	t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
 		const url = String(input);
-		if (url.includes("/search?")) {
+		if (url.includes("/subject_search?")) {
 			searches++;
-			return Response.json({ subjects: { items } });
+			return doubanSearch(items);
 		}
+		if (!url.includes("/interests?"))
+			return Response.json(items.find((item) => url.endsWith(`/${item.id}`)));
 		assert.ok(url.includes("/tv/12/interests?"));
 		return Response.json({ interests: [] });
 	});
 	assert.equal((await fetchDoubanReviews(title)).sourceId, "12");
 	await fetchDoubanReviews(title, "12");
 	assert.equal(searches, 1, "known mappings do not search again");
-	items.push({ ...matching, target: { ...matching.target, id: "13" } });
+	items.push({ ...matching, id: "13" });
 	assert.equal((await fetchDoubanReviews(title)).sourceId, null);
 	assert.notEqual(
 		normalizedTitle("测试作品 第二季"),
@@ -93,21 +107,20 @@ test("later season matching accepts Chinese/Arabic season numbers, without borro
 	t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
 		const url = String(input);
 		requests.push(url);
-		if (url.includes("/search?"))
+		if (url.includes("/subject_search?"))
+			return doubanSearch([
+				{ id: "1", year: "2023" },
+				{ id: "2", year: "2023" },
+			]);
+		if (!url.includes("/interests?")) {
+			const second = url.endsWith("/2");
 			return Response.json({
-				subjects: {
-					items: [
-						{
-							target_type: "tv",
-							target: { id: "1", title: "测试作品 第一季", year: "2023" },
-						},
-						{
-							target_type: "tv",
-							target: { id: "2", title: "测试作品 第二季", year: "2023" },
-						},
-					],
-				},
+				id: second ? "2" : "1",
+				type: "tv",
+				year: "2023",
+				title: second ? "测试作品 第二季" : "测试作品 第一季",
 			});
+		}
 		assert.ok(url.includes("/tv/2/interests?count=50&start=0"));
 		return Response.json({
 			interests: Array.from({ length: 50 }, (_, index) => ({
@@ -123,7 +136,71 @@ test("later season matching accepts Chinese/Arabic season numbers, without borro
 	});
 	assert.equal(result.sourceId, "2");
 	assert.equal(result.results.length, 50);
-	assert.equal(requests.length, 2, "search + one larger batch, no pagination");
+	assert.equal(
+		requests.length,
+		4,
+		"public search + candidate verification + one batch, no pagination",
+	);
+});
+
+test("Douban public search resolves a new film by its verified original title and aliases", async (t) => {
+	t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+		const url = String(input);
+		assert.ok(
+			!url.includes("/api/v2/search?"),
+			"anonymous login-only search is never used",
+		);
+		if (url.includes("/subject_search?"))
+			return doubanSearch([{ id: "37368923", year: "2025" }]);
+		if (url.endsWith("/movie/37368923"))
+			return Response.json({
+				id: "37368923",
+				type: "movie",
+				year: "2025",
+				title: "窃取本书者将会…",
+				original_title: "この本を盗む者は",
+				aka: ["谁是窃书之人"],
+			});
+		assert.ok(url.includes("/movie/37368923/interests?"));
+		return Response.json({ interests: [{ id: "7", comment: "短评" }] });
+	});
+	const result = await fetchDoubanReviews({
+		type: "movie",
+		titles: ["谁是窃书之人", "この本を盗む者は"],
+		year: 2025,
+		animated: true,
+	});
+	assert.equal(result.sourceId, "37368923");
+	assert.equal(result.results.length, 1);
+});
+
+test("Douban rejects blocked search pages and unverified or ambiguous candidate metadata", async (t) => {
+	let mode = "blocked";
+	t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+		const url = String(input);
+		assert.ok(!url.includes("/interests?"));
+		if (url.includes("/subject_search?")) {
+			if (mode === "blocked") return new Response("<html>需要登录</html>");
+			return doubanSearch(
+				Array.from({ length: mode === "broad" ? 6 : 1 }, (_, index) => ({
+					id: String(index + 1),
+					year: "2023",
+				})),
+			);
+		}
+		return Response.json({
+			id: mode === "id" ? "999" : "1",
+			type: "tv",
+			year: mode === "year" ? "2024" : "2023",
+			title: "无关作品",
+		});
+	});
+	await assert.rejects(fetchDoubanReviews(title), /Unexpected Douban search/);
+	for (mode of ["title", "year", "id", "broad"])
+		assert.deepEqual(await fetchDoubanReviews(title), {
+			sourceId: null,
+			results: [],
+		});
 });
 
 test("Bahamut keeps the full first batch instead of truncating it to twenty", () => {

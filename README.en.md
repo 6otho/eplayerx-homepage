@@ -33,6 +33,20 @@ New clients may include a `names` glossary in batch input (up to 32 pairs, each 
 
 Validate with `node --import tsx --test src/subtitles/deepseek.test.ts` and `npm run test:ts`.
 
+## Library AI recognition fallback
+
+`POST /media/recognize` is a dedicated fallback for items still unmatched or awaiting confirmation after ordinary scraping. It reuses the server-only `OPENAI_API_KEY` with [`gpt-6-luna`](https://developers.openai.com/api/docs/models/gpt-6-luna), low reasoning effort, structured output and `store: false`. Existing TMDB search and subtitle protocols remain unchanged.
+
+Available only to users with platform Pro or all-access Pro. Clients read the real RevenueCat entitlement snapshot and automatically send `Authorization: Bearer <App User ID>`. The server independently checks active entitlements (including lifetime and grace periods) with its configured `REVENUECAT_API_KEY`, caching for at most 60 seconds and never past expiry. Missing identity returns 401, missing Pro returns 403, and verification failures never call AI. Debug feature unlocks do not bypass this gate. The user ID acts as a bearer credential for this endpoint and is never logged by application code. Configure the existing project public RevenueCat SDK key as the Worker `REVENUECAT_API_KEY` secret; caller-provided API keys are not accepted.
+
+Send `filename`, up to three nearby `folders` labels, parsed `title`, optional `year`, `type` (`movie` / `tv`), `language`, and `reason` (`unmatched` / `confirmation`). No source URLs, media contents or cloud credentials are sent. Luna considers abbreviations, aliases, folders, region, year, synopsis and candidate popularity to choose the most likely work, preferring the mainstream version when same-title works lack version clues. Accepted IDs and saved metadata come from TMDB. Uninformative input returns `{"match":null}`; failures preserve the previous state.
+
+Only library scans enable the fallback. Matched items, explicit IDs, complete NFOs, manual bindings and playback do not call AI. Clients coalesce requests per work, cache attempts for five minutes and allow two concurrent AI requests; parsed episode numbers stay intact. Workers require `MEDIA_RECOGNITION_RATE_LIMITER` (30 requests/minute/IP, approximate per location, not a global spending cap). Requests are limited to 8 KiB with a 25-second overall deadline. Model requests are never retried. Pre-model 429 / 503 failures use the client scan queue's bounded retries and Retry-After; 401 / 403 stops further AI requests in that scan. Unique regional/year matches and strongly supported movie catalog entries can resolve without a model. Optional detail failures preserve the verified search identity and its actual metadata language.
+
+Abbreviations and generic filenames such as `movie` / `video` prefer descriptive work folders; explicit regional clues outrank popularity. Only the AI fallback allows a one-year premiere/wide-release difference. Results for 56 synthetic samples are retained in the [evaluation report](./artifacts/media-recognition-multi-2026-11-14.json).
+
+Validate with `node --import tsx --test src/media-recognition.test.ts src/media-pro-access.test.ts`.
+
 ## 🔑 Get TMDB API Token
 
 1. Visit [TMDB](https://www.themoviedb.org/) and create an account
@@ -81,3 +95,7 @@ Home configuration and media-list endpoints accept optional `metadataLanguage`, 
 Default posters and logos follow the App's `language`, independently of `metadataLanguage`. Empty preferences restore these defaults; `original` selects the work's original language. Missing preferred artwork falls back to the original language, then textless artwork.
 
 For example, `language=en-US&metadataLanguage=zh-CN&posterLanguage=zh-TW&logoLanguage=ja-JP` selects English headings, Simplified Chinese media text, Traditional Chinese posters, and Japanese logos. Browse categories retain the App language. Response caches include all preferences; published snapshots and existing scraped data are never rewritten. Legacy requests add no upstream work, and existing chart translations are reused when available.
+
+### Textless portrait posters
+
+Home media items and `/tmdb/movie/details` and `/tmdb/tv/details` expose `hasNoLogoPoster`. When it is `true`, `noLogoPoster` contains the textless portrait path and the client can overlay the available title logo. When it is `false`, use `poster_path` for portrait art. Older snapshots may keep the regular poster in `noLogoPoster`, so check the flag before showing a logo.
