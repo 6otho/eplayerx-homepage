@@ -1,3 +1,4 @@
+import { orderCustomHome } from "./local-order.js";
 import { type Context, Hono } from "hono";
 import { cors } from "hono/cors";
 import type { BlocksBindings } from "../blocks/types.js";
@@ -68,7 +69,7 @@ app.get("/config", async (c) => {
 		...resolveConfigRequest(c),
 		db: c.env?.DB,
 	});
-	return c.json(data);
+	return c.json({ ...data, blocks: orderCustomHome(data.blocks) });
 });
 
 /**
