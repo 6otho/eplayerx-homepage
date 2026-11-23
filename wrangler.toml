@@ -13,6 +13,10 @@ routes = [
 	{ pattern = "api.eplayerx.com", custom_domain = true },
 	{ pattern = "tmdb.eplayerx.com", custom_domain = true },
 	{ pattern = "eplayerx.com/blocks*", zone_name = "eplayerx.com" },
+	{ pattern = "api-cn.eplayerx.com/home/*", zone_name = "eplayerx.com" },
+	{ pattern = "api-cn.eplayerx.com/tmdb/*", zone_name = "eplayerx.com" },
+	{ pattern = "api-cn.eplayerx.com/crawler/popular/*", zone_name = "eplayerx.com" },
+	{ pattern = "api-cn.eplayerx.com/crawler/discover/*", zone_name = "eplayerx.com" },
 ]
 
 [placement]
