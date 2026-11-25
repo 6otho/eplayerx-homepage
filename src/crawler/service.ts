@@ -65,6 +65,7 @@ export interface ContentItemTranslation {
 }
 
 export interface ContentItem {
+  pinned?: boolean;
 	trailer?: ReturnType<typeof trailerCandidates>;
   title: string;
   tmdbId: number;
@@ -188,6 +189,7 @@ async function mergeWithExisting(
     backdrop_path: "backdrop_source",
     noLogoPoster: "no_logo_poster_source",
   };
+  const previousKeys = new Set(map.keys());
   for (const item of incoming) {
     const k = keyOf(item);
     const old = map.get(k) as Record<string, unknown> | undefined;
@@ -207,7 +209,7 @@ async function mergeWithExisting(
   // 默认去掉过老的（保留近 3 年首播）；keepAll=true 时不过滤（tmdb discover 类用）
   const minYear = new Date().getFullYear() - 3;
   const merged = Array.from(map.values()).filter((x) => {
-    if (keepAll) return true;
+    if (keepAll || x.pinned) return true;
     const y = Number.parseInt(
       (x.first_air_date || x.release_date || "").slice(0, 4),
       10
@@ -215,12 +217,9 @@ async function mergeWithExisting(
     return !Number.isFinite(y) || y >= minYear;
   });
 
-  // 按日期倒序
-  merged.sort((a, b) =>
-    String(b.first_air_date || b.release_date || "").localeCompare(
-      String(a.first_air_date || a.release_date || "")
-    )
-  );
+  // 稳定排序：置顶沿用手排，只让首次入库的条目领先普通历史条目。
+  merged.sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) ||
+    (!a.pinned && !b.pinned ? Number(previousKeys.has(keyOf(a))) - Number(previousKeys.has(keyOf(b))) : 0));
 
   return merged;
 }
@@ -480,46 +479,7 @@ export async function saveHotVarietyShows(varietyShows: ContentItem[]) {
     throw new Error("R2_BUCKET_NAME is not configured");
   }
 
-  // 🔑 增量合并：豆瓣热门接口每天只返回约 20 条，
-  //    直接覆盖会把历史积累的几十条冲掉，所以先读旧数据再合并
-  let merged: ContentItem[] = [...varietyShows];
-  try {
-    const existing = await r2Client.send(
-      new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: HOT_VARIETY_SHOWS_BLOB_KEY })
-    );
-    const body = await existing.Body?.transformToString();
-    if (body) {
-      const old = JSON.parse(body) as BlobData;
-      const oldItems = Array.isArray(old.data) ? old.data : [];
-
-      const keyOf = (x: ContentItem) =>
-        String(x.tmdbId || x.title || "");
-      const fresh = new Map<string, ContentItem>();
-      for (const item of oldItems) fresh.set(keyOf(item), item);
-      // 新抓到的覆盖旧的同一条
-      for (const item of varietyShows) fresh.set(keyOf(item), item);
-      merged = Array.from(fresh.values());
-    }
-  } catch (e: any) {
-    // 首次运行 / 文件不存在时忽略
-    if (e?.$metadata?.httpStatusCode !== 404 && e?.name !== "NoSuchKey") {
-      console.warn("读取旧综艺数据失败，按新增处理:", e?.message);
-    }
-  }
-
-  // 去掉过老的：只保留最近 3 年首播的（避免长期累积成一大堆过时节目）
-  const minYear = new Date().getFullYear() - 3;
-  merged = merged.filter((x) => {
-    const y = Number.parseInt((x.first_air_date || x.release_date || "").slice(0, 4), 10);
-    return !Number.isFinite(y) || y >= minYear;
-  });
-
-  // 按首播日期倒序，新的在前
-  merged.sort((a, b) =>
-    String(b.first_air_date || b.release_date || "").localeCompare(
-      String(a.first_air_date || a.release_date || "")
-    )
-  );
+  const merged = await mergeWithExisting(HOT_VARIETY_SHOWS_BLOB_KEY, varietyShows);
 
   const data: BlobData = {
     platform: "douban",
