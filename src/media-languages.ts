@@ -22,7 +22,7 @@ export function hasMediaLanguages(c: Context): boolean {
 type Media = Record<string, any>;
 
 /** Normalize snapshot artwork and look up language preferences only when requested. */
-export async function localizeMediaPayload(payload: Media, c: Context, fallbackType?: "movie" | "tv"): Promise<Media> {
+export async function localizeMediaPayload(payload: Media, c: Context, fallbackType?: "movie" | "tv", onArtworkFailure?: () => void): Promise<Media> {
   const shouldLocalize = hasMediaLanguages(c);
   const preferences = {
     appLanguage: c.req.query("language") || "en-US",
@@ -35,7 +35,7 @@ export async function localizeMediaPayload(payload: Media, c: Context, fallbackT
     const id = Number(item.tmdbId ?? item.id);
     if (!["movie", "tv"].includes(type) || !Number.isSafeInteger(id) || id <= 0) return item;
     if (!shouldLocalize) return { ...item, hasNoLogoPoster: hasTextlessPoster(item) };
-    return (await enrichWithImages([{ ...item, id }], metadataLanguage(c), type, preferences))[0];
+    return (await enrichWithImages([{ ...item, id }], metadataLanguage(c), type, preferences, onArtworkFailure))[0];
   }
   async function walk(value: any): Promise<any> {
     if (Array.isArray(value)) {
@@ -107,7 +107,8 @@ export async function enrichWithImages(
   items: Record<string, unknown>[],
   language: string,
   mediaType?: "movie" | "tv",
-  preferences?: { metadataLanguage?: string; posterLanguage?: string; logoLanguage?: string; appLanguage: string }
+  preferences?: { metadataLanguage?: string; posterLanguage?: string; logoLanguage?: string; appLanguage: string },
+  onArtworkFailure?: () => void,
 ) {
   const artworkLanguage = preferences?.appLanguage || language;
   const [languageCode] = artworkLanguage.split("-");
@@ -139,9 +140,13 @@ export async function enrichWithImages(
       ]);
 
       const withRatings = withCachedRatings(item, type, cache);
-      if (imagesResult.response.status !== 200) return withRatings;
+      if (imagesResult.response.status !== 200) {
+        onArtworkFailure?.();
+        return withRatings;
+      }
 
       const details = imagesResult.data as (TrailerDetails & { images?: { logos?: ImageEntry[]; posters?: ImageEntry[]; backdrops?: ImageEntry[] } }) | undefined;
+      if (!details?.images) onArtworkFailure?.();
       const originDetails = details as Record<string, any> | undefined;
       const original = originLanguage(originDetails?.original_language ?? item.original_language as string | undefined,
         [...(originDetails?.origin_country ?? item.origin_country as string[] ?? []),
@@ -200,6 +205,7 @@ export async function enrichWithImages(
       }
       return next;
     } catch {
+      onArtworkFailure?.();
       try {
         return withCachedRatings(item, type, await ratingsCache);
       } catch {

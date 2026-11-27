@@ -126,3 +126,59 @@ test("independent artwork caches discard old mixed-language responses and isolat
 	assert.equal(changed.results[0].logo, "/en.png");
 	assert.equal(calls, 4, "Logo preferences have an independent response cache entry");
 });
+
+test("on-the-air bypasses old entries and caches only completed artwork lookups", async (t) => {
+  const previousCaches = globalThis.caches;
+  const previousToken = process.env.TMDB_API_TOKEN;
+  process.env.TMDB_API_TOKEN = "test-token";
+  t.after(() => {
+    if (previousToken === undefined) delete process.env.TMDB_API_TOKEN;
+    else process.env.TMDB_API_TOKEN = previousToken;
+    Object.defineProperty(globalThis, "caches", { configurable: true, value: previousCaches });
+  });
+  const entries = new Map<string, Response>();
+  Object.defineProperty(globalThis, "caches", { configurable: true, value: { default: {
+    match: async (request: Request) => entries.get(request.url)?.clone(),
+    put: async (request: Request, response: Response) => { entries.set(request.url, response); },
+  } } });
+  let imageStatus = 503;
+  const fetch = t.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    const path = new URL(input instanceof Request ? input.url : String(input)).pathname;
+    if (path === "/3/tv/on_the_air") {
+      return Response.json({ results: [{ id: 42, original_language: "en" }, { id: 43, original_language: "en" }] });
+    }
+    if (path.endsWith("/43")) return Response.json({ images: { logos: [], posters: [] } });
+    if (imageStatus !== 200) return Response.json({}, { status: imageStatus });
+    return Response.json({ original_language: "en", images: {
+      logos: [{ file_path: "/logo.png", iso_639_1: "en", width: 500, height: 100 }],
+      posters: [{ file_path: "/textless.jpg", iso_639_1: null, width: 1000, height: 1500 }],
+    } });
+  });
+  const app = new Hono(); app.use("/tmdb/*", tmdbCacheMiddleware); app.route("/tmdb", routes);
+  for (const suffix of ["", "&logoLanguage=original"]) {
+    const url = `/tmdb/tv/on_the_air?language=zh-CN&timezone=Asia%2FTaipei${suffix}`;
+    const oldKey = new URL(`http://localhost${url}`);
+    oldKey.searchParams.set("_cache_version", `20261121-textless-poster${suffix ? "-media-languages-v4" : ""}`);
+    oldKey.searchParams.sort();
+    entries.set(oldKey.href, Response.json({ results: [{ id: 99 }] }));
+    imageStatus = 503;
+    const writesBefore = entries.size;
+    const degraded = await app.request(url);
+    assert.equal(degraded.status, 200);
+    assert.equal(degraded.headers.get("Cache-Control"), "no-store");
+    assert.equal((await degraded.json() as any).results[0].id, 42);
+    assert.equal(entries.size, writesBefore);
+
+    imageStatus = 200;
+    const recovered = await app.request(url);
+    const { results } = await recovered.json() as any;
+    assert.equal(results[0].logo, "/logo.png");
+    assert.equal(results[0].noLogoPoster, "/textless.jpg");
+    assert.equal(results[1].hasNoLogoPoster, false);
+    assert.match(recovered.headers.get("Cache-Control") ?? "", /s-maxage=43200/);
+    assert.equal(entries.size, writesBefore + 1);
+    const calls = fetch.mock.callCount();
+    assert.equal((await (await app.request(url)).json() as any).results[0].logo, "/logo.png");
+    assert.equal(fetch.mock.callCount(), calls);
+  }
+});

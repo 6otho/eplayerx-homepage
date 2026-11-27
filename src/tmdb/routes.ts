@@ -20,7 +20,8 @@ tmdbApp.use("*", async (c, next) => {
   if (!path.endsWith("/collection/details") && !/\/(popular|top_rated|upcoming|on_the_air|similar|movie_credits|tv_credits)$|\/(trending|discover|search)\//.test(path)) return;
   const type = path.endsWith("/collection/details") ? "movie" : /\/(movie|movie_credits)(\/|$)/.test(path) ? "movie" : /\/(tv|tv_credits)(\/|$)/.test(path) ? "tv" : undefined;
   const payload = await c.res.clone().json() as Record<string, unknown>;
-  const localized = await localizeMediaPayload(payload, c, type);
+  const onArtworkFailure = path.endsWith("/tv/on_the_air") ? () => c.header("Cache-Control", "no-store") : undefined;
+  const localized = await localizeMediaPayload(payload, c, type, onArtworkFailure);
   c.res = new Response(JSON.stringify(localized), { status: c.res.status, headers: c.res.headers });
 });
 tmdbApp.route("/", trailerRoutes);
@@ -184,6 +185,7 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
   const path = tmdbApiPath(c.req.path);
   const epoch = cacheControl === CACHE.artwork
     ? "20261019-artwork-6h"
+    : path === "/tv/on_the_air" ? `${TMDB_CACHE_EPOCH}-artwork-retry-v1`
     : /^\/(movie|tv)\/reviews$/.test(path)
     ? "20261113-reviews-seasons-v5"
     : path === "/trending/tv" || path === "/trending/movie"
@@ -222,7 +224,7 @@ export async function tmdbCacheMiddleware(c: Context, next: () => Promise<void>)
     job = (async () => {
       await next();
       c.header("Cache-Control", c.res.ok ? (c.res.headers.get("Cache-Control") ?? cacheControl) : "no-store");
-      if (cache && c.res.ok) {
+      if (cache && c.res.ok && c.res.headers.get("Cache-Control") !== "no-store") {
         // Keep the shared response until the cache fill finishes, closing the miss window.
         try { await cache.put(cacheKey, c.res.clone()); } catch { /* Return usable metadata when cache storage fails. */ }
       }
@@ -1021,7 +1023,9 @@ tmdbApp.get("/tv/on_the_air", async (c) => {
   if (result.data?.results?.length) {
     const top = (result.data.results as Record<string, unknown>[]).slice(0, 20);
     const rest = (result.data.results as Record<string, unknown>[]).slice(20);
-    const enriched = hasMediaLanguages(c) ? top : await enrichWithImages(top, language, "tv");
+    const enriched = hasMediaLanguages(c) ? top : await enrichWithImages(top, language, "tv", undefined, () => {
+      c.header("Cache-Control", "no-store");
+    });
     return c.json({ ...result.data, results: [...enriched, ...rest] });
   }
   return c.json(result.data);
